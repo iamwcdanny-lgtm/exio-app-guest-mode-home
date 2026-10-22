@@ -293,8 +293,10 @@
 /* ========== Bottom nav ========== */
 .mhc-nav {
   flex-shrink: 0;
-  height: 81px;
   padding-top: 10px;
+  /* No mock home indicator: the device draws its own. Full-screen on a
+     phone with a home bar, the safe-area inset keeps the tabs clear of it. */
+  padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
   box-sizing: border-box;
   border-top: 1px solid #ebedf1;
   background: #fff;
@@ -342,13 +344,6 @@
   height: auto;
 }
 
-.mhc-home-indicator {
-  width: 149px;
-  height: 4px;
-  margin: 15px auto 0;
-  border-radius: 2.5px;
-  background: rgba(0, 0, 0, 0.9);
-}
 
 @media (prefers-reduced-motion: reduce) {
   .mhc-dot {

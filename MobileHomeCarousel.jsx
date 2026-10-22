@@ -109,7 +109,6 @@ const BottomNav = ({ active, onChange }) => (
         </button>
       ))}
     </div>
-    <div className="mhc-home-indicator" aria-hidden="true" />
   </nav>
 );
 

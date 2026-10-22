@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import "./tokens.css";
 import "./MobileHomeCarousel.css";
 
@@ -27,6 +27,7 @@ const SLIDES = [
     full: `${ASSETS}/home-custody.webp`,
     alt: "Glass vault holding Bitcoin and Ether coins",
     title: ["Hong Kong first regulated", "digital assets custodian"],
+    subline: "Segregated, institutional-grade custody for your digital assets.",
   },
   {
     build: `${ASSETS}/home-trade-build.mp4`,
@@ -38,7 +39,8 @@ const SLIDES = [
     empty: `${ASSETS}/home-trade-empty.webp`,
     full: `${ASSETS}/home-trade.webp`,
     alt: "Trading screens with price charts and coins",
-    title: ["Your price, your way:", "tap or chat"],
+    title: ["Your price, your way:", "Tap or Chat"],
+    subline: "Trade digital assets in USD and HKD in a few taps, or chat with our traders for OTC deals.",
   },
   {
     build: `${ASSETS}/home-rwa-build.mp4`,
@@ -50,7 +52,8 @@ const SLIDES = [
     empty: `${ASSETS}/home-rwa-empty.webp`,
     full: `${ASSETS}/home-rwa.webp`,
     alt: "Gold bar, certificates and a house beside crypto coins",
-    title: ["RWAs, all in one place:", "invest beyond crypto"],
+    title: ["RWAs, all in one place:", "Invest beyond crypto"],
+    subline: "Diversify with tokenized real-world assets, right alongside your digital assets on EX.IO.",
   },
 ];
 
@@ -122,8 +125,8 @@ const BottomNav = ({ active, onChange }) => (
 );
 
 const VIDEO_PROPS = {
-  width: 340,
-  height: 340,
+  width: 300,
+  height: 300,
   muted: true,
   playsInline: true,
   preload: "auto",
@@ -381,6 +384,24 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
   const lastScrollLeft = useRef(0);
   const fillRefs = useRef([]);
   const atEnd = useRef([]);
+  const slotRefs = useRef([]);
+  // The indicator is one overlay that stays put while slides move, so it sits
+  // at the lowest of the slides' reserved rows (they only differ if a subline
+  // wraps to an extra line on a narrow screen).
+  const [indicatorTop, setIndicatorTop] = useState(null);
+
+  useLayoutEffect(() => {
+    const place = () => {
+      const tops = slotRefs.current.filter(Boolean).map((el) => el.offsetTop);
+      if (tops.length) setIndicatorTop(Math.max(...tops));
+    };
+    place();
+    const ro = new ResizeObserver(place);
+    ro.observe(trackRef.current);
+    slotRefs.current.forEach((el) => el && ro.observe(el.previousElementSibling));
+    document.fonts?.ready.then(place);
+    return () => ro.disconnect();
+  }, []);
 
   const goTo = useCallback((i, smooth = true) => {
     const track = trackRef.current;
@@ -554,17 +575,25 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
                       label={s.alt}
                     />
                   </div>
-                  <h1 className="mhc-title">
-                    {s.title[0]}
-                    <br />
-                    {s.title[1]}
-                  </h1>
-                  <div className="mhc-indicator-slot" />
+                  <div className="mhc-copy">
+                    <h1 className="mhc-title">
+                      {s.title[0]}
+                      <br />
+                      {s.title[1]}
+                    </h1>
+                    <p className="mhc-subline">{s.subline}</p>
+                  </div>
+                  <div className="mhc-indicator-slot" ref={(el) => (slotRefs.current[i] = el)} />
                 </div>
               ))}
             </div>
 
-            <div className="mhc-indicator" role="tablist" aria-label="Choose slide">
+            <div
+              className="mhc-indicator"
+              role="tablist"
+              aria-label="Choose slide"
+              style={indicatorTop === null ? undefined : { top: indicatorTop }}
+            >
               {SLIDES.map((s, i) => (
                 <button
                   key={s.loop}

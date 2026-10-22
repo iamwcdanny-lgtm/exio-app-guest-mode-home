@@ -108,7 +108,6 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 32px;
   padding-top: 16px;
 }
 
@@ -141,24 +140,25 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 16px;
+  /* Content sits at the top; leftover height falls between the indicator
+     and the buttons. The bottom padding keeps a gap above the buttons on
+     short screens, where the illustration shrinks instead. */
+  padding: 0 16px 16px;
   box-sizing: border-box;
 }
 
 .mhc-illustration {
-  flex: 1;
-  min-height: 0;
+  flex: 0 1 300px;
+  min-height: 96px;
   width: 100%;
   display: flex;
-  align-items: center;
   justify-content: center;
 }
 
 .mhc-scene {
   position: relative;
-  width: 340px;
+  height: 100%;
   max-width: 100%;
-  max-height: 100%;
   aspect-ratio: 1 / 1;
 }
 
@@ -181,29 +181,45 @@
 }
 
 /* Reserves the indicator's row inside each slide; the real indicator
-   is overlaid so it stays put while slides move underneath. */
+   is overlaid (positioned from script) so it stays put while slides move
+   underneath. */
 .mhc-indicator-slot {
   flex-shrink: 0;
   height: 8px;
-  margin-top: 16px;
+  margin-top: 40px;
+}
+
+.mhc-copy {
+  flex-shrink: 0;
+  margin-top: 32px;
+  width: 100%;
+  max-width: 343px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: center;
 }
 
 .mhc-title {
-  flex-shrink: 0;
-  margin: 32px 0 0;
-  width: 100%;
-  max-width: 343px;
-  text-align: center;
+  margin: 0;
   font-weight: 800;
-  font-size: 26px;
-  line-height: 34px;
+  font-size: 24px;
+  line-height: 32px;
   color: var(--text-primary);
+}
+
+.mhc-subline {
+  margin: 0;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--text-secondary);
 }
 
 .mhc-indicator {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  top: calc(100% - 24px); /* until positioned from script */
   transform: translateX(-50%);
   display: flex;
   gap: 8px;

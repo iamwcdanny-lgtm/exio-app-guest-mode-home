@@ -169,6 +169,9 @@ const SceneVideo = ({ scene, mode, direction, releases, onDone, onAtEnd, onBuilt
   directionRef.current = direction;
   const controller = useRef(null);
   const [shown, setShown] = useState(mode === "build" || mode === "empty" ? "build" : "loop");
+  // The clip being swapped in: rendered just beneath `shown` until it has
+  // painted a frame. Every other clip is hidden.
+  const [incoming, setIncoming] = useState(null);
 
   useEffect(() => {
     controller.current?.setDirection(direction);
@@ -191,6 +194,7 @@ const SceneVideo = ({ scene, mode, direction, releases, onDone, onAtEnd, onBuilt
       all.forEach((v) => v.pause());
       el.currentTime = 0;
       setShown(layer);
+      setIncoming(null);
     };
 
     // Reduced motion: show the finished scene as a still.
@@ -233,9 +237,11 @@ const SceneVideo = ({ scene, mode, direction, releases, onDone, onAtEnd, onBuilt
     // ("playing" alone can fire before the first frame is drawn, notably on
     // iOS Safari, which showed as a flash between build and loop.)
     const reveal = (el, layer, my) => {
+      setIncoming(layer);
       const show = () => {
         if (my !== token) return;
         setShown(layer);
+        setIncoming(null);
         all.filter((o) => o !== el).forEach((o) => o.pause());
       };
       if (el.requestVideoFrameCallback) {
@@ -364,9 +370,16 @@ const SceneVideo = ({ scene, mode, direction, releases, onDone, onAtEnd, onBuilt
     };
   }, [mode]);
 
-  const layer = (name) => `mhc-scene-layer${shown === name ? " is-shown" : ""}`;
+  const layer = (name) =>
+    `mhc-scene-layer${shown === name ? " is-shown" : incoming === name ? " is-incoming" : ""}`;
+  // A still of what the scene should look like right now, under the clips.
+  // A video that has not painted yet (e.g. just starting on iOS Safari) is
+  // transparent, so this is what shows through instead of a blank or the
+  // wrong clip.
+  const showingEmpty = mode === "empty" || (mode === "build" && shown === "build" && incoming !== "loop");
   return (
     <div className="mhc-scene" role="img" aria-label={label}>
+      <img className="mhc-scene-still" src={showingEmpty ? scene.empty : scene.full} alt="" aria-hidden="true" />
       <video ref={buildRef} className={layer("build")} src={scene.build} poster={scene.empty} {...VIDEO_PROPS} />
       <video ref={loopRef} className={layer("loop")} src={scene.loop} poster={scene.full} {...VIDEO_PROPS} />
       <video ref={reverseRef} className={layer("reverse")} {...VIDEO_PROPS} />

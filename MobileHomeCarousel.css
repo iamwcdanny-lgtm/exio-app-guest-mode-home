@@ -162,10 +162,10 @@
   aspect-ratio: 1 / 1;
 }
 
+.mhc-scene-still,
 .mhc-scene-layer {
   position: absolute;
   inset: 0;
-  z-index: 0;
   display: block;
   width: 100%;
   height: 100%;
@@ -173,11 +173,27 @@
   pointer-events: none;
 }
 
-/* All clips stay rendered, stacked; the current one is on top. The clips
-   are opaque with a pure white background, so the top one fully covers
-   the rest, and a clip swapping in never leaves a gap. */
-.mhc-scene-layer.is-shown {
+/* Stack, bottom to top: a still of the expected frame, the clip being
+   swapped in, then the current clip. Only those render; the rest are
+   hidden. The clips are opaque on pure white, so the current one covers
+   what is beneath, and a clip that is briefly transparent while starting
+   shows the matching still rather than a gap. */
+.mhc-scene-still {
+  z-index: 0;
+}
+
+.mhc-scene-layer {
   z-index: 1;
+  visibility: hidden;
+}
+
+.mhc-scene-layer.is-incoming {
+  visibility: visible;
+}
+
+.mhc-scene-layer.is-shown {
+  z-index: 2;
+  visibility: visible;
 }
 
 /* Reserves the indicator's row inside each slide; the real indicator

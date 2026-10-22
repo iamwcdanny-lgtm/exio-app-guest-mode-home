@@ -148,7 +148,7 @@
 }
 
 .mhc-illustration {
-  flex: 0 1 300px;
+  flex: 0 1 320px;
   min-height: 96px;
   width: 100%;
   display: flex;
@@ -202,7 +202,7 @@
 .mhc-indicator-slot {
   flex-shrink: 0;
   height: 8px;
-  margin-top: 40px;
+  margin-top: 16px;
 }
 
 .mhc-copy {
@@ -286,20 +286,20 @@
   display: flex;
   justify-content: center;
   gap: 16px;
-  padding: 8px 16px 24px;
+  padding: 16px;
   background: #fff;
 }
 
 .mhc-btn {
   flex: 1;
   max-width: 165px;
-  height: 48px;
-  padding: 12px 24px;
+  height: 40px;
+  padding: 10px 32px;
   border-radius: 24px;
   font-family: inherit;
   font-weight: 700;
-  font-size: 16px;
-  line-height: 24px;
+  font-size: 14px;
+  line-height: 20px;
   white-space: nowrap;
   cursor: pointer;
   transition: opacity 0.15s ease, transform 0.1s ease;

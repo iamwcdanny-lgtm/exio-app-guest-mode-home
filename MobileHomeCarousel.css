@@ -165,19 +165,19 @@
 .mhc-scene-layer {
   position: absolute;
   inset: 0;
+  z-index: 0;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  /* The clips' background is lifted to pure white when encoded; multiply
-     is a safety net so any decoder rounding never shows a box edge. */
-  mix-blend-mode: multiply;
   pointer-events: none;
-  visibility: hidden;
 }
 
+/* All clips stay rendered, stacked; the current one is on top. The clips
+   are opaque with a pure white background, so the top one fully covers
+   the rest, and a clip swapping in never leaves a gap. */
 .mhc-scene-layer.is-shown {
-  visibility: visible;
+  z-index: 1;
 }
 
 /* Reserves the indicator's row inside each slide; the real indicator

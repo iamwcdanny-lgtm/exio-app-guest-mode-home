@@ -153,8 +153,8 @@ const TIMELINES = { build: ["build", "loop"], loop: ["loop"] };
 // every release so that re-check happens even if direction was already 1.
 // `onAtEnd` reports whether the scene is resting at the end of its timeline.
 // `getFill` returns this scene's indicator fill, scaled to the timeline position.
-// Clips are stacked; a layer is revealed only once its clip is actually
-// playing, so the previous clip's frame covers any start-up delay.
+// Clips are stacked; a clip moves to the top only once it has painted a
+// frame, so the previous clip's last frame covers any start-up delay.
 const SceneVideo = ({ scene, mode, direction, releases, onDone, onAtEnd, onBuilt, getFill, label }) => {
   const buildRef = useRef(null);
   const loopRef = useRef(null);
@@ -228,12 +228,28 @@ const SceneVideo = ({ scene, mode, direction, releases, onDone, onAtEnd, onBuilt
       return Math.max(0, Math.min(len(phases[phase]), t));
     };
 
-    const reveal = (el, layer, my) =>
-      on(el, "playing", () => {
+    // Bring a clip to the top only once it has actually painted a frame;
+    // until then the previous clip's last frame stays on top and covers it.
+    // ("playing" alone can fire before the first frame is drawn, notably on
+    // iOS Safari, which showed as a flash between build and loop.)
+    const reveal = (el, layer, my) => {
+      const show = () => {
         if (my !== token) return;
         setShown(layer);
         all.filter((o) => o !== el).forEach((o) => o.pause());
-      });
+      };
+      if (el.requestVideoFrameCallback) {
+        const id = el.requestVideoFrameCallback(show);
+        cleanups.push(() => el.cancelVideoFrameCallback?.(id));
+        // Safety net in case a covered video never reports a painted frame.
+        on(el, "playing", () => {
+          const t = setTimeout(show, 250);
+          cleanups.push(() => clearTimeout(t));
+        });
+      } else {
+        on(el, "playing", () => requestAnimationFrame(() => requestAnimationFrame(show)));
+      }
+    };
 
     // Point the reversed element at this phase's reversed clip ahead of time,
     // so switching direction only needs a seek.

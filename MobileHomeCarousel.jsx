@@ -75,17 +75,6 @@ const NAV_TABS = [
   { key: "assets", label: "Assets", icon: "nav-assets.svg", inset: "14.58% 10.42%" },
 ];
 
-const StatusBar = () => (
-  <div className="mhc-status" aria-hidden="true">
-    <span className="mhc-status-time">11:18</span>
-    <div className="mhc-status-icons">
-      <img src={`${ICONS}/cellular.svg`} alt="" />
-      <img src={`${ICONS}/wifi.svg`} alt="" />
-      <img src={`${ICONS}/battery.svg`} alt="" className="mhc-status-battery" />
-    </div>
-  </div>
-);
-
 const Header = () => (
   <div className="mhc-header">
     <button type="button" className="mhc-icon-btn" aria-label="Account">
@@ -560,7 +549,6 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
   return (
     <div className="mhc-stage">
       <div className="mhc-phone">
-        <StatusBar />
         <Header />
 
         <main className="mhc-content">

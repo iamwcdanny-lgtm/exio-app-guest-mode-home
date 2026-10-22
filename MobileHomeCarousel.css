@@ -37,47 +37,12 @@
   }
 }
 
-/* ========== Status bar & header ========== */
-.mhc-status {
-  flex-shrink: 0;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 14px 0 21px;
-}
-
-.mhc-status-time {
-  width: 54px;
-  margin-top: -8px;
-  text-align: center;
-  font-family: "DIN Pro", -apple-system, BlinkMacSystemFont, sans-serif;
-  font-weight: 700;
-  font-size: 15px;
-  line-height: 20px;
-  letter-spacing: -0.24px;
-  color: var(--text-primary);
-}
-
-.mhc-status-icons {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-top: 2px;
-}
-
-.mhc-status-icons img {
-  display: block;
-}
-
-/* Figma exports the battery glyph in white; the light status bar shows it dark. */
-.mhc-status-battery {
-  filter: brightness(0);
-}
-
+/* ========== Header ========== */
 .mhc-header {
   flex-shrink: 0;
-  margin-top: 16px;
+  /* No mock status bar: the device draws its own. The safe-area inset only
+     applies when the page runs full-screen on a notched phone. */
+  margin-top: calc(env(safe-area-inset-top, 0px) + 16px);
   display: flex;
   align-items: center;
   justify-content: space-between;

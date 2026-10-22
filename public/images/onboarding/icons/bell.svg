@@ -1,0 +1,10 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Bell" clip-path="url(#clip0_0_124)">
+<path id="Union" d="M10.875 1.125C10.875 0.50368 11.3787 0 12 0C12.6213 0 13.125 0.50368 13.125 1.125L13.125 2.25C16.8529 2.25 19.875 5.27208 19.875 9V15.75C19.875 16.9926 20.8824 18 22.125 18H22.5V20.25H16.4832C16.2937 22.3524 14.5268 24 12.375 24C10.2232 24 8.45628 22.3524 8.26682 20.25H1.5V18H1.875C3.11764 18 4.125 16.9926 4.125 15.75V9C4.125 5.27208 7.14708 2.25 10.875 2.25V1.125ZM10.5375 20.25C10.7112 21.1058 11.4679 21.75 12.375 21.75C13.2821 21.75 14.0388 21.1058 14.2125 20.25H10.5375Z" fill="black" fill-opacity="0.3"/>
+</g>
+<defs>
+<clipPath id="clip0_0_124">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs>
+</svg>

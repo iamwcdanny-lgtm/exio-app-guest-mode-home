@@ -1,0 +1,360 @@
+/* Logged-out mobile Home with onboarding carousel. Tokens come from
+   RWAPrimaryDistribution.css; the design frame is 375 x 812. */
+
+.mhc-stage {
+  font-family: "Manrope", -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #fff;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+
+.mhc-phone {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  overflow: hidden;
+}
+
+/* On wider screens show the prototype inside a phone-sized frame. */
+@media (min-width: 480px) {
+  .mhc-stage {
+    background: #eef0f3;
+    padding: 24px;
+  }
+  .mhc-phone {
+    width: 375px;
+    height: 812px;
+    border-radius: 40px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  }
+}
+
+/* ========== Status bar & header ========== */
+.mhc-status {
+  flex-shrink: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px 0 21px;
+}
+
+.mhc-status-time {
+  width: 54px;
+  margin-top: -8px;
+  text-align: center;
+  font-family: "DIN Pro", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 20px;
+  letter-spacing: -0.24px;
+  color: var(--text-primary);
+}
+
+.mhc-status-icons {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.mhc-status-icons img {
+  display: block;
+}
+
+/* Figma exports the battery glyph in white; the light status bar shows it dark. */
+.mhc-status-battery {
+  filter: brightness(0);
+}
+
+.mhc-header {
+  flex-shrink: 0;
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+}
+
+.mhc-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.mhc-icon-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  display: block;
+}
+
+.mhc-icon-btn img {
+  display: block;
+}
+
+/* ========== Content ========== */
+.mhc-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding-top: 16px;
+}
+
+.mhc-carousel {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.mhc-track {
+  height: 100%;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  outline: none;
+}
+
+.mhc-track::-webkit-scrollbar {
+  display: none;
+}
+
+.mhc-slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.mhc-illustration {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mhc-scene {
+  position: relative;
+  width: 340px;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1 / 1;
+}
+
+.mhc-scene-layer {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* The clips' background is lifted to pure white when encoded; multiply
+     is a safety net so any decoder rounding never shows a box edge. */
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.mhc-scene-layer.is-shown {
+  visibility: visible;
+}
+
+/* Reserves the indicator's row inside each slide; the real indicator
+   is overlaid so it stays put while slides move underneath. */
+.mhc-indicator-slot {
+  flex-shrink: 0;
+  height: 8px;
+  margin-top: 16px;
+}
+
+.mhc-title {
+  flex-shrink: 0;
+  margin: 32px 0 0;
+  width: 100%;
+  max-width: 343px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 26px;
+  line-height: 34px;
+  color: var(--text-primary);
+}
+
+.mhc-indicator {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+}
+
+.mhc-dot {
+  position: relative;
+  overflow: hidden;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--line-secondary);
+  cursor: pointer;
+  transition: width 0.3s ease;
+}
+
+.mhc-dot.is-active {
+  width: 32px;
+}
+
+/* The active pill is a progress bar: green fills the grey track as the
+   scene plays. Scaled from script; hidden on inactive dots. */
+.mhc-dot-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--success);
+  transform: scaleX(0);
+  transform-origin: left center;
+  visibility: hidden;
+}
+
+.mhc-dot.is-active .mhc-dot-fill {
+  visibility: visible;
+}
+
+.mhc-track:focus-visible ~ .mhc-indicator .mhc-dot.is-active,
+.mhc-dot:focus-visible {
+  outline: 2px solid var(--success);
+  outline-offset: 2px;
+}
+
+/* ========== Buttons ========== */
+.mhc-btn-group {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 8px 16px 24px;
+  background: #fff;
+}
+
+.mhc-btn {
+  flex: 1;
+  max-width: 165px;
+  height: 48px;
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 24px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+
+.mhc-btn:active {
+  transform: scale(0.98);
+}
+
+.mhc-btn-outline {
+  border: 1.5px solid var(--text-primary);
+  background: #fff;
+  color: var(--text-primary);
+}
+
+.mhc-btn-gradient {
+  border: 0;
+  background: linear-gradient(to right, var(--grad-from), var(--grad-to));
+  color: #fff;
+}
+
+.mhc-btn-gradient:hover {
+  opacity: 0.92;
+}
+
+/* ========== Bottom nav ========== */
+.mhc-nav {
+  flex-shrink: 0;
+  height: 81px;
+  padding-top: 10px;
+  box-sizing: border-box;
+  border-top: 1px solid #ebedf1;
+  background: #fff;
+  backdrop-filter: blur(10px);
+}
+
+.mhc-nav-tabs {
+  display: flex;
+}
+
+.mhc-nav-tab {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 14px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+
+.mhc-nav-tab.is-active {
+  color: var(--text-title);
+}
+
+.mhc-nav-icon {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  overflow: hidden;
+}
+
+.mhc-nav-icon img {
+  position: absolute;
+  display: block;
+  width: auto;
+  height: auto;
+}
+
+.mhc-home-indicator {
+  width: 149px;
+  height: 4px;
+  margin: 15px auto 0;
+  border-radius: 2.5px;
+  background: rgba(0, 0, 0, 0.9);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mhc-dot {
+    transition: none;
+  }
+}

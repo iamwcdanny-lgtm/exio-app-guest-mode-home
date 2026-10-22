@@ -26,4 +26,4 @@ npm run build   # production build in dist/
 
 One-time setup: in **Settings → Pages**, set **Source** to **GitHub Actions**.
 
-Source of truth: this carousel was built in [`rwa-portal`](https://github.com/iamwcdanny-lgtm/rwa-portal) (`MobileHomeCarousel.jsx`); `tokens.css` carries the few design tokens it needs from there.
+This repo is the source of truth for the carousel. It was first built in [`rwa-portal`](https://github.com/iamwcdanny-lgtm/rwa-portal), whose copy is kept for reference only; `tokens.css` carries the few EXIO design tokens it needs.

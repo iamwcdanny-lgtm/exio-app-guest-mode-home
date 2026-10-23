@@ -13,7 +13,7 @@ npm run build   # production build in dist/
 ## How the carousel behaves
 
 - The carousel opens on the 3D EX.IO logo (`ExioLogo3D.jsx`, model `public/models/exio_logo.glb`), followed by the three video scenes.
-  - It is a port of `reference/exio-logo-3d.html` with the reference defaults fixed: "All glass" finish, layer spacing 0.21, layers aligned on x and y. There are no finish, spacing or view controls.
+  - It is a port of `reference/exio-logo-3d.html` with the reference defaults fixed: "All glass" finish, layer spacing 0.21, layers aligned on x and y. There are no finish, spacing or view controls. Its resting pose is turned towards the upper left (`REST_YAW` -0.45, `REST_PITCH` -0.3 in `ExioLogo3D.jsx`), so the layers behind show down and to the right.
   - It floats gently and tilts with the mouse (desktop) or the phone (DeviceOrientation; on iOS permission is requested on the first tap anywhere). It does not rotate on drag, so horizontal swipes always change scene. Under `prefers-reduced-motion` it renders once, still.
   - three.js is code-split and only fetched after first paint; a still of the logo (`home-logo.webp`) shows until the 3D view has rendered, then the 3D view fades in. It only animates while on screen.
   - Copy: "Your Private Digital Asset Expert" / "By TradFi, For TradFi". The logo sits in the same 320px illustration slot as the videos.

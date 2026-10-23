@@ -14,6 +14,10 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 const MODEL_URL = `${import.meta.env.BASE_URL}models/exio_logo.glb`;
 const FINISH = "glass"; // "glass" (All glass) or "frost" (Frosted + metal)
 const GAP = 0.21;
+// Resting pose (radians) that the float and tilt move around: turned
+// towards the upper left, so the layers behind show down and to the right.
+const REST_YAW = -0.45;
+const REST_PITCH = -0.3;
 const HOME = new THREE.Vector3(-0.9, 0.8, 11.5);
 const DEG = Math.PI / 180;
 
@@ -171,7 +175,7 @@ const ExioLogo3D = ({ onReady }) => {
       const box = new THREE.Box3().setFromObject(root);
       root.position.sub(box.getCenter(new THREE.Vector3()));
       root.updateMatrixWorld(true);
-      pivot.rotation.y = -0.17;
+      pivot.rotation.set(REST_PITCH, REST_YAW, 0);
       // Materials and colours for the chosen finish.
       const f = FINISHES[FINISH];
       const mats = [f.front(), f.mid(), f.back()];
@@ -250,8 +254,8 @@ const ExioLogo3D = ({ onReady }) => {
       const t = clock.getElapsedTime();
       tilt.lerp(tiltTarget, 0.05);
       if (!reduceMotion) {
-        pivot.rotation.x = tilt.y + Math.sin(t * 0.6) * 0.03;
-        pivot.rotation.y = -0.17 + tilt.x + Math.sin(t * 0.4) * 0.06;
+        pivot.rotation.x = REST_PITCH + tilt.y + Math.sin(t * 0.6) * 0.03;
+        pivot.rotation.y = REST_YAW + tilt.x + Math.sin(t * 0.4) * 0.06;
         pivot.position.y = Math.sin(t * 0.8) * 0.05;
       }
       renderer.render(scene, camera);

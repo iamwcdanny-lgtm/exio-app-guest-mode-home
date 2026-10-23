@@ -54,6 +54,71 @@ const TOP_GLASS = () =>
     clearcoat: 1, clearcoatRoughness: 0.02, iridescence: 0.3, iridescenceIOR: 1.35, specularIntensity: 1,
   });
 
+// Blurred dusk view of Victoria Harbour that only the metal layer reflects (painted
+// on a canvas, no image download): sky, the Peak's ridge, the skyline with IFC, Bank of
+// China Tower and ICC, lit windows, and the harbour.
+function cityEnvironment(pmrem) {
+  const W = 2048, H = 1024, hz = H * 0.6;   // horizon set low so more of the view is sky and skyline
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d');
+  const sky = g.createLinearGradient(0, 0, 0, hz);
+  sky.addColorStop(0, '#1B2F5C'); sky.addColorStop(0.45, '#3F659E'); sky.addColorStop(0.8, '#9C9BB0');
+  sky.addColorStop(0.93, '#E8B98A'); sky.addColorStop(1, '#FFD8A0');
+  g.fillStyle = sky; g.fillRect(0, 0, W, hz);
+  for (const [x, r, a] of [[0.28, 520, 0.85], [0.78, 380, 0.5]]) {   // low sun glows
+    const s = g.createRadialGradient(W * x, hz, 0, W * x, hz, r);
+    s.addColorStop(0, `rgba(255,236,200,${a})`); s.addColorStop(0.35, `rgba(255,190,120,${a * 0.5})`); s.addColorStop(1, 'rgba(255,170,110,0)');
+    g.fillStyle = s; g.fillRect(0, 0, W, H);
+  }
+  const water = g.createLinearGradient(0, hz, 0, H);
+  water.addColorStop(0, '#7A7180'); water.addColorStop(0.2, '#3E4058'); water.addColorStop(1, '#1C2236');
+  g.fillStyle = water; g.fillRect(0, hz, W, H - hz);
+  g.fillStyle = '#2A3850';                                      // the Peak and the hills behind the skyline
+  g.beginPath(); g.moveTo(0, hz);
+  for (let x = 0; x <= W; x += 8) {
+    const t = x / W * Math.PI * 2;
+    g.lineTo(x, hz - H * (0.11 + 0.05 * Math.sin(t * 2 + 0.6) + 0.025 * Math.sin(t * 5 + 1.3) + 0.012 * Math.sin(t * 13)));
+  }
+  g.lineTo(W, hz); g.closePath(); g.fill();
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let x = 0; x < W;) {                                      // skyline, wraps all the way round
+    const w = 14 + rnd() * 40, tall = rnd() < 0.08;
+    const h = (tall ? 0.16 + rnd() * 0.1 : 0.03 + rnd() * 0.08) * H;
+    g.fillStyle = `rgb(${34 + rnd() * 14},${36 + rnd() * 14},${58 + rnd() * 16})`;
+    g.fillRect(x, hz - h, w, h + 2);
+    g.fillStyle = 'rgba(255,214,150,0.85)';
+    for (let wy = hz - h + 6; wy < hz - 4; wy += 7)
+      for (let wx = x + 3; wx < x + w - 3; wx += 6) if (rnd() < 0.35) g.fillRect(wx, wy, 2, 3);
+    x += w + rnd() * 6;
+  }
+  const tower = (x, w, h, col) => { g.fillStyle = col; g.fillRect(x, hz - h, w, h + 2); };
+  // IFC 2: tall slim tower with a stepped crown
+  tower(W * 0.30, 30, H * 0.30, '#3A4466'); tower(W * 0.30 + 4, 22, H * 0.315, '#3A4466'); tower(W * 0.30 + 8, 14, H * 0.33, '#3A4466');
+  // Bank of China Tower: tapering prism with its X bracing
+  g.fillStyle = '#323C5C'; g.beginPath(); g.moveTo(W * 0.345, hz); g.lineTo(W * 0.345, hz - H * 0.2); g.lineTo(W * 0.345 + 18, hz - H * 0.26);
+  g.lineTo(W * 0.345 + 36, hz - H * 0.22); g.lineTo(W * 0.345 + 36, hz); g.fill();
+  g.strokeStyle = 'rgba(220,230,255,0.55)'; g.lineWidth = 2;
+  for (let k = 0; k < 4; k++) { const y0 = hz - H * 0.05 * k; g.beginPath(); g.moveTo(W * 0.345, y0); g.lineTo(W * 0.345 + 36, y0 - H * 0.05); g.moveTo(W * 0.345 + 36, y0); g.lineTo(W * 0.345, y0 - H * 0.05); g.stroke(); }
+  // ICC across the harbour: the tallest, broad and flat-topped
+  tower(W * 0.74, 44, H * 0.36, '#36405F');
+  g.fillStyle = 'rgba(160,200,255,0.8)'; g.fillRect(W * 0.74, hz - H * 0.36, 44, 4);
+  g.fillStyle = 'rgba(255,214,150,0.85)';
+  for (const [x0, w, h] of [[W * 0.30, 30, 0.3], [W * 0.74, 44, 0.36]])
+    for (let wy = hz - H * h + 10; wy < hz - 4; wy += 7) for (let wx = x0 + 3; wx < x0 + w - 3; wx += 6) if (rnd() < 0.4) g.fillRect(wx, wy, 2, 3);
+  g.globalAlpha = 0.35;                                          // lights smeared on the water
+  for (let i = 0; i < 260; i++) {
+    const x = rnd() * W, y = hz + 4 + rnd() * H * 0.18;
+    g.fillStyle = rnd() < 0.7 ? '#FFC98A' : '#9FB6FF'; g.fillRect(x, y, 2 + rnd() * 3, 6 + rnd() * 30);
+  }
+  g.globalAlpha = 1;
+  const b = document.createElement('canvas'); b.width = W; b.height = H;   // soft focus
+  const bg = b.getContext('2d'); bg.filter = 'blur(10px)'; bg.drawImage(c, 0, 0);
+  const tex = new THREE.CanvasTexture(b);
+  tex.mapping = THREE.EquirectangularReflectionMapping; tex.colorSpace = THREE.SRGBColorSpace;
+  const env = pmrem.fromEquirectangular(tex).texture; tex.dispose();
+  return env;
+}
+
 const FINISHES = {
   glass: {
     front: () => new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.3, metalness: 0, envMapIntensity: 0.35,
@@ -127,6 +192,7 @@ const ExioLogo3D = ({ onReady }) => {
     const pmrem = new THREE.PMREMGenerator(renderer);
     const envTexture = pmrem.fromScene(new RoomEnvironment(renderer), 0.03).texture;
     scene.environment = envTexture;
+    const cityEnv = cityEnvironment(pmrem);   // Hong Kong, reflected by the metal layer only
 
     const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
     camera.position.copy(HOME);
@@ -207,6 +273,7 @@ const ExioLogo3D = ({ onReady }) => {
       const f = FINISHES[FINISH];
       const back = FINISHES[BACK_FINISH ?? FINISH];
       const mats = [f.front(), f.mid(), back.back()];
+      if (mats[2].metalness === 1) mats[2].envMap = cityEnv;
       const ramps = [f.ramps[0], f.ramps[1], back.ramps[2]];
       layers.forEach((m, i) => {
         paint(m, RAMPS[ramps[i]]);
@@ -376,6 +443,7 @@ const ExioLogo3D = ({ onReady }) => {
         }
       });
       envTexture.dispose();
+      cityEnv.dispose();
       pmrem.dispose();
       renderer.dispose();
     };

@@ -161,22 +161,11 @@
   visibility: visible;
 }
 
-/* The logo scene has no copy, so its area spans the illustration and copy
-   rows of a video scene (320 + 32 + 128); the indicator row lines up with
-   the other scenes, and the logo is the largest square that fits, centred. */
-.mhc-logo-area {
-  flex: 0 1 480px;
-  min-height: 256px;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  container-type: size;
-}
-
+/* The logo scene sits in the same illustration slot as the videos. */
 .mhc-logo {
   position: relative;
-  width: min(100cqw, 100cqh);
+  height: 100%;
+  max-width: 100%;
   aspect-ratio: 1 / 1;
 }
 

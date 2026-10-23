@@ -22,6 +22,8 @@ const SLIDES = [
     type: "logo",
     poster: `${ASSETS}/home-logo.webp`,
     alt: "EX.IO logo",
+    title: ["Your Private", "Digital Asset Expert"],
+    subline: "By TradFi, For TradFi",
   },
   {
     key: "custody",
@@ -691,8 +693,8 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
                   aria-label={`${i + 1} of ${SLIDES.length}`}
                   aria-hidden={i !== index}
                 >
-                  {s.type === "logo" ? (
-                    <div className="mhc-logo-area">
+                  <div className="mhc-illustration">
+                    {s.type === "logo" ? (
                       <LogoScene
                         mode={sceneMode(i)}
                         direction={i === settled ? direction : 1}
@@ -704,32 +706,28 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
                         poster={s.poster}
                         label={s.alt}
                       />
-                    </div>
-                  ) : (
-                    <>
-                      <div className="mhc-illustration">
-                        <SceneVideo
-                          scene={s}
-                          mode={sceneMode(i)}
-                          direction={i === settled ? direction : 1}
-                          releases={releases}
-                          onDone={() => handleSceneDone(i)}
-                          onAtEnd={(v) => (atEnd.current[i] = v)}
-                          onBuilt={() => markBuilt(i)}
-                          getFill={() => fillRefs.current[i]}
-                          label={s.alt}
-                        />
-                      </div>
-                      <div className="mhc-copy">
-                        <h1 className="mhc-title">
-                          {s.title[0]}
-                          <br />
-                          {s.title[1]}
-                        </h1>
-                        <p className="mhc-subline">{s.subline}</p>
-                      </div>
-                    </>
-                  )}
+                    ) : (
+                      <SceneVideo
+                        scene={s}
+                        mode={sceneMode(i)}
+                        direction={i === settled ? direction : 1}
+                        releases={releases}
+                        onDone={() => handleSceneDone(i)}
+                        onAtEnd={(v) => (atEnd.current[i] = v)}
+                        onBuilt={() => markBuilt(i)}
+                        getFill={() => fillRefs.current[i]}
+                        label={s.alt}
+                      />
+                    )}
+                  </div>
+                  <div className="mhc-copy">
+                    <h1 className="mhc-title">
+                      {s.title[0]}
+                      <br />
+                      {s.title[1]}
+                    </h1>
+                    <p className="mhc-subline">{s.subline}</p>
+                  </div>
                   <div className="mhc-indicator-slot" ref={(el) => (slotRefs.current[i] = el)} />
                 </div>
               ))}

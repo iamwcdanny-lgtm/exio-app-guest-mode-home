@@ -5,9 +5,10 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 // The layered 3D EX.IO logo, ported from reference/exio-logo-3d.html with its
 // default settings fixed: "All glass" finish, layer spacing 0.21 (3.5% of the
-// logo width), layers aligned on x and y. There is no drag-to-rotate (the
-// carousel owns horizontal swipes) and no finish/spacing controls; the logo
-// floats gently and tilts with the mouse or, on phones, with the device.
+// logo width), layers aligned on x and y. There are no finish/spacing
+// controls. Dragging on the logo turns it (and it stays at that angle; the
+// carousel does not swipe from a drag that starts on the logo); it floats
+// gently and tilts with the mouse or, on phones, with the device.
 // Loaded lazily (React.lazy), so three.js never delays the carousel's first
 // paint. Calls onReady once the model has rendered its first frame.
 
@@ -27,6 +28,10 @@ const FIT_H = 0.8;
 const FLOAT = { pitch: 0.06, yaw: 0.12, lift: 0.08 };
 const MOUSE_TILT = { x: 0.4, y: 0.28 };
 const PHONE_TILT = { x: 1.6, y: 1.3, maxX: 0.7, maxY: 0.5 };
+// Drag to turn: radians per canvas width dragged (as OrbitControls'
+// rotateSpeed 0.8), and how far it may tip up or down.
+const DRAG_SPEED = 2 * Math.PI * 0.8;
+const DRAG_MAX_PITCH = 1.2;
 const HOME = new THREE.Vector3(-0.9, 0.8, 11.5);
 const DEG = Math.PI / 180;
 
@@ -211,6 +216,33 @@ const ExioLogo3D = ({ onReady }) => {
     });
 
     // Gentle tilt toward the mouse when idle.
+    // Angle set by dragging, eased towards so it glides like OrbitControls'
+    // damping.
+    const turn = new THREE.Vector2();
+    const turnTarget = new THREE.Vector2();
+    let drag = null;
+    listen(canvas, "pointerdown", (e) => {
+      drag = { id: e.pointerId, x: e.clientX, y: e.clientY };
+      canvas.setPointerCapture(e.pointerId);
+      canvas.classList.add("is-dragging");
+    });
+    listen(canvas, "pointermove", (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      const w = canvas.clientWidth || 1;
+      turnTarget.x += ((e.clientX - drag.x) / w) * DRAG_SPEED;
+      turnTarget.y = Math.max(-DRAG_MAX_PITCH, Math.min(DRAG_MAX_PITCH, turnTarget.y + ((e.clientY - drag.y) / w) * DRAG_SPEED));
+      drag.x = e.clientX;
+      drag.y = e.clientY;
+      if (reduceMotion && loaded) renderFrame(); // no animation loop then
+    });
+    const endDrag = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      drag = null;
+      canvas.classList.remove("is-dragging");
+    };
+    listen(canvas, "pointerup", endDrag);
+    listen(canvas, "pointercancel", endDrag);
+
     const tilt = new THREE.Vector2();
     const tiltTarget = new THREE.Vector2();
     let gyroOn = false;
@@ -305,10 +337,14 @@ const ExioLogo3D = ({ onReady }) => {
     const clock = new THREE.Clock();
     function renderFrame() {
       const t = clock.getElapsedTime();
-      tilt.lerp(tiltTarget, 0.05);
-      if (!reduceMotion) {
-        pivot.rotation.x = REST_PITCH + tilt.y + Math.sin(t * 0.6) * FLOAT.pitch;
-        pivot.rotation.y = REST_YAW + tilt.x + Math.sin(t * 0.4) * FLOAT.yaw;
+      if (reduceMotion) {
+        // Only the user's own drag moves it, without easing.
+        pivot.rotation.set(REST_PITCH + turnTarget.y, REST_YAW + turnTarget.x, 0);
+      } else {
+        tilt.lerp(tiltTarget, 0.05);
+        turn.lerp(turnTarget, 0.15);
+        pivot.rotation.x = REST_PITCH + turn.y + tilt.y + Math.sin(t * 0.6) * FLOAT.pitch;
+        pivot.rotation.y = REST_YAW + turn.x + tilt.x + Math.sin(t * 0.4) * FLOAT.yaw;
         pivot.position.y = Math.sin(t * 0.8) * FLOAT.lift;
       }
       renderer.render(scene, camera);

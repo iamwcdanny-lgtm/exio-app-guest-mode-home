@@ -21,7 +21,7 @@ const SLIDES = [
     key: "logo",
     type: "logo",
     poster: `${ASSETS}/home-logo.webp`,
-    alt: "EX.IO logo",
+    alt: "EX.IO logo. Drag to turn it.",
     title: ["Your Private", "Digital Asset Expert"],
     subline: "By TradFi, For TradFi",
   },

@@ -210,9 +210,25 @@
   transform: translate(-50%, -50%);
 }
 
-.mhc-logo-poster,
+/* The still lets swipes through to the carousel; the 3D view takes drags
+   on itself to turn the logo (touch-action: none stops them from also
+   swiping the carousel). */
+.mhc-logo-poster {
+  pointer-events: none;
+}
+
 .mhc-logo-canvas {
-  pointer-events: none; /* swipes go to the carousel */
+  touch-action: none;
+  cursor: grab;
+}
+
+.mhc-logo-canvas.is-dragging {
+  cursor: grabbing;
+}
+
+/* Until the 3D view has faded in, swipes on the logo area go to the carousel. */
+.mhc-logo:not(.is-ready) .mhc-logo-canvas {
+  pointer-events: none;
 }
 
 .mhc-logo-block .mhc-title {

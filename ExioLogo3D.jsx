@@ -4,16 +4,20 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 // The layered 3D EX.IO logo, ported from reference/exio-logo-3d.html with its
-// default settings fixed: "All glass" finish, layer spacing 0.21 (3.5% of the
-// logo width), layers aligned on x and y. There are no finish/spacing
-// controls. Dragging on the logo turns it (and it stays at that angle; the
-// carousel does not swipe from a drag that starts on the logo); it floats
-// gently and tilts with the mouse or, on phones, with the device.
+// default settings fixed: "All glass" finish (but with a light silver metal
+// back layer), layer spacing 0.21 (3.5% of the logo width), layers aligned on
+// x and y. There are no finish/spacing controls. Dragging on the logo turns
+// it (and it stays at that angle; the carousel does not swipe from a drag
+// that starts on the logo); it floats gently and tilts with the mouse or, on
+// phones, with the device.
 // Loaded lazily (React.lazy), so three.js never delays the carousel's first
 // paint. Calls onReady once the model has rendered its first frame.
 
 const MODEL_URL = `${import.meta.env.BASE_URL}models/exio_logo.glb`;
 const FINISH = "glass"; // "glass" (All glass) or "frost" (Frosted + metal)
+// The back layer (L2) uses the light silver metal from "Frosted + metal"
+// instead of the finish's own back layer. Set to null to follow FINISH.
+const BACK_FINISH = "frost";
 const GAP = 0.21;
 // Resting pose (radians) that the float and tilt move around: turned
 // towards the upper left, so the layers behind show down and to the right.
@@ -201,9 +205,11 @@ const ExioLogo3D = ({ onReady }) => {
       });
       // Materials and colours for the chosen finish.
       const f = FINISHES[FINISH];
-      const mats = [f.front(), f.mid(), f.back()];
+      const back = FINISHES[BACK_FINISH ?? FINISH];
+      const mats = [f.front(), f.mid(), back.back()];
+      const ramps = [f.ramps[0], f.ramps[1], back.ramps[2]];
       layers.forEach((m, i) => {
-        paint(m, RAMPS[f.ramps[i]]);
+        paint(m, RAMPS[ramps[i]]);
         m.material.dispose?.();
         m.material = mats[i];
       });

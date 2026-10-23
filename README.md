@@ -12,6 +12,11 @@ npm run build   # production build in dist/
 
 ## How the carousel behaves
 
+- The carousel opens on the 3D EX.IO logo (`ExioLogo3D.jsx`, model `public/models/exio_logo.glb`), followed by the three video scenes.
+  - It is a port of `reference/exio-logo-3d.html` with the reference defaults fixed: "All glass" finish, layer spacing 0.21, layers aligned on x and y. There are no finish, spacing or view controls.
+  - It floats gently and tilts with the mouse (desktop) or the phone (DeviceOrientation; on iOS permission is requested on the first tap anywhere). It does not rotate on drag, so horizontal swipes always change scene. Under `prefers-reduced-motion` it renders once, still.
+  - three.js is code-split and only fetched after first paint; a still of the logo (`home-logo.webp`) shows until the 3D view has rendered, then the 3D view fades in. It only animates while on screen.
+  - The scene has no clips, so it runs a 6s timeline that behaves like the video scenes: the progress bar fills over 6s, press and hold pauses it, and then the carousel moves on.
 - Each scene animates in two clips in `public/images/onboarding/` that share a frame: `home-<scene>-build.mp4` (empty slab → full scene, 1.5s) and `home-<scene>.mp4` (loop, 6s).
 - The first time a scene is landed on in a page view, it plays its build and then the loop (7.5s). After that, landing on it plays just the loop (6s). Scenes not built yet wait on their empty slab; built ones wait on their finished frame.
 - When the loop finishes, the carousel moves to the next scene; after the last scene it returns to the first.

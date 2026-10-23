@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback, Suspense, lazy } from "react";
 import "./tokens.css";
 import "./MobileHomeCarousel.css";
 
@@ -8,8 +8,9 @@ const ASSETS = `${import.meta.env.BASE_URL}images/onboarding`;
 const ICONS = `${ASSETS}/icons`;
 
 // Logged-out mobile Home (EXIO Mobile, Figma 19110:92589 / 92487 / 92386):
-// a 3-scene onboarding carousel above fixed Login / Register buttons.
-// Each scene animates in two clips that share a frame: build (empty slab ->
+// an onboarding carousel above fixed Login / Register buttons. It opens on
+// the 3D EX.IO logo (LogoScene), followed by three video scenes.
+// Each video scene animates in two clips that share a frame: build (empty slab ->
 // full scene, 1.5s) and loop (full scene, 6s). A scene builds only the first
 // time it is landed on in a page view; after that it just loops. Each clip
 // also has a reversed copy (`*-rev.mp4`) so the animation can run backwards
@@ -17,6 +18,13 @@ const ICONS = `${ASSETS}/icons`;
 // jumping into the middle of one is quick.
 const SLIDES = [
   {
+    key: "logo",
+    type: "logo",
+    poster: `${ASSETS}/home-logo.webp`,
+    alt: "EX.IO logo",
+  },
+  {
+    key: "custody",
     build: `${ASSETS}/home-custody-build.mp4`,
     loop: `${ASSETS}/home-custody.mp4`,
     reverse: {
@@ -30,6 +38,7 @@ const SLIDES = [
     subline: "Segregated, institutional-grade custody for your digital assets.",
   },
   {
+    key: "trade",
     build: `${ASSETS}/home-trade-build.mp4`,
     loop: `${ASSETS}/home-trade.mp4`,
     reverse: {
@@ -43,6 +52,7 @@ const SLIDES = [
     subline: "Trade digital assets in USD and HKD in a few taps, or chat with our traders for OTC deals.",
   },
   {
+    key: "rwa",
     build: `${ASSETS}/home-rwa-build.mp4`,
     loop: `${ASSETS}/home-rwa.mp4`,
     reverse: {
@@ -375,6 +385,109 @@ const SceneVideo = ({ scene, mode, direction, releases, onDone, onAtEnd, onBuilt
   );
 };
 
+// three.js is split into its own chunk and only fetched after first paint.
+const ExioLogo3D = lazy(() => import("./ExioLogo3D"));
+// How long the logo scene holds before the carousel moves on.
+const LOGO_SECONDS = 6;
+
+// The 3D logo scene. It has no clips, so it runs a LOGO_SECONDS timeline
+// that behaves like a video scene's (same props and contract as
+// SceneVideo): it plays when landed on, pauses and runs backwards with
+// `direction`, fills the progress bar, and calls onDone at the end. A
+// still of the logo shows until the 3D view has rendered.
+const LogoScene = ({ mode, direction, releases, onDone, onAtEnd, onBuilt, getFill, poster, label }) => {
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
+  const onAtEndRef = useRef(onAtEnd);
+  onAtEndRef.current = onAtEnd;
+  const onBuiltRef = useRef(onBuilt);
+  onBuiltRef.current = onBuilt;
+  const directionRef = useRef(direction);
+  directionRef.current = direction;
+  const controller = useRef(null);
+  const [mount3D, setMount3D] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  // Mount the 3D view only after the first paint.
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setMount3D(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  useEffect(() => {
+    controller.current?.setDirection(direction);
+  }, [direction, releases]);
+
+  useEffect(() => {
+    const setFill = (p) => {
+      const fill = getFill();
+      if (fill) fill.style.transform = `scaleX(${p})`;
+    };
+    if (prefersReducedMotion()) {
+      setFill(1);
+      return undefined;
+    }
+    if (mode !== "build" && mode !== "loop") {
+      setFill(0);
+      return undefined;
+    }
+    onBuiltRef.current(); // nothing to build
+
+    let t = 0;
+    let dir = directionRef.current;
+    let atEnd = false;
+    const setAtEnd = (v) => {
+      atEnd = v;
+      onAtEndRef.current(v);
+    };
+    setAtEnd(false);
+    let last = performance.now();
+    let raf = 0;
+    const tick = (now) => {
+      // Real elapsed time, so a slow frame rate doesn't stretch the scene;
+      // only a long gap (e.g. returning to a background tab) is dropped.
+      const gap = (now - last) / 1000;
+      const dt = gap > 0.5 ? 0 : gap;
+      last = now;
+      if (!atEnd && dir !== 0) {
+        t = Math.max(0, Math.min(LOGO_SECONDS, t + dt * dir));
+        if (t >= LOGO_SECONDS && dir === 1) {
+          setAtEnd(true);
+          onDoneRef.current();
+        }
+      }
+      setFill(atEnd ? 1 : t / LOGO_SECONDS);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    controller.current = {
+      setDirection(d) {
+        if (d === 1 && atEnd) {
+          onDoneRef.current();
+          return;
+        }
+        if (d === -1 && atEnd) setAtEnd(false);
+        dir = d;
+      },
+    };
+    return () => {
+      cancelAnimationFrame(raf);
+      controller.current = null;
+    };
+  }, [mode]);
+
+  return (
+    <div className={`mhc-logo${ready ? " is-ready" : ""}`} role="img" aria-label={label}>
+      <img className="mhc-logo-poster" src={poster} alt="" aria-hidden="true" />
+      {mount3D && (
+        <Suspense fallback={null}>
+          <ExioLogo3D onReady={() => setReady(true)} />
+        </Suspense>
+      )}
+    </div>
+  );
+};
+
 const MobileHomeCarousel = ({ onLogin, onRegister }) => {
   const [index, setIndex] = useState(0);
   const [tab, setTab] = useState("home");
@@ -571,34 +684,52 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
             >
               {SLIDES.map((s, i) => (
                 <div
-                  key={s.loop}
+                  key={s.key}
                   className="mhc-slide"
                   role="group"
                   aria-roledescription="slide"
                   aria-label={`${i + 1} of ${SLIDES.length}`}
                   aria-hidden={i !== index}
                 >
-                  <div className="mhc-illustration">
-                    <SceneVideo
-                      scene={s}
-                      mode={sceneMode(i)}
-                      direction={i === settled ? direction : 1}
-                      releases={releases}
-                      onDone={() => handleSceneDone(i)}
-                      onAtEnd={(v) => (atEnd.current[i] = v)}
-                      onBuilt={() => markBuilt(i)}
-                      getFill={() => fillRefs.current[i]}
-                      label={s.alt}
-                    />
-                  </div>
-                  <div className="mhc-copy">
-                    <h1 className="mhc-title">
-                      {s.title[0]}
-                      <br />
-                      {s.title[1]}
-                    </h1>
-                    <p className="mhc-subline">{s.subline}</p>
-                  </div>
+                  {s.type === "logo" ? (
+                    <div className="mhc-logo-area">
+                      <LogoScene
+                        mode={sceneMode(i)}
+                        direction={i === settled ? direction : 1}
+                        releases={releases}
+                        onDone={() => handleSceneDone(i)}
+                        onAtEnd={(v) => (atEnd.current[i] = v)}
+                        onBuilt={() => markBuilt(i)}
+                        getFill={() => fillRefs.current[i]}
+                        poster={s.poster}
+                        label={s.alt}
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="mhc-illustration">
+                        <SceneVideo
+                          scene={s}
+                          mode={sceneMode(i)}
+                          direction={i === settled ? direction : 1}
+                          releases={releases}
+                          onDone={() => handleSceneDone(i)}
+                          onAtEnd={(v) => (atEnd.current[i] = v)}
+                          onBuilt={() => markBuilt(i)}
+                          getFill={() => fillRefs.current[i]}
+                          label={s.alt}
+                        />
+                      </div>
+                      <div className="mhc-copy">
+                        <h1 className="mhc-title">
+                          {s.title[0]}
+                          <br />
+                          {s.title[1]}
+                        </h1>
+                        <p className="mhc-subline">{s.subline}</p>
+                      </div>
+                    </>
+                  )}
                   <div className="mhc-indicator-slot" ref={(el) => (slotRefs.current[i] = el)} />
                 </div>
               ))}
@@ -612,7 +743,7 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
             >
               {SLIDES.map((s, i) => (
                 <button
-                  key={s.loop}
+                  key={s.key}
                   type="button"
                   role="tab"
                   aria-selected={i === index}

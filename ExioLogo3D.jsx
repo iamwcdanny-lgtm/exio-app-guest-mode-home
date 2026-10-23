@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 // The layered 3D EX.IO logo, ported from reference/exio-logo-3d.html with its
 // default settings fixed: "All glass" finish (but with a light silver metal
@@ -53,6 +52,39 @@ const TOP_GLASS = () =>
     vertexColors: true, transmission: 1, thickness: 0.4, roughness: 0.04, ior: 1.5,
     clearcoat: 1, clearcoatRoughness: 0.02, iridescence: 0.3, iridescenceIOR: 1.35, specularIntensity: 1,
   });
+
+// Bright photo-studio environment for reflections: a white room with soft light
+// panels and two thin grey bands, so polished metal reflects mostly white and
+// the bands draw its contours.
+function studioEnvironment() {
+  const env = new THREE.Scene();
+  const room = new THREE.SphereGeometry(40, 48, 24);
+  const pos = room.attributes.position, col = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) {
+    const y = pos.getY(i) / 40;                              // -1 floor … 1 ceiling
+    const g = y > 0.1 ? 0.92 : 0.92 - 0.42 * Math.min(1, (0.1 - y) * 1.8);   // floor fades to a mid grey horizon
+    col[i * 3] = g * 0.985; col[i * 3 + 1] = g; col[i * 3 + 2] = g * 1.01;
+  }
+  room.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  env.add(new THREE.Mesh(room, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide })));
+  const panel = (w, h, x, y, z, v) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(v, v, v), side: THREE.DoubleSide }));
+    m.position.set(x, y, z); m.lookAt(0, 0, 0); env.add(m);
+  };
+  panel(30, 8, 0, 22, 6, 3.2);       // overhead softbox
+  panel(5, 26, -24, 2, 14, 2.4);     // tall strip, front left
+  panel(5, 26, 24, 2, 14, 2.0);      // tall strip, front right
+  panel(28, 10, 0, 4, -26, 1.6);     // back light behind the logo
+  // grey bands all round: they become the contour lines on the polished metal
+  panel(2, 34, -12, 0, 30, 0.18);
+  panel(2, 34, 13, 0, 30, 0.25);
+  panel(50, 1.6, 0, -5, 30, 0.3);
+  panel(2.5, 34, -30, 0, -2, 0.2);
+  panel(2.5, 34, 30, 0, -4, 0.2);
+  panel(1.4, 34, -27, 0, 12, 0.3);
+  panel(1.4, 34, 28, 0, 10, 0.3);
+  return env;
+}
 
 const FINISHES = {
   glass: {
@@ -125,7 +157,7 @@ const ExioLogo3D = ({ onReady }) => {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color("#ffffff");
     const pmrem = new THREE.PMREMGenerator(renderer);
-    const envTexture = pmrem.fromScene(new RoomEnvironment(renderer), 0.03).texture;
+    const envTexture = pmrem.fromScene(studioEnvironment(), 0.02).texture;
     scene.environment = envTexture;
 
     const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);

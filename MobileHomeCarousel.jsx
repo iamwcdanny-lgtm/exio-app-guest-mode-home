@@ -490,6 +490,9 @@ const LogoScene = ({ mode, direction, releases, onDone, onAtEnd, onBuilt, getFil
   );
 };
 
+// The logo scene's illustration and copy sit in one block (see .mhc-logo-block).
+const SlideBody = ({ logo, children }) => (logo ? <div className="mhc-logo-block">{children}</div> : <>{children}</>);
+
 const MobileHomeCarousel = ({ onLogin, onRegister }) => {
   const [index, setIndex] = useState(0);
   const [tab, setTab] = useState("home");
@@ -693,41 +696,43 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
                   aria-label={`${i + 1} of ${SLIDES.length}`}
                   aria-hidden={i !== index}
                 >
-                  <div className="mhc-illustration">
-                    {s.type === "logo" ? (
-                      <LogoScene
-                        mode={sceneMode(i)}
-                        direction={i === settled ? direction : 1}
-                        releases={releases}
-                        onDone={() => handleSceneDone(i)}
-                        onAtEnd={(v) => (atEnd.current[i] = v)}
-                        onBuilt={() => markBuilt(i)}
-                        getFill={() => fillRefs.current[i]}
-                        poster={s.poster}
-                        label={s.alt}
-                      />
-                    ) : (
-                      <SceneVideo
-                        scene={s}
-                        mode={sceneMode(i)}
-                        direction={i === settled ? direction : 1}
-                        releases={releases}
-                        onDone={() => handleSceneDone(i)}
-                        onAtEnd={(v) => (atEnd.current[i] = v)}
-                        onBuilt={() => markBuilt(i)}
-                        getFill={() => fillRefs.current[i]}
-                        label={s.alt}
-                      />
-                    )}
-                  </div>
-                  <div className="mhc-copy">
-                    <h1 className="mhc-title">
-                      {s.title[0]}
-                      <br />
-                      {s.title[1]}
-                    </h1>
-                    <p className="mhc-subline">{s.subline}</p>
-                  </div>
+                  <SlideBody logo={s.type === "logo"}>
+                    <div className="mhc-illustration">
+                      {s.type === "logo" ? (
+                        <LogoScene
+                          mode={sceneMode(i)}
+                          direction={i === settled ? direction : 1}
+                          releases={releases}
+                          onDone={() => handleSceneDone(i)}
+                          onAtEnd={(v) => (atEnd.current[i] = v)}
+                          onBuilt={() => markBuilt(i)}
+                          getFill={() => fillRefs.current[i]}
+                          poster={s.poster}
+                          label={s.alt}
+                        />
+                      ) : (
+                        <SceneVideo
+                          scene={s}
+                          mode={sceneMode(i)}
+                          direction={i === settled ? direction : 1}
+                          releases={releases}
+                          onDone={() => handleSceneDone(i)}
+                          onAtEnd={(v) => (atEnd.current[i] = v)}
+                          onBuilt={() => markBuilt(i)}
+                          getFill={() => fillRefs.current[i]}
+                          label={s.alt}
+                        />
+                      )}
+                    </div>
+                    <div className="mhc-copy">
+                      <h1 className="mhc-title">
+                        {s.title[0]}
+                        <br />
+                        {s.title[1]}
+                      </h1>
+                      <p className="mhc-subline">{s.subline}</p>
+                    </div>
+                  </SlideBody>
                   <div className="mhc-indicator-slot" ref={(el) => (slotRefs.current[i] = el)} />
                 </div>
               ))}

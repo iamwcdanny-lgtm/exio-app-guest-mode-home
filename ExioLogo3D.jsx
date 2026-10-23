@@ -18,6 +18,15 @@ const GAP = 0.21;
 // towards the upper left, so the layers behind show down and to the right.
 const REST_YAW = -0.45;
 const REST_PITCH = -0.3;
+// Framing: the logo spans FIT_W of the canvas width, unless that would make
+// it taller than FIT_H of the canvas height (short screens). Leaves room
+// for the float and tilt to swing it without clipping.
+const FIT_W = 0.86;
+const FIT_H = 0.8;
+// Motion: idle float (radians / units) and how far mouse and phone tilt turn it.
+const FLOAT = { pitch: 0.06, yaw: 0.12, lift: 0.08 };
+const MOUSE_TILT = { x: 0.4, y: 0.28 };
+const PHONE_TILT = { x: 1.6, y: 1.3, maxX: 0.7, maxY: 0.5 };
 const HOME = new THREE.Vector3(-0.9, 0.8, 11.5);
 const DEG = Math.PI / 180;
 
@@ -123,6 +132,7 @@ const ExioLogo3D = ({ onReady }) => {
 
     const pivot = new THREE.Group();
     scene.add(pivot);
+    const restPoints = [];
     let loaded = false;
     let disposed = false;
 
@@ -176,6 +186,14 @@ const ExioLogo3D = ({ onReady }) => {
       root.position.sub(box.getCenter(new THREE.Vector3()));
       root.updateMatrixWorld(true);
       pivot.rotation.set(REST_PITCH, REST_YAW, 0);
+      // Sample the logo's points at rest; resize() frames the camera on
+      // where they land on screen.
+      pivot.updateMatrixWorld(true);
+      pivot.traverse((o) => {
+        if (!o.isMesh) return;
+        const pos = o.geometry.attributes.position;
+        for (let i = 0; i < pos.count; i += 4) restPoints.push(new THREE.Vector3().fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld));
+      });
       // Materials and colours for the chosen finish.
       const f = FINISHES[FINISH];
       const mats = [f.front(), f.mid(), f.back()];
@@ -187,6 +205,7 @@ const ExioLogo3D = ({ onReady }) => {
       paint(topGlass, RAMPS.topGlass);
       topGlass.material = TOP_GLASS();
       loaded = true;
+      resize();
       renderFrame();
       onReadyRef.current?.();
     });
@@ -197,7 +216,7 @@ const ExioLogo3D = ({ onReady }) => {
     let gyroOn = false;
     listen(window, "pointermove", (e) => {
       if (e.pointerType === "mouse" && !gyroOn) {
-        tiltTarget.set((e.clientX / window.innerWidth - 0.5) * 0.25, (e.clientY / window.innerHeight - 0.5) * 0.18);
+        tiltTarget.set((e.clientX / window.innerWidth - 0.5) * MOUSE_TILT.x, (e.clientY / window.innerHeight - 0.5) * MOUSE_TILT.y);
       }
     });
 
@@ -216,7 +235,10 @@ const ExioLogo3D = ({ onReady }) => {
       base.x += (x - base.x) * 0.004; // slowly re-centre on how the phone is held
       base.y += (y - base.y) * 0.004;
       gyroOn = true;
-      tiltTarget.set(clamp((x - base.x) * DEG * 1.1, 0.6), clamp((y - base.y) * DEG * 0.9, 0.45));
+      tiltTarget.set(
+        clamp((x - base.x) * DEG * PHONE_TILT.x, PHONE_TILT.maxX),
+        clamp((y - base.y) * DEG * PHONE_TILT.y, PHONE_TILT.maxY)
+      );
     };
     const DOE = window.DeviceOrientationEvent;
     if (!reduceMotion && DOE && window.matchMedia?.("(pointer: coarse)").matches) {
@@ -240,23 +262,54 @@ const ExioLogo3D = ({ onReady }) => {
       if (!w || !h) return;
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
-      // Keep the whole word in frame on narrow boxes.
-      camera.fov = w / h < 1.2 ? 30 * Math.min(2.1, 1.2 / (w / h)) : 30;
-      camera.updateProjectionMatrix();
+      frame();
       if (loaded) renderFrame();
     };
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
     resize();
 
+    // Frame the logo as it appears on screen at rest: centre its outline
+    // (the off-axis camera shifts it) by sliding the camera sideways, then
+    // set the field of view so it fills FIT_W of the width, or FIT_H of the
+    // height if that is the tighter fit. The camera keeps its angle, so the
+    // perspective matches the reference.
+    function frame() {
+      camera.position.copy(HOME);
+      camera.lookAt(0, 0, 0);
+      camera.fov = 30;
+      camera.updateProjectionMatrix();
+      if (!restPoints.length) return;
+      camera.updateMatrixWorld(true);
+      const lo = new THREE.Vector2(Infinity, Infinity);
+      const hi = new THREE.Vector2(-Infinity, -Infinity);
+      const v = new THREE.Vector3();
+      for (const p of restPoints) {
+        v.copy(p).project(camera);
+        lo.min(v);
+        hi.max(v);
+      }
+      const halfH = Math.tan((camera.fov * DEG) / 2); // per unit distance
+      const d = HOME.length();
+      const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
+      const up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1);
+      const shift = right
+        .multiplyScalar(((lo.x + hi.x) / 2) * halfH * camera.aspect * d)
+        .add(up.multiplyScalar(((lo.y + hi.y) / 2) * halfH * d));
+      camera.position.add(shift);
+      const scale = Math.max((hi.x - lo.x) / (2 * FIT_W), (hi.y - lo.y) / (2 * FIT_H));
+      camera.fov = (2 * Math.atan(halfH * scale)) / DEG;
+      camera.updateProjectionMatrix();
+    }
+
     const clock = new THREE.Clock();
     function renderFrame() {
       const t = clock.getElapsedTime();
       tilt.lerp(tiltTarget, 0.05);
       if (!reduceMotion) {
-        pivot.rotation.x = REST_PITCH + tilt.y + Math.sin(t * 0.6) * 0.03;
-        pivot.rotation.y = REST_YAW + tilt.x + Math.sin(t * 0.4) * 0.06;
-        pivot.position.y = Math.sin(t * 0.8) * 0.05;
+        pivot.rotation.x = REST_PITCH + tilt.y + Math.sin(t * 0.6) * FLOAT.pitch;
+        pivot.rotation.y = REST_YAW + tilt.x + Math.sin(t * 0.4) * FLOAT.yaw;
+        pivot.position.y = Math.sin(t * 0.8) * FLOAT.lift;
       }
       renderer.render(scene, camera);
     }

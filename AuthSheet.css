@@ -1,0 +1,554 @@
+/* Sign up / Sign in sheet over the guest Home.
+   The phone frame (.mhc-phone) carries --as-p: 0 = closed, 1 = open.
+   The sheet, the scrim and (on iOS) the Home card behind all derive their
+   position from it, so opening, closing and dragging share one value. */
+
+.mhc-phone {
+  --as-p: 0;
+  /* Where the Home card sits once it has shrunk back (below the status bar
+     on a real device). The sheet starts 10px below it. */
+  --as-top: calc(env(safe-area-inset-top, 0px) + 10px);
+  --as-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --as-dur: 0.45s;
+  --as-link: #0a9bf5;
+  --as-error-line: #ff649b;
+  --as-error-text: #f3518b;
+  transition: background-color var(--as-dur) var(--as-ease);
+}
+
+/* ========== Home behind the sheet ========== */
+.mhc-screen {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  transform-origin: 50% 0;
+  transition: transform var(--as-dur) var(--as-ease), border-radius var(--as-dur) var(--as-ease);
+}
+
+/* iOS page sheet: Home shrinks into a rounded card on black. */
+.mhc-phone.as-open.as-platform-ios {
+  background: #000;
+}
+.mhc-phone.as-open.as-platform-ios .mhc-screen {
+  overflow: hidden;
+  border-radius: calc(12px * var(--as-p));
+  transform: translateY(calc(var(--as-top) * var(--as-p))) scale(calc(1 - 0.075 * var(--as-p)));
+}
+
+/* Dims the card (iOS) or Home (Android) as the sheet comes up. */
+.as-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: #000;
+  opacity: calc(0.18 * var(--as-p));
+  pointer-events: none;
+  transition: opacity var(--as-dur) var(--as-ease);
+}
+.as-platform-android .as-scrim {
+  opacity: calc(0.32 * var(--as-p));
+}
+
+/* ========== Sheet ========== */
+.as-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 21;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  font-family: inherit;
+  color: var(--text-primary);
+  outline: none;
+  transform: translateY(calc((1 - var(--as-p)) * 100%));
+  transition: transform var(--as-dur) var(--as-ease);
+  will-change: transform;
+}
+
+.as-sheet.as-ios {
+  top: calc(var(--as-top) + 10px);
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.04);
+}
+
+/* Android: a full-screen page that slides up over Home. */
+.as-sheet.as-android {
+  top: 0;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* While a finger (or mouse) drags the sheet, follow it exactly. */
+.mhc-phone.as-dragging,
+.mhc-phone.as-dragging .mhc-screen,
+.mhc-phone.as-dragging .as-scrim,
+.mhc-phone.as-dragging .as-sheet {
+  transition: none;
+}
+
+.as-topbar {
+  flex-shrink: 0;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 12px;
+}
+
+.as-close {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.as-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.as-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 16px 24px;
+  transition: opacity 0.16s ease;
+}
+.as-scroll.is-fading {
+  opacity: 0;
+}
+
+.as-logo {
+  display: block;
+  height: 32px;
+  width: auto;
+  margin-bottom: 16px;
+}
+
+.as-title {
+  margin: 0 0 32px;
+  font-weight: 800;
+  font-size: 24px;
+  line-height: 32px;
+  color: #000;
+}
+.as-title-signin {
+  margin-top: 4px;
+}
+
+/* Space between fields depends on the label style: a label above the field
+   needs more room to read as belonging to the field below it. */
+.as-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.as-style-trad .as-form {
+  gap: 24px;
+}
+.as-style-float .as-form {
+  gap: 20px;
+}
+
+/* ========== Fields ========== */
+.as-field {
+  position: relative;
+}
+
+.as-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: text;
+  transition: border-color 0.2s ease;
+}
+
+.as-input {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 22px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  outline: none;
+  background: transparent;
+  font: 700 14px/22px "Manrope", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+  caret-color: var(--success);
+}
+.as-input::placeholder {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.3);
+  opacity: 1;
+}
+/* Keep autofill from painting its own background over the field. */
+.as-input:-webkit-autofill {
+  -webkit-text-fill-color: var(--text-primary);
+  transition: background-color 600000s 0s;
+}
+
+.as-label {
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color 0.2s ease, top 0.2s ease, font-size 0.2s ease;
+}
+
+.as-icon-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  margin: 0 -7px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.as-hint {
+  margin: 4px 0 0;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text-tertiary);
+}
+.as-hint.is-error {
+  color: var(--as-error-text);
+}
+
+.as-field.is-focused .as-box {
+  border-color: var(--text-primary);
+}
+.as-field.is-error .as-box {
+  border-color: var(--as-error-line);
+}
+
+/* Traditional: label above a grey field. */
+.as-style-trad .as-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-primary);
+}
+.as-style-trad .as-box {
+  height: 48px;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* Floating label: outlined white field; the label sits inside it until the
+   field is focused or filled, then rides up into a notch in the border. */
+.as-style-float .as-box {
+  height: 48px;
+  background: #fff;
+  border-color: rgba(0, 0, 0, 0.12);
+}
+.as-style-float .as-label {
+  position: absolute;
+  left: 8px;
+  top: 24px;
+  transform: translateY(-50%);
+  padding: 0 4px;
+  background: #fff;
+  font-size: 14px;
+  line-height: 1;
+  white-space: nowrap;
+  color: rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+.as-style-float .as-field.is-up .as-label {
+  top: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+/* A browser or password manager can fill a field without telling the page,
+   so float the label for autofilled fields too (two rules: an unknown
+   selector would void a combined one). */
+.as-style-float .as-field:has(.as-input:-webkit-autofill) .as-label {
+  top: 0;
+  font-size: 12px;
+}
+.as-style-float .as-field:has(.as-input:autofill) .as-label {
+  top: 0;
+  font-size: 12px;
+}
+.as-style-float .as-field.is-focused .as-label {
+  color: var(--text-primary);
+}
+.as-style-float .as-field.is-error .as-label {
+  color: var(--as-error-text);
+}
+
+/* IFTA: grey field, small label fixed at the top inside it. */
+.as-style-ifta .as-box {
+  height: 58px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.04);
+}
+.as-ifta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.as-style-ifta .as-label {
+  font-size: 12px;
+  line-height: 16px;
+  cursor: text;
+}
+.as-style-ifta .as-field.is-focused .as-label {
+  color: var(--text-primary);
+}
+.as-style-ifta .as-field.is-error .as-label {
+  color: var(--as-error-text);
+}
+
+/* ========== Other controls ========== */
+.as-disclosure {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.as-disclosure svg {
+  transition: transform 0.2s ease;
+}
+.as-disclosure.is-open svg {
+  transform: rotate(180deg);
+}
+
+.as-check {
+  display: flex;
+  gap: 10px;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.as-check input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.as-check svg {
+  flex-shrink: 0;
+  color: rgba(0, 0, 0, 0.3);
+  transition: color 0.15s ease;
+}
+.as-check.is-on svg {
+  color: var(--success);
+}
+.as-check:has(input:focus-visible) svg {
+  outline: 2px solid var(--success);
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
+.as-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: inherit;
+  line-height: inherit;
+  color: var(--as-link);
+  cursor: pointer;
+}
+
+.as-forgot {
+  align-self: flex-start;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  /* Sits 8px under the password field whatever the field gap is. */
+  margin-top: -8px;
+}
+.as-style-trad .as-forgot {
+  margin-top: -16px;
+}
+.as-style-float .as-forgot {
+  margin-top: -12px;
+}
+
+/* ========== Footer ========== */
+.as-footer {
+  position: relative;
+  flex-shrink: 0;
+  padding: 12px 16px max(16px, env(safe-area-inset-bottom, 0px));
+  background: #fff;
+}
+
+.as-submit {
+  display: block;
+  width: 100%;
+  height: 48px;
+  border: 0;
+  border-radius: 24px;
+  background: rgba(0, 0, 0, 0.04);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 24px;
+  color: rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.1s ease;
+}
+.as-submit.is-ready {
+  background: linear-gradient(to right, var(--grad-from), var(--grad-to));
+  color: #fff;
+}
+.as-submit:active {
+  transform: scale(0.98);
+}
+
+.as-switch {
+  margin: 16px 0 0;
+  text-align: center;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  color: rgba(0, 0, 0, 0.3);
+}
+
+.as-toast {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translate(-50%, 4px);
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: #111d2c;
+  color: #fff;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 18px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.as-toast.is-shown {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.as-close:focus-visible,
+.as-icon-btn:focus-visible,
+.as-link:focus-visible,
+.as-disclosure:focus-visible,
+.as-submit:focus-visible {
+  outline: 2px solid var(--success);
+  outline-offset: 2px;
+}
+
+/* ========== Prototype controls (outside the phone, wide screens only) ========== */
+.as-proto {
+  display: none;
+}
+
+@media (min-width: 840px) {
+  .as-proto {
+    position: fixed;
+    top: 24px;
+    left: 24px;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 196px;
+    padding: 16px;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 4px 24px rgba(159, 162, 191, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.04);
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+}
+
+.as-proto-group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.as-proto-group legend {
+  padding: 0;
+  margin-bottom: 6px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.as-proto-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.as-proto-option input {
+  margin: 0;
+  accent-color: var(--success);
+}
+
+.as-proto-note {
+  margin: 0;
+  line-height: 16px;
+  color: var(--text-tertiary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mhc-phone,
+  .mhc-screen,
+  .as-scrim,
+  .as-sheet,
+  .as-scroll,
+  .as-toast {
+    transition: none;
+  }
+}

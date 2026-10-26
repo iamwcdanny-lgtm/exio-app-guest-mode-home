@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import "./tokens.css";
 import "./MobileHomeCarousel.css";
+import AuthSheet from "./AuthSheet";
 
 // Asset paths follow Vite's base, so the build also works from a subpath
 // (e.g. GitHub Pages at /rwa-portal/).
@@ -123,6 +124,55 @@ const VIDEO_PROPS = {
 };
 
 const prefersReducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+// Prototype settings for the Sign up / Sign in sheet, also settable from the
+// URL so a link can open straight into one variant:
+//   ?label=trad|float|ifta   how form fields are labelled
+//   ?platform=ios|android    how the sheet is presented
+const LABEL_STYLES = [
+  { key: "trad", label: "Traditional" },
+  { key: "float", label: "Floating label" },
+  { key: "ifta", label: "IFTA" },
+];
+const PLATFORMS = [
+  { key: "ios", label: "iOS page sheet" },
+  { key: "android", label: "Android full screen" },
+];
+const readParam = (name, options, fallback) => {
+  const v = new URLSearchParams(window.location.search).get(name);
+  return options.some((o) => o.key === v) ? v : fallback;
+};
+const writeParam = (name, value) => {
+  const url = new URL(window.location.href);
+  url.searchParams.set(name, value);
+  // Keep the current history state (the sheet's entry, if it's open).
+  window.history.replaceState(window.history.state, "", url);
+};
+const defaultPlatform = () => (/android/i.test(navigator.userAgent) ? "android" : "ios");
+
+const ProtoControls = ({ labelStyle, onLabelStyle, platform, onPlatform }) => (
+  <aside className="as-proto" aria-label="Prototype settings">
+    <fieldset className="as-proto-group">
+      <legend>Field labels</legend>
+      {LABEL_STYLES.map((o) => (
+        <label key={o.key} className="as-proto-option">
+          <input type="radio" name="as-label" checked={labelStyle === o.key} onChange={() => onLabelStyle(o.key)} />
+          {o.label}
+        </label>
+      ))}
+    </fieldset>
+    <fieldset className="as-proto-group">
+      <legend>Sheet</legend>
+      {PLATFORMS.map((o) => (
+        <label key={o.key} className="as-proto-option">
+          <input type="radio" name="as-platform" checked={platform === o.key} onChange={() => onPlatform(o.key)} />
+          {o.label}
+        </label>
+      ))}
+    </fieldset>
+    <p className="as-proto-note">Tap Login or Register to open it. On a phone, set these with ?label= and ?platform= in the URL.</p>
+  </aside>
+);
 
 // The clips a landed scene plays through, in order.
 const TIMELINES = { build: ["build", "loop"], loop: ["loop"] };
@@ -407,6 +457,38 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
   // wraps to an extra line on a narrow screen).
   const [indicatorTop, setIndicatorTop] = useState(null);
 
+  // Sign up / Sign in sheet: null, "signup" or "signin".
+  const [auth, setAuth] = useState(null);
+  const authRef = useRef(null);
+  authRef.current = auth;
+  const [labelStyle, setLabelStyle] = useState(() => readParam("label", LABEL_STYLES, "trad"));
+  const [platform, setPlatform] = useState(() => readParam("platform", PLATFORMS, defaultPlatform()));
+  const phoneRef = useRef(null);
+  const screenRef = useRef(null);
+
+  // Opening the sheet adds a history entry, so the browser's back action
+  // (Android's back gesture / button) closes it. Closing from the sheet
+  // itself goes back through that entry, so history stays in step.
+  const openAuth = (mode) => {
+    if (!authRef.current) window.history.pushState({ asSheet: true }, "");
+    setAuth(mode);
+  };
+  const closeAuth = useCallback(() => {
+    if (window.history.state?.asSheet) window.history.back();
+    else setAuth(null);
+  }, []);
+  useEffect(() => {
+    const onPop = () => {
+      if (authRef.current && !window.history.state?.asSheet) setAuth(null);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  // A reload while the sheet's entry is current would leave a stray entry.
+  useEffect(() => {
+    if (window.history.state?.asSheet) window.history.replaceState(null, "");
+  }, []);
+
   useLayoutEffect(() => {
     const place = () => {
       const tops = slotRefs.current.filter(Boolean).map((el) => el.offsetTop);
@@ -547,99 +629,139 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
 
   return (
     <div className="mhc-stage">
-      <div className="mhc-phone">
-        <Header />
+      <ProtoControls
+        labelStyle={labelStyle}
+        onLabelStyle={(v) => {
+          setLabelStyle(v);
+          writeParam("label", v);
+        }}
+        platform={platform}
+        onPlatform={(v) => {
+          setPlatform(v);
+          writeParam("platform", v);
+        }}
+      />
+      <div ref={phoneRef} className={`mhc-phone as-platform-${platform}`}>
+        <div ref={screenRef} className="mhc-screen">
+          <Header />
 
-        <main className="mhc-content">
-          <section
-            className="mhc-carousel"
-            aria-roledescription="carousel"
-            aria-label="Welcome to EXIO"
-            onKeyDown={handleKeyDown}
-          >
-            <div
-              ref={trackRef}
-              className="mhc-track"
-              onScroll={handleScroll}
-              onTouchStart={handleTouchStart}
-              onPointerDown={handlePointerDown}
-              onPointerUp={handlePointerUp}
-              onPointerLeave={handlePointerUp}
-              onTouchEnd={handleTouchEnd}
-              onTouchCancel={handleTouchEnd}
-              tabIndex={0}
+          <main className="mhc-content">
+            <section
+              className="mhc-carousel"
+              aria-roledescription="carousel"
+              aria-label="Welcome to EXIO"
+              onKeyDown={handleKeyDown}
             >
-              {SLIDES.map((s, i) => (
-                <div
-                  key={s.loop}
-                  className="mhc-slide"
-                  role="group"
-                  aria-roledescription="slide"
-                  aria-label={`${i + 1} of ${SLIDES.length}`}
-                  aria-hidden={i !== index}
-                >
-                  <div className="mhc-illustration">
-                    <SceneVideo
-                      scene={s}
-                      mode={sceneMode(i)}
-                      direction={i === settled ? direction : 1}
-                      releases={releases}
-                      onDone={() => handleSceneDone(i)}
-                      onAtEnd={(v) => (atEnd.current[i] = v)}
-                      onBuilt={() => markBuilt(i)}
-                      getFill={() => fillRefs.current[i]}
-                      label={s.alt}
-                    />
+              <div
+                ref={trackRef}
+                className="mhc-track"
+                onScroll={handleScroll}
+                onTouchStart={handleTouchStart}
+                onPointerDown={handlePointerDown}
+                onPointerUp={handlePointerUp}
+                onPointerLeave={handlePointerUp}
+                onTouchEnd={handleTouchEnd}
+                onTouchCancel={handleTouchEnd}
+                tabIndex={0}
+              >
+                {SLIDES.map((s, i) => (
+                  <div
+                    key={s.loop}
+                    className="mhc-slide"
+                    role="group"
+                    aria-roledescription="slide"
+                    aria-label={`${i + 1} of ${SLIDES.length}`}
+                    aria-hidden={i !== index}
+                  >
+                    <div className="mhc-illustration">
+                      <SceneVideo
+                        scene={s}
+                        mode={sceneMode(i)}
+                        direction={i === settled ? direction : 1}
+                        releases={releases}
+                        onDone={() => handleSceneDone(i)}
+                        onAtEnd={(v) => (atEnd.current[i] = v)}
+                        onBuilt={() => markBuilt(i)}
+                        getFill={() => fillRefs.current[i]}
+                        label={s.alt}
+                      />
+                    </div>
+                    <div className="mhc-copy">
+                      <h1 className="mhc-title">
+                        {s.title[0]}
+                        <br />
+                        {s.title[1]}
+                      </h1>
+                      <p className="mhc-subline">{s.subline}</p>
+                    </div>
+                    <div className="mhc-indicator-slot" ref={(el) => (slotRefs.current[i] = el)} />
                   </div>
-                  <div className="mhc-copy">
-                    <h1 className="mhc-title">
-                      {s.title[0]}
-                      <br />
-                      {s.title[1]}
-                    </h1>
-                    <p className="mhc-subline">{s.subline}</p>
-                  </div>
-                  <div className="mhc-indicator-slot" ref={(el) => (slotRefs.current[i] = el)} />
-                </div>
-              ))}
+                ))}
+              </div>
+
+              <div
+                className="mhc-indicator"
+                role="tablist"
+                aria-label="Choose slide"
+                style={indicatorTop === null ? undefined : { top: indicatorTop }}
+              >
+                {SLIDES.map((s, i) => (
+                  <button
+                    key={s.loop}
+                    type="button"
+                    role="tab"
+                    aria-selected={i === index}
+                    aria-label={`Slide ${i + 1}`}
+                    className={`mhc-dot${i === index ? " is-active" : ""}`}
+                    onClick={() => {
+                      goTo(i);
+                      scheduleSettle();
+                    }}
+                  >
+                    <span className="mhc-dot-fill" ref={(el) => (fillRefs.current[i] = el)} />
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <div className="mhc-btn-group">
+              <button
+                type="button"
+                className="mhc-btn mhc-btn-outline"
+                aria-haspopup="dialog"
+                onClick={() => {
+                  openAuth("signin");
+                  onLogin?.();
+                }}
+              >
+                Login
+              </button>
+              <button
+                type="button"
+                className="mhc-btn mhc-btn-gradient"
+                aria-haspopup="dialog"
+                onClick={() => {
+                  openAuth("signup");
+                  onRegister?.();
+                }}
+              >
+                Register
+              </button>
             </div>
+          </main>
 
-            <div
-              className="mhc-indicator"
-              role="tablist"
-              aria-label="Choose slide"
-              style={indicatorTop === null ? undefined : { top: indicatorTop }}
-            >
-              {SLIDES.map((s, i) => (
-                <button
-                  key={s.loop}
-                  type="button"
-                  role="tab"
-                  aria-selected={i === index}
-                  aria-label={`Slide ${i + 1}`}
-                  className={`mhc-dot${i === index ? " is-active" : ""}`}
-                  onClick={() => {
-                    goTo(i);
-                    scheduleSettle();
-                  }}
-                >
-                  <span className="mhc-dot-fill" ref={(el) => (fillRefs.current[i] = el)} />
-                </button>
-              ))}
-            </div>
-          </section>
+          <BottomNav active={tab} onChange={setTab} />
+        </div>
 
-          <div className="mhc-btn-group">
-            <button type="button" className="mhc-btn mhc-btn-outline" onClick={onLogin}>
-              Login
-            </button>
-            <button type="button" className="mhc-btn mhc-btn-gradient" onClick={onRegister}>
-              Register
-            </button>
-          </div>
-        </main>
-
-        <BottomNav active={tab} onChange={setTab} />
+        <AuthSheet
+          mode={auth}
+          onModeChange={setAuth}
+          onClose={closeAuth}
+          labelStyle={labelStyle}
+          platform={platform}
+          phoneRef={phoneRef}
+          screenRef={screenRef}
+        />
       </div>
     </div>
   );

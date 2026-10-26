@@ -20,6 +20,18 @@ npm run build   # production build in dist/
 - The active indicator is a progress bar that follows the actual playback position (7.5s on a first landing, 6s after).
 - A scene only counts as landed once scrolling has stopped and the finger has lifted. Under `prefers-reduced-motion` each scene shows its finished state as a still and nothing auto-advances.
 
+## Sign up / Sign in sheet
+
+Login opens Sign in and Register opens Sign up ([Figma: Sign up](https://www.figma.com/design/Nj2U7xqDjoFcdRGGEZLGTX/%F0%9F%A5%91-EXIO-Mobile?node-id=19377-102791), [Sign in](https://www.figma.com/design/Nj2U7xqDjoFcdRGGEZLGTX/%F0%9F%A5%91-EXIO-Mobile?node-id=19408-120715)); the link under Next switches between them. Code: `AuthSheet.jsx` / `AuthSheet.css`.
+
+- **iOS** (default): a page sheet. It slides up, Home shrinks into a rounded card behind it on black, and dragging the sheet down dismisses it (release past a quarter of its height, or flick). Inside the form, the drag only takes over once the content is scrolled to the top.
+- **Android** (default on Android devices): a full-screen page that slides up over Home, with no drag to dismiss.
+- On both, the X, Escape and the browser's back action close it (opening it adds a history entry, so Android's back gesture works). Each opening starts with an empty form.
+- **Field labels**, to compare in the same flow: `trad` (label above, current design, 24px between fields), `float` (floating label, 20px) and `ifta` (infield top-aligned, 16px).
+- Fields check themselves when left (if something was typed) and then update live as they are corrected. Next stays grey until the required fields are valid; pressing it early shows every error and focuses the first. A clear button appears while a filled field is focused; password fields have a show / hide toggle.
+
+Pick the variant from the panel beside the phone on a wide screen, or with URL parameters (e.g. `?label=float&platform=android`). The viewport sets `maximum-scale=1` so iOS Safari doesn't zoom in when a 14px field is focused.
+
 ## Deployment
 
 `.github/workflows/pages.yml` builds and deploys to GitHub Pages on every push to `main` (or manually from the Actions tab). Vite's `base` is `./`, so the build works from the Pages subpath.

@@ -22,15 +22,27 @@ npm run build   # production build in dist/
 
 ## Sign up / Sign in sheet
 
-Login opens Sign in and Register opens Sign up ([Figma: Sign up](https://www.figma.com/design/Nj2U7xqDjoFcdRGGEZLGTX/%F0%9F%A5%91-EXIO-Mobile?node-id=19377-102791), [Sign in](https://www.figma.com/design/Nj2U7xqDjoFcdRGGEZLGTX/%F0%9F%A5%91-EXIO-Mobile?node-id=19408-120715)); the link under Next switches between them. Code: `AuthSheet.jsx` / `AuthSheet.css`.
+The guest Home's Login and Sign up buttons open the matching page ([Figma: Sign up](https://www.figma.com/design/Nj2U7xqDjoFcdRGGEZLGTX/%F0%9F%A5%91-EXIO-Mobile?node-id=19377-102791), [Sign in](https://www.figma.com/design/Nj2U7xqDjoFcdRGGEZLGTX/%F0%9F%A5%91-EXIO-Mobile?node-id=19408-120715)); the link under Next switches between them. Code: `AuthSheet.jsx` / `AuthSheet.css`.
 
 - **iOS** (default): a page sheet. It slides up, Home shrinks into a rounded card behind it on black, and dragging the sheet down dismisses it (release past a quarter of its height, or flick). Inside the form, the drag only takes over once the content is scrolled to the top.
 - **Android** (default on Android devices): a full-screen page that slides up over Home, with no drag to dismiss.
 - On both, the X, Escape and the browser's back action close it (opening it adds a history entry, so Android's back gesture works). Each opening starts with an empty form.
 - **Field labels**, to compare in the same flow: `trad` (label above, current design, 24px between fields), `float` (floating label, 20px) and `ifta` (infield top-aligned, 16px).
-- Fields check themselves when left (if something was typed) and then update live as they are corrected. Next stays grey until the required fields are valid; pressing it early shows every error and focuses the first. A clear button appears while a filled field is focused; password fields have a show / hide toggle.
+- **Field labels**: every field is 56px (IFTA) or 48px (floating, traditional) tall including padding and border. Focus and error strokes are 1.5px.
+- Errors show as soon as what's typed is invalid. Email is the exception: its format is only checked when the field is left, and the error clears as soon as it's fixed. Next stays grey until the required fields are valid; pressing it early shows every error and focuses the first. A clear button appears while a filled field is focused; password fields have a show / hide toggle and a live checklist of EX.IO's five password rules.
+- After "@" in an email field, common hosts (gmail.com, outlook.com, hotmail.com, icloud.com, yahoo.com, yahoo.com.hk) show as chips under it, narrowed by what follows the "@".
+- **Sign up** → email code (6 boxes, Paste, resend countdown; `000000` is treated as wrong) → **Account activated** with a confetti burst, then Verify identity (KYC, not in this prototype) or Do it later, which returns, logged in, to where sign up started.
+- **Sign in** → a verification step chosen by the prototype panel's *Sign-in verification* setting: authenticator code, SMS code or email code (passkey is to be designed). "Try another way" opens a bottom sheet with the other methods. Then it returns to the logged-in Home with "Welcome back, <username>".
 
-Pick the variant from the panel beside the phone on a wide screen, or with URL parameters (e.g. `?label=float&platform=android`). The viewport sets `maximum-scale=1` so iOS Safari doesn't zoom in when a 14px field is focused.
+Pick the variant from the panel beside the phone on a wide screen, or with URL parameters (e.g. `?label=float&platform=android&verify=sms&home=member`). The viewport sets `maximum-scale=1` so iOS Safari doesn't zoom in when a 14px field is focused.
+
+## Logged-in Home and Trade
+
+- **Logged-in Home** (`LoggedInHome.jsx`, [Figma](https://www.figma.com/design/Nj2U7xqDjoFcdRGGEZLGTX/%F0%9F%A5%91-EXIO-Mobile?node-id=19497-35542)): total value with hide toggle, four actions, banner, and Watchlist / Custody / Trading / OTC tabs with the empty custody state. Shown after sign in / sign up, or with *Home: Logged in* in the panel (`?home=member`).
+- **Trade → Order book** (`TradePage.jsx`): simulated order book, Buy / Sell, Limit / Market, linked quantity and total, open orders and assets.
+- **Trade → OTC** (`OtcPanel.jsx`, [Figma](https://www.figma.com/design/G7I2GRfIh701JkOBkbTkdE/%F0%9F%8D%87-OTC-Chat-Trading?node-id=9231-100184)): From / To currency pickers, pay or receive amount with All and an available-balance check, Get quote, and Processing / Filled quotes.
+- Trade fields follow the same input-style switch as the sign-up sheet.
+- The bottom nav uses the new 24px icons ([Figma](https://www.figma.com/design/66kn3r5FtdeMTKTvS0hYTg/Xirry-Workspace?node-id=2953-7272)): Regular when not selected, Fill with brand green when selected.
 
 ## Deployment
 

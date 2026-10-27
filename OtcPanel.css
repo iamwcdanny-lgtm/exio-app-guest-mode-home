@@ -1,0 +1,500 @@
+/* OTC section of the Trade page (Figma: OTC Chat Trading, 9231:100184). */
+.otc {
+  --otc-line: #f2f2f2;
+  --otc-card: rgba(0, 0, 0, 0.02);
+  --otc-info: #019ff8;
+  --otc-down: #f3518b;
+  --otc-up: #00bf80;
+  --otc-muted: rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 16px 0 24px;
+}
+.otc button {
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.otc-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 16px;
+}
+
+/* Labels follow the input-style spec used by every other field:
+   IFTA 10/14 Medium 40%, Floating 14 → 12 on the border, Traditional 14/20 80%. */
+.otc-label {
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 14px;
+  color: var(--text-tertiary);
+  transition: color 0.2s ease;
+}
+
+/* ---- From / swap / To ---- */
+.otc-pair {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.otc-pick {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.otc-pick-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.otc-pick-box select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 16px;
+}
+.otc-ccy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--text-primary);
+}
+.otc-ccy img {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+/* Focus looks like the other fields: 1.5px dark stroke (1px border + 0.5px
+   inner shadow) on the box, label turns dark. In IFTA the whole card is the
+   box, so the picker covers it all and the card takes the stroke. */
+.otc-pick-box,
+.otc-style-ifta .otc-pick {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.otc-style-ifta .otc-pick-box {
+  position: static;
+}
+.otc-style-ifta .otc-pick:focus-within,
+.otc-style-float .otc-pick:focus-within .otc-pick-box,
+.otc-style-trad .otc-pick:focus-within .otc-pick-box {
+  border-color: var(--text-primary);
+  box-shadow: inset 0 0 0 0.5px var(--text-primary);
+}
+.otc-pick:focus-within .otc-label,
+.otc-style-float .otc-pick:focus-within .otc-label {
+  color: var(--text-primary);
+}
+.otc-swap {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--otc-line);
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  transition: transform 0.25s ease;
+}
+.otc-swap:active {
+  transform: rotate(180deg);
+}
+
+/* ---- Amount ---- */
+.otc-amount {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.otc-amount-box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: text;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.otc-amount-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.otc-avail {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+.otc-avail b {
+  font-weight: 700;
+  letter-spacing: -0.36px;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+.otc-shift {
+  display: flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transform: rotate(180deg);
+}
+.otc-amount-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.otc .otc-input {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  min-width: 0;
+  height: 34px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: 800 26px/34px "Manrope", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  color: var(--text-primary);
+  caret-color: var(--success);
+}
+.otc .otc-input::placeholder {
+  color: var(--otc-muted);
+  opacity: 1;
+}
+.otc-unit {
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--text-primary);
+}
+.otc-vdiv {
+  width: 1px;
+  height: 24px;
+  background: var(--otc-line);
+}
+.otc-all {
+  padding: 10px 0;
+  border: 0;
+  background: none;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--otc-info);
+  cursor: pointer;
+}
+/* Focus / error: 1px border + 0.5px inner shadow = 1.5px, as on the other fields. */
+.otc-amount.is-focused .otc-amount-box {
+  border-color: var(--text-primary);
+  box-shadow: inset 0 0 0 0.5px var(--text-primary);
+}
+.otc-amount.is-error .otc-amount-box {
+  border-color: var(--otc-down);
+  box-shadow: inset 0 0 0 0.5px var(--otc-down);
+}
+.otc-amount.is-focused .otc-label {
+  color: var(--text-primary);
+}
+.otc-amount.is-error .otc-amount-box .otc-label,
+.otc-amount.is-error > .otc-amount-head .otc-label {
+  color: var(--otc-down);
+}
+.otc-note {
+  margin: 4px 0 0;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--otc-down);
+}
+
+/* Spacing between fields, as elsewhere: IFTA 16, Floating 20, Traditional 24. */
+.otc-style-ifta .otc-controls {
+  gap: 16px;
+}
+.otc-style-float .otc-controls {
+  gap: 20px;
+}
+.otc-style-trad .otc-controls {
+  gap: 24px;
+}
+
+/* ---- IFTA: grey box, small label fixed at the top inside (56px pickers). ---- */
+.otc-style-ifta .otc-pick,
+.otc-style-ifta .otc-amount-box {
+  box-sizing: border-box;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--tp-field, rgba(0, 0, 0, 0.04));
+}
+.otc-style-ifta .otc-pick {
+  height: 56px;
+}
+.otc-style-ifta .otc-amount-head .otc-avail {
+  line-height: 14px;
+}
+
+/* ---- Floating: white outlined boxes, label rides up onto the border. ---- */
+.otc-style-float .otc-pick-box,
+.otc-style-float .otc-amount-box {
+  box-sizing: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  background: #fff;
+}
+.otc-style-float .otc-pick-box {
+  height: 48px;
+  padding: 0 12px;
+}
+.otc-style-float .otc-label {
+  position: absolute;
+  left: 8px;
+  z-index: 1;
+  transform: translateY(-50%);
+  padding: 0 4px;
+  background: #fff;
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  pointer-events: none;
+  transition: top 0.2s ease, font-size 0.2s ease, color 0.2s ease;
+}
+.otc-style-float .otc-pick .otc-label {
+  top: 0;
+}
+.otc-style-float .otc-amount-box {
+  justify-content: center;
+  height: 64px;
+  padding: 0 12px;
+}
+/* Resting inside the empty amount field, like the other floating labels. */
+.otc-style-float .otc-amount-box .otc-label {
+  top: 50%;
+  font-size: 14px;
+  color: var(--otc-muted);
+}
+.otc-style-float .otc-amount.is-up .otc-amount-box .otc-label {
+  top: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.otc-style-float .otc-amount.is-focused .otc-amount-box .otc-label {
+  color: var(--text-primary);
+}
+.otc-style-float .otc-amount.is-error .otc-amount-box .otc-label {
+  color: var(--otc-down);
+}
+.otc-amount-foot {
+  display: flex;
+  margin-top: 4px;
+}
+
+/* ---- Traditional: label above a grey box. ---- */
+.otc-style-trad .otc-pair {
+  align-items: flex-end;
+}
+.otc-style-trad .otc-swap {
+  margin-bottom: 4px;
+}
+.otc-style-trad .otc-pick {
+  gap: 8px;
+}
+.otc-style-trad .otc-label {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-primary);
+}
+.otc-style-trad .otc-pick-box,
+.otc-style-trad .otc-amount-box {
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--tp-field, rgba(0, 0, 0, 0.04));
+}
+.otc-style-trad .otc-pick-box {
+  height: 48px;
+  padding: 0 12px;
+}
+.otc-style-trad .otc-amount-box {
+  justify-content: center;
+  height: 64px;
+  padding: 0 12px;
+}
+.otc-style-trad .otc-amount > .otc-amount-head {
+  margin-bottom: 8px;
+}
+
+/* ---- Main button ---- */
+.otc-submit {
+  height: 48px;
+  border: 0;
+  border-radius: 24px;
+  background: rgba(0, 0, 0, 0.1);
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 24px;
+  color: #fff;
+  cursor: default;
+  transition: background 0.2s ease;
+}
+.otc-submit.is-ready {
+  background: linear-gradient(to right, #36cdca, #00dd95);
+  cursor: pointer;
+}
+.otc-submit.is-ready:active {
+  transform: scale(0.98);
+}
+
+/* ---- Processing / Filled ---- */
+.otc-orders {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.otc-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 0 16px;
+  border-bottom: 1px solid var(--otc-line);
+}
+.otc-tablist {
+  display: flex;
+  gap: 16px;
+}
+.otc-tab {
+  position: relative;
+  padding: 8px 0 8px;
+  border: 0;
+  background: none;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--otc-muted);
+  cursor: pointer;
+}
+.otc-tab.is-on {
+  color: var(--text-primary);
+}
+.otc-tab.is-on::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  border-radius: 9999px;
+  background: var(--text-primary);
+}
+.otc-history {
+  display: flex;
+  padding: 8px;
+  border: 0;
+  border-radius: 24px;
+  background: none;
+  cursor: pointer;
+}
+.otc-order {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--otc-line);
+}
+.otc-qid {
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 14px;
+  color: var(--text-tertiary);
+}
+.otc-order-pair {
+  display: flex;
+  align-items: center;
+}
+.otc-leg {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.42px;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  white-space: nowrap;
+}
+.otc-leg.is-end {
+  justify-content: flex-end;
+}
+.otc-leg img {
+  border-radius: 50%;
+}
+.otc-leg b {
+  font-weight: 700;
+}
+.otc-leg b.is-out {
+  color: var(--otc-down);
+}
+.otc-leg b.is-in {
+  color: var(--otc-up);
+}
+.otc-leg i,
+.otc-order-meta i {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.otc-order-meta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+.otc-order-meta b {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.otc-time {
+  font-weight: 700;
+  color: var(--text-tertiary);
+}
+.otc-empty {
+  margin: 24px 16px;
+  text-align: center;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text-tertiary);
+}
+
+.otc button:focus-visible {
+  outline: 2px solid var(--success);
+  outline-offset: 2px;
+}

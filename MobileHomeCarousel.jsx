@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from
 import "./tokens.css";
 import "./MobileHomeCarousel.css";
 import AuthSheet from "./AuthSheet";
+import TradePage from "./TradePage";
+import LoggedInHome from "./LoggedInHome";
 
 // Asset paths follow Vite's base, so the build also works from a subpath
 // (e.g. GitHub Pages at /rwa-portal/).
@@ -9,7 +11,7 @@ const ASSETS = `${import.meta.env.BASE_URL}images/onboarding`;
 const ICONS = `${ASSETS}/icons`;
 
 // Logged-out mobile Home (EXIO Mobile, Figma 19110:92589 / 92487 / 92386):
-// a 3-scene onboarding carousel above fixed Login / Register buttons.
+// a 3-scene onboarding carousel above fixed Login / Sign up buttons.
 // Each scene animates in two clips that share a frame: build (empty slab ->
 // full scene, 1.5s) and loop (full scene, 6s). A scene builds only the first
 // time it is landed on in a page view; after that it just loops. Each clip
@@ -67,13 +69,14 @@ const FALLBACK_ADVANCE_MS = 12000;
 // Clip lengths (s), used for the progress bar until a clip's metadata loads.
 const CLIP_SECONDS = { build: 1.5, loop: 6 };
 
-// Insets match each glyph's position inside its 22px nav slot in the design.
+// Navigation icons (Figma: Xirry Workspace, Navigation / Final, 2953:7272):
+// 24px, Regular (light grey) when not selected, Fill with brand green when selected.
 const NAV_TABS = [
-  { key: "home", label: "Home", icon: "nav-home.svg", inset: "10.42%" },
-  { key: "markets", label: "Markets", icon: "nav-markets.svg", inset: "12.5% 10.42%" },
-  { key: "trade", label: "Trade", icon: "nav-trade.svg", inset: "14.49% 10.42% 10.36% 10.42%" },
-  { key: "rwa", label: "RWA", icon: "nav-rwa.svg", inset: "0" },
-  { key: "assets", label: "Assets", icon: "nav-assets.svg", inset: "14.58% 10.42%" },
+  { key: "home", label: "Home", icon: "nav-home.svg" },
+  { key: "markets", label: "Markets", icon: "nav-markets.svg" },
+  { key: "trade", label: "Trade", icon: "nav-trade.svg" },
+  { key: "rwa", label: "RWA", icon: "nav-rwa.svg" },
+  { key: "assets", label: "Assets", icon: "nav-assets.svg" },
 ];
 
 const Header = () => (
@@ -104,7 +107,7 @@ const BottomNav = ({ active, onChange }) => (
           onClick={() => onChange(t.key)}
         >
           <span className="mhc-nav-icon">
-            <img src={`${ICONS}/${t.icon}`} alt="" style={{ inset: t.inset }} />
+            <img src={`${ICONS}/${t.icon.replace(".svg", active === t.key ? "-on.svg" : "-off.svg")}`} width="24" height="24" alt="" />
           </span>
           {t.label}
         </button>
@@ -130,17 +133,31 @@ const prefersReducedMotion = () => window.matchMedia?.("(prefers-reduced-motion:
 //   ?label=trad|float|ifta   how form fields are labelled
 //   ?platform=ios|android    how the sheet is presented
 const LABEL_STYLES = [
-  { key: "trad", label: "Traditional" },
-  { key: "float", label: "Floating label" },
-  { key: "ifta", label: "IFTA" },
+  { key: "trad", short: "Traditional" },
+  { key: "float", short: "Floating" },
+  { key: "ifta", short: "IFTA" },
 ];
 const PLATFORMS = [
-  { key: "ios", label: "iOS page sheet" },
-  { key: "android", label: "Android full screen" },
+  { key: "ios", short: "iOS" },
+  { key: "android", short: "Android" },
+];
+// What the account has set up for 2-step verification: decides which
+// verification page follows Sign in. Passkey is to be designed later.
+// Which Home shows: the guest one (onboarding carousel) or the logged-in one.
+const HOME_STATES = [
+  { key: "guest", short: "Guest" },
+  { key: "member", short: "Logged in" },
+];
+
+export const SIGNIN_CHECKS = [
+  { key: "passkey", short: "Passkey enabled", disabled: true, note: "discuss later" },
+  { key: "totp", short: "Authenticator code enabled" },
+  { key: "sms", short: "Mobile number bound" },
+  { key: "email", short: "Only email" },
 ];
 const readParam = (name, options, fallback) => {
   const v = new URLSearchParams(window.location.search).get(name);
-  return options.some((o) => o.key === v) ? v : fallback;
+  return options.some((o) => o.key === v && !o.disabled) ? v : fallback;
 };
 const writeParam = (name, value) => {
   const url = new URL(window.location.href);
@@ -148,30 +165,96 @@ const writeParam = (name, value) => {
   // Keep the current history state (the sheet's entry, if it's open).
   window.history.replaceState(window.history.state, "", url);
 };
+// A history step the app makes itself (tidying up after closing) should not
+// be treated as the user pressing back.
+const silentPop = () => {
+  window.__asSilentPopUntil = Date.now() + 800;
+};
+export const isSilentPop = () => Date.now() < (window.__asSilentPopUntil || 0);
+
 const defaultPlatform = () => (/android/i.test(navigator.userAgent) ? "android" : "ios");
 
-const ProtoControls = ({ labelStyle, onLabelStyle, platform, onPlatform }) => (
+// A segmented switch: one button per option, the chosen one pressed.
+const Segmented = ({ label, options, value, onChange }) => (
+  <div className="as-proto-group" role="radiogroup" aria-label={label}>
+    <span className="as-proto-label">{label}</span>
+    <div className="as-seg">
+      {options.map((o) => (
+        <button
+          key={o.key}
+          type="button"
+          role="radio"
+          aria-checked={value === o.key}
+          className={`as-seg-btn${value === o.key ? " is-on" : ""}`}
+          onClick={() => onChange(o.key)}
+        >
+          {o.short}
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
+// A dropdown, for options too long for a segmented switch.
+const Dropdown = ({ label, options, value, onChange }) => (
+  <label className="as-proto-group">
+    <span className="as-proto-label">{label}</span>
+    <span className="as-select">
+      <select value={value} onChange={(e) => onChange(e.target.value)} aria-label={label}>
+        {options.map((o) => (
+          <option key={o.key} value={o.key} disabled={o.disabled}>
+            {o.short}
+            {o.note ? ` (${o.note})` : ""}
+          </option>
+        ))}
+      </select>
+      <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+        <path d="M3 4.5 6 7.5l3-3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </span>
+  </label>
+);
+
+// Sits outside the phone: beside it on wide screens, above it otherwise.
+const ProtoControls = ({ home, onHome, labelStyle, onLabelStyle, platform, onPlatform, signinCheck, onSigninCheck }) => (
   <aside className="as-proto" aria-label="Prototype settings">
-    <fieldset className="as-proto-group">
-      <legend>Field labels</legend>
-      {LABEL_STYLES.map((o) => (
-        <label key={o.key} className="as-proto-option">
-          <input type="radio" name="as-label" checked={labelStyle === o.key} onChange={() => onLabelStyle(o.key)} />
-          {o.label}
-        </label>
-      ))}
-    </fieldset>
-    <fieldset className="as-proto-group">
-      <legend>Sheet</legend>
-      {PLATFORMS.map((o) => (
-        <label key={o.key} className="as-proto-option">
-          <input type="radio" name="as-platform" checked={platform === o.key} onChange={() => onPlatform(o.key)} />
-          {o.label}
-        </label>
-      ))}
-    </fieldset>
-    <p className="as-proto-note">Tap Login or Register to open it. On a phone, set these with ?label= and ?platform= in the URL.</p>
+    <Segmented label="Home" options={HOME_STATES} value={home} onChange={onHome} />
+    <Segmented label="Input style" options={LABEL_STYLES} value={labelStyle} onChange={onLabelStyle} />
+    <Segmented label="Sheet" options={PLATFORMS} value={platform} onChange={onPlatform} />
+    <Dropdown label="Sign-in verification" options={SIGNIN_CHECKS} value={signinCheck} onChange={onSigninCheck} />
+    <p className="as-proto-note">Tap Login or Sign up to see it. Switching works with the sheet open too.</p>
   </aside>
+);
+
+// Mock status bar and home indicator for the chosen OS. Shown only in the
+// desktop phone frame (CSS hides them on a real phone, which draws its own).
+const IosStatus = () => (
+  <div className="dc dc-status dc-ios" aria-hidden="true">
+    <span>9:41</span>
+    <span className="dc-icons">
+      <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.7" /><rect x="4.5" y="5" width="3" height="6" rx="0.7" /><rect x="9" y="2.5" width="3" height="8.5" rx="0.7" /><rect x="13.5" y="0" width="3" height="11" rx="0.7" /></svg>
+      <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor"><path d="M7.5 2.3c2 0 3.9.8 5.3 2.1l1.1-1.1A9.1 9.1 0 0 0 7.5.7 9.1 9.1 0 0 0 1.1 3.3l1.1 1.1A7.5 7.5 0 0 1 7.5 2.3Z" /><path d="M7.5 5.4c1.2 0 2.3.4 3.1 1.2l1.1-1.1a6 6 0 0 0-8.4 0l1.1 1.1c.8-.8 1.9-1.2 3.1-1.2Z" /><path d="M9.5 7.7 7.5 9.8l-2-2.1a2.8 2.8 0 0 1 4 0Z" /></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="currentColor" opacity="0.35" /><rect x="2" y="2" width="18" height="8" rx="2" fill="currentColor" /><path d="M23 4v4c.8-.3 1.3-1.1 1.3-2S23.8 4.3 23 4Z" fill="currentColor" opacity="0.4" /></svg>
+    </span>
+  </div>
+);
+
+const AndroidStatus = () => (
+  <div className="dc dc-status dc-android" aria-hidden="true">
+    <span>9:41</span>
+    <span className="dc-icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 12 0 3.2A11.6 11.6 0 0 1 8 0c3 0 5.8 1.2 8 3.2L8 12Z" /></svg>
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M12 0v12H0L12 0Z" /></svg>
+      <svg width="8" height="13" viewBox="0 0 8 13" fill="currentColor"><rect x="2.5" y="0" width="3" height="1.5" rx="0.4" /><rect x="0" y="1.5" width="8" height="11.5" rx="1.2" /></svg>
+    </span>
+  </div>
+);
+
+const DeviceChrome = ({ platform }) => (
+  <>
+    {platform === "android" ? <AndroidStatus /> : <IosStatus />}
+    <div className={`dc dc-home dc-${platform}`} aria-hidden="true" />
+  </>
 );
 
 // The clips a landed scene plays through, in order.
@@ -461,8 +544,14 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
   const [auth, setAuth] = useState(null);
   const authRef = useRef(null);
   authRef.current = auth;
-  const [labelStyle, setLabelStyle] = useState(() => readParam("label", LABEL_STYLES, "trad"));
+  const [labelStyle, setLabelStyle] = useState(() => readParam("label", LABEL_STYLES, "float"));
   const [platform, setPlatform] = useState(() => readParam("platform", PLATFORMS, defaultPlatform()));
+  const [signinCheck, setSigninCheck] = useState(() => readParam("verify", SIGNIN_CHECKS, "email"));
+  const [home, setHome] = useState(() => readParam("home", HOME_STATES, "guest"));
+  // A one-off note on the logged-in Home after signing in / up (n remounts it).
+  const [welcome, setWelcome] = useState({ text: "", n: 0 });
+  // Where the sheet was opened from, to return there when the flow ends.
+  const originTab = useRef("home");
   const phoneRef = useRef(null);
   const screenRef = useRef(null);
 
@@ -470,15 +559,43 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
   // (Android's back gesture / button) closes it. Closing from the sheet
   // itself goes back through that entry, so history stays in step.
   const openAuth = (mode) => {
-    if (!authRef.current) window.history.pushState({ asSheet: true }, "");
+    if (!authRef.current) {
+      originTab.current = tab;
+      window.history.pushState({ asSheet: true }, "");
+    }
     setAuth(mode);
   };
+  // Closing never waits on history: the sheet closes at once, and its history
+  // entries (sheet, plus the OTP step if open) are removed quietly afterwards.
+  // Some hosts (an embedded preview, for one) ignore history.back(), so the
+  // sheet must not depend on it.
   const closeAuth = useCallback(() => {
-    if (window.history.state?.asSheet) window.history.back();
-    else setAuth(null);
+    setAuth(null);
+    const st = window.history.state;
+    if (st?.asSheet) {
+      silentPop();
+      window.history.go(st.otp ? -2 : -1);
+    }
   }, []);
+  // The URL keeps ?home=member so a reload stays logged in. Closing the sheet
+  // steps back through its history entries, which restores the older URL, so
+  // write it again once that step lands.
+  const keepMember = () => {
+    writeParam("home", "member");
+    window.addEventListener("popstate", () => setTimeout(() => writeParam("home", "member"), 0), { once: true });
+  };
+  // End of sign in / sign up: back to where the flow started, logged in.
+  const finishAuth = (text) => {
+    setHome("member");
+    setTab(originTab.current);
+    setWelcome((w) => ({ text, n: w.n + 1 }));
+    closeAuth();
+    keepMember();
+  };
+
   useEffect(() => {
     const onPop = () => {
+      if (isSilentPop()) return;
       if (authRef.current && !window.history.state?.asSheet) setAuth(null);
     };
     window.addEventListener("popstate", onPop);
@@ -489,7 +606,11 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
     if (window.history.state?.asSheet) window.history.replaceState(null, "");
   }, []);
 
+  // The guest Home (and its carousel) is only on screen on the Home tab when
+  // logged out; measure whenever it (re)appears.
+  const showGuest = tab !== "trade" && home !== "member";
   useLayoutEffect(() => {
+    if (!showGuest || !trackRef.current) return undefined;
     const place = () => {
       const tops = slotRefs.current.filter(Boolean).map((el) => el.offsetTop);
       if (tops.length) setIndicatorTop(Math.max(...tops));
@@ -497,10 +618,10 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
     place();
     const ro = new ResizeObserver(place);
     ro.observe(trackRef.current);
-    slotRefs.current.forEach((el) => el && ro.observe(el.previousElementSibling));
+    slotRefs.current.forEach((el) => el?.previousElementSibling && ro.observe(el.previousElementSibling));
     document.fonts?.ready.then(place);
     return () => ro.disconnect();
-  }, []);
+  }, [showGuest]);
 
   const goTo = useCallback((i, smooth = true) => {
     const track = trackRef.current;
@@ -630,6 +751,13 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
   return (
     <div className="mhc-stage">
       <ProtoControls
+        home={home}
+        onHome={(v) => {
+          setHome(v);
+          setWelcome((w) => ({ text: "", n: w.n + 1 }));
+          setTab("home");
+          writeParam("home", v);
+        }}
         labelStyle={labelStyle}
         onLabelStyle={(v) => {
           setLabelStyle(v);
@@ -640,9 +768,20 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
           setPlatform(v);
           writeParam("platform", v);
         }}
+        signinCheck={signinCheck}
+        onSigninCheck={(v) => {
+          setSigninCheck(v);
+          writeParam("verify", v);
+        }}
       />
       <div ref={phoneRef} className={`mhc-phone as-platform-${platform}`}>
         <div ref={screenRef} className="mhc-screen">
+          {tab === "trade" ? (
+            <TradePage labelStyle={labelStyle} />
+          ) : home === "member" ? (
+            <LoggedInHome key={welcome.n} welcome={welcome.text} />
+          ) : (
+          <>
           <Header />
 
           <main className="mhc-content">
@@ -745,10 +884,12 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
                   onRegister?.();
                 }}
               >
-                Register
+                Sign up
               </button>
             </div>
           </main>
+          </>
+          )}
 
           <BottomNav active={tab} onChange={setTab} />
         </div>
@@ -756,12 +897,22 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
         <AuthSheet
           mode={auth}
           onModeChange={setAuth}
-          onClose={closeAuth}
+          onClose={() => (auth === "done" ? finishAuth("Welcome to EX.IO") : closeAuth())}
+          onSignedIn={(from, name) => {
+            // Logged in from here on. Sign in ends the flow; sign up still
+            // shows "Account activated" in the sheet first.
+            setHome("member");
+            keepMember();
+            if (from === "signin") finishAuth(name ? `Welcome back, ${name}` : "Welcome back");
+          }}
           labelStyle={labelStyle}
           platform={platform}
+          signinCheck={signinCheck}
           phoneRef={phoneRef}
           screenRef={screenRef}
         />
+
+        <DeviceChrome platform={platform} />
       </div>
     </div>
   );

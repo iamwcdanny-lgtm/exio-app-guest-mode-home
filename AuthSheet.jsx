@@ -18,10 +18,10 @@ import "./AuthSheet.css";
 
 const FIELDS = {
   username: { label: "Username", placeholder: "chantaiman.88", hint: "You can use letters, numbers and full stops", autoComplete: "username" },
-  email: { label: "Email", placeholder: "name@example.com", type: "email", autoComplete: "email", inputMode: "email" },
-  password: { label: "Login password", placeholder: "8+ characters", password: true, autoComplete: "new-password" },
+  email: { label: "Email", placeholder: "name@example.com", type: "email", autoComplete: "email", inputMode: "email", emailHosts: true, lateError: true },
+  password: { label: "Login password", placeholder: "Create a password", password: true, autoComplete: "new-password", strength: true },
   referral: { label: "Referral code", placeholder: "EX8K2Q", autoComplete: "off" },
-  account: { label: "Username / Email", placeholder: "chantaiman.88", autoComplete: "username" },
+  account: { label: "Username / Email", placeholder: "chantaiman.88", autoComplete: "username", emailHosts: true },
   loginPassword: { label: "Login password", placeholder: "Enter your password", password: true, autoComplete: "current-password" },
 };
 
@@ -29,11 +29,28 @@ const VALIDATE = {
   username: (v) =>
     !v ? "Enter a username." : /[^a-zA-Z0-9.]/.test(v) ? "Use letters, numbers and full stops only." : v.length < 3 ? "Enter at least 3 characters." : "",
   email: (v) => (!v ? "Enter your email." : /^\S+@\S+\.\S+$/.test(v) ? "" : "Enter a valid email address."),
-  password: (v) => (!v ? "Enter a password." : v.length < 8 ? "Use at least 8 characters." : ""),
+  password: (v) => {
+    if (!v) return "Enter a password.";
+    const miss = PASSWORD_RULES.find((r) => !r.test(v));
+    return miss ? (typeof miss.error === "function" ? miss.error(v) : miss.error) : "";
+  },
   referral: () => "",
   account: (v) => (v ? "" : "Enter your username or email."),
   loginPassword: (v) => (v ? "" : "Enter your password."),
 };
+
+// What a new password must contain. While the field is focused these show
+// as a checklist under it, ticking off as the user types.
+// EX.IO's password criteria (wording as in the live app).
+const PASSWORD_RULES = [
+  { label: "8-20 characters", test: (v) => v.length >= 8 && v.length <= 20, error: (v) => (v.length > 20 ? "Use 20 characters or fewer." : "Use at least 8 characters.") },
+  { label: "At least 1 digit", test: (v) => /\d/.test(v), error: "Add at least 1 digit." },
+  { label: "At least 1 lowercase (a-z)", test: (v) => /[a-z]/.test(v), error: "Add at least 1 lowercase letter (a-z)." },
+  { label: "At least 1 uppercase (A-Z)", test: (v) => /[A-Z]/.test(v), error: "Add at least 1 uppercase letter (A-Z)." },
+  { label: "At least 1 special character (e.g. !*& @)", test: (v) => /[^A-Za-z0-9]/.test(v), error: "Add at least 1 special character, such as ! or @." },
+];
+// Label for how many of the five rules are met.
+const STRENGTH = ["", "Weak", "Weak", "Fair", "Good", "Strong"];
 
 const REQUIRED = { signup: ["username", "email", "password"], signin: ["account", "loginPassword"] };
 
@@ -54,13 +71,43 @@ const Icon = ({ children, size = 18 }) => (
     {children}
   </svg>
 );
+const BackIcon = () => (
+  <Icon size={24}>
+    <path d="M15 5l-7 7 7 7" />
+  </Icon>
+);
+// Icons for the verification methods (20px, 1.5 stroke).
+const MethodIcon = ({ kind }) => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    {kind === "sms" && (
+      <>
+        <path d="M3.5 4.75c0-.69.56-1.25 1.25-1.25h10.5c.69 0 1.25.56 1.25 1.25v7.5c0 .69-.56 1.25-1.25 1.25H8.5l-3.25 3v-3h-.5c-.69 0-1.25-.56-1.25-1.25v-7.5Z" />
+        <path d="M7 7.25h6M7 10h4" />
+      </>
+    )}
+    {kind === "email" && (
+      <>
+        <rect x="3" y="4.5" width="14" height="11" rx="1.5" />
+        <path d="m3.5 5.5 6.5 5 6.5-5" />
+      </>
+    )}
+    {kind === "totp" && (
+      <>
+        <rect x="4" y="8.5" width="12" height="8.5" rx="1.5" />
+        <path d="M6.75 8.5V6.25a3.25 3.25 0 0 1 6.5 0V8.5" />
+        <path d="M10 12v1.5" />
+      </>
+    )}
+  </svg>
+);
+
 const CloseIcon = () => (
   <Icon size={24}>
     <path d="M6 6l12 12M18 6L6 18" />
   </Icon>
 );
 const ClearIcon = () => (
-  <Icon>
+  <Icon size={16}>
     <circle cx="12" cy="12" r="9" />
     <path d="M9.5 9.5l5 5M14.5 9.5l-5 5" />
   </Icon>
@@ -83,12 +130,6 @@ const ChevronIcon = () => (
     <path d="M6 9l6 6 6-6" />
   </Icon>
 );
-const CheckCircleIcon = () => (
-  <Icon size={20}>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M8.5 12.2l2.4 2.4 4.6-4.8" />
-  </Icon>
-);
 
 const Logo = () => (
   <svg className="as-logo" viewBox="0 0 301 91" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EX.IO">
@@ -106,6 +147,59 @@ const Logo = () => (
 // button before its click lands, and drop the keyboard on mobile).
 const keepFocus = (e) => e.preventDefault();
 
+// Circle that fills green with a tick once on. Shared by the password rules
+// and the marketing-consent checkbox so both read as the same control.
+export const RuleIcon = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true">
+    <circle cx="8" cy="8" r="7" className="as-rule-ring" />
+    <path d="M5 8.2l2 2 4-4.2" className="as-rule-tick" fill="none" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+// Strength bar and rule checklist for a new password. Opens while the field
+// is focused; each rule ticks off as soon as the value meets it.
+const PasswordStrength = ({ id, value, open }) => {
+  const met = PASSWORD_RULES.map((r) => r.test(value));
+  const score = met.filter(Boolean).length;
+  return (
+    <div className={`as-strength${open ? " is-open" : ""}`} data-score={score} aria-hidden={!open}>
+      <div className="as-strength-inner">
+        <div className="as-strength-card" id={id}>
+          <div className="as-strength-head">
+            <div className="as-strength-bar" aria-hidden="true">
+              {PASSWORD_RULES.map((r, i) => (
+                <span key={r.label} className={i < score ? "is-on" : ""} />
+              ))}
+            </div>
+            <span className="as-strength-label" aria-live="polite">
+              {value ? STRENGTH[score] : ""}
+            </span>
+          </div>
+          <p className="as-rules-title">Your password needs to contain:</p>
+          <ul className="as-rules">
+            {PASSWORD_RULES.map((r, i) => (
+              <li key={r.label} className={met[i] ? "is-met" : ""}>
+                <RuleIcon met={met[i]} />
+                {r.label}
+                <span className="as-sr">{met[i] ? " (done)" : " (not yet)"}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Common email hosts, offered once "@" is typed (narrowed by what follows it).
+const EMAIL_HOSTS = ["gmail.com", "outlook.com", "hotmail.com", "icloud.com", "yahoo.com", "yahoo.com.hk"];
+const hostSuggestions = (value) => {
+  const at = value.indexOf("@");
+  if (at < 1 || value.indexOf("@", at + 1) !== -1) return [];
+  const typed = value.slice(at + 1).toLowerCase();
+  return EMAIL_HOSTS.filter((h) => h.startsWith(typed) && h !== typed);
+};
+
 const Field = ({ name, labelStyle, value, error, onChange, onBlur, inputRef }) => {
   const def = FIELDS[name];
   const [focused, setFocused] = useState(false);
@@ -114,8 +208,27 @@ const Field = ({ name, labelStyle, value, error, onChange, onBlur, inputRef }) =
   const ref = inputRef || ownRef;
   const id = `as-field-${name}`;
   const hintId = `${id}-hint`;
-  const hint = error || def.hint;
+  const strengthId = `${id}-strength`;
+  const showStrength = Boolean(def.strength) && focused;
+  // The checklist replaces the hint (and any error) while it is open.
+  const hint = showStrength ? "" : error || def.hint;
   const up = focused || value !== "";
+  const hosts = def.emailHosts && focused ? hostSuggestions(value) : [];
+  const pickHost = (host) => {
+    const next = `${value.slice(0, value.indexOf("@") + 1)}${host}`;
+    onChange(name, next);
+    requestAnimationFrame(() => {
+      const el = ref.current;
+      if (!el) return;
+      el.focus();
+      // type="email" inputs don't support selection ranges.
+      try {
+        el.setSelectionRange(next.length, next.length);
+      } catch {
+        /* ignore */
+      }
+    });
+  };
 
   // Floating label: while the label sits inside the empty field it stands in
   // for the placeholder, so the example only shows once the label has moved up.
@@ -151,7 +264,7 @@ const Field = ({ name, labelStyle, value, error, onChange, onBlur, inputRef }) =
       placeholder={placeholder}
       value={value}
       aria-invalid={error ? true : undefined}
-      aria-describedby={hint ? hintId : undefined}
+      aria-describedby={showStrength ? strengthId : hint ? hintId : undefined}
       onFocus={() => setFocused(true)}
       onBlur={() => {
         setFocused(false);
@@ -214,6 +327,24 @@ const Field = ({ name, labelStyle, value, error, onChange, onBlur, inputRef }) =
         {actions}
       </div>
       {labelStyle === "float" && label}
+      {hosts.length > 0 && (
+        <div className="as-hosts" role="listbox" aria-label="Email suggestions">
+          {hosts.map((h) => (
+            <button
+              key={h}
+              type="button"
+              role="option"
+              aria-selected="false"
+              className="as-host"
+              onMouseDown={keepFocus}
+              onClick={() => pickHost(h)}
+            >
+              @{h}
+            </button>
+          ))}
+        </div>
+      )}
+      {def.strength && <PasswordStrength id={strengthId} value={value} open={showStrength} />}
       {hint && (
         <p id={hintId} className={`as-hint${error ? " is-error" : ""}`} aria-live={error ? "polite" : undefined}>
           {hint}
@@ -240,7 +371,7 @@ const SignUp = ({ fieldProps, referralOpen, onToggleReferral, marketing, onToggl
       {referralOpen && <Field name="referral" {...fieldProps("referral")} inputRef={referralRef} />}
       <label className={`as-check${marketing ? " is-on" : ""}`}>
         <input type="checkbox" checked={marketing} onChange={onToggleMarketing} />
-        <CheckCircleIcon />
+        <RuleIcon size={20} />
         <span>I wish to receive direct marketing materials (e.g. newsletters, promotions, personalized offers) and communication from EX.IO.</span>
       </label>
     </div>
@@ -262,11 +393,275 @@ const SignIn = ({ fieldProps, onForgot }) => (
   </>
 );
 
+/* ---------- Email OTP (step 2 of sign up) ---------- */
+const OTP_LENGTH = 6;
+const RESEND_SECONDS = 60;
+const EMPTY_CODE = Array(OTP_LENGTH).fill("");
+
+// "chantaiman@exio.com" -> "ch***@exio.com"
+const maskEmail = (email) => {
+  const [local, domain] = (email || "").split("@");
+  if (!local || !domain) return "your email";
+  return `${local.slice(0, Math.min(2, local.length))}***@${domain}`;
+};
+
+// One box per digit. Typing moves to the next box, Backspace on an empty box
+// goes back, and pasting (or the phone's one-time-code autofill) spreads the
+// digits across the boxes.
+const OtpInput = ({ code, onChange, error, disabled }) => {
+  const refs = useRef([]);
+  const focusBox = (i) => {
+    const el = refs.current[Math.max(0, Math.min(OTP_LENGTH - 1, i))];
+    el?.focus();
+    el?.select();
+  };
+  const fill = (start, digits) => {
+    const next = [...code];
+    let i = start;
+    for (const d of digits) {
+      if (i >= OTP_LENGTH) break;
+      next[i++] = d;
+    }
+    onChange(next);
+    focusBox(i >= OTP_LENGTH ? OTP_LENGTH - 1 : i);
+  };
+  return (
+    <div className={`as-otp${error ? " is-error" : ""}`} role="group" aria-label="Verification code">
+      {code.map((d, i) => (
+        <input
+          key={i}
+          ref={(el) => (refs.current[i] = el)}
+          id={`as-otp-${i}`}
+          className="as-otp-box"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          autoComplete={i === 0 ? "one-time-code" : "off"}
+          maxLength={i === 0 ? OTP_LENGTH : 1}
+          aria-label={`Digit ${i + 1} of ${OTP_LENGTH}`}
+          aria-invalid={error ? true : undefined}
+          disabled={disabled}
+          value={d}
+          onFocus={(e) => e.target.select()}
+          onChange={(e) => {
+            const digits = e.target.value.replace(/\D/g, "").split("");
+            if (digits.length === 0) {
+              const next = [...code];
+              next[i] = "";
+              onChange(next);
+              return;
+            }
+            // A single new digit replaces this box; several (autofill) spread out.
+            fill(i, digits.length > 1 && d ? digits.filter((x, k) => !(k === 0 && x === d)) : digits);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Backspace" && !code[i] && i > 0) {
+              e.preventDefault();
+              const next = [...code];
+              next[i - 1] = "";
+              onChange(next);
+              focusBox(i - 1);
+            } else if (e.key === "ArrowLeft") {
+              e.preventDefault();
+              focusBox(i - 1);
+            } else if (e.key === "ArrowRight") {
+              e.preventDefault();
+              focusBox(i + 1);
+            }
+          }}
+          onPaste={(e) => {
+            const digits = e.clipboardData.getData("text").replace(/\D/g, "").split("");
+            if (!digits.length) return;
+            e.preventDefault();
+            fill(digits.length >= OTP_LENGTH ? 0 : i, digits);
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+// Prototype stand-ins for what the account has on file when signing in.
+const DEMO_EMAIL = "chantaiman@exio.com";
+const DEMO_PHONE = "+852 9123 4521";
+// "+852 9123 4521" -> "+85291****21"
+const maskPhone = (phone) => {
+  const digits = phone.replace(/\D/g, "");
+  return `+${digits.slice(0, 5)}****${digits.slice(-2)}`;
+};
+
+// The 6-digit step. `kind`: "email" (code sent by email), "sms" (code sent by
+// SMS) or "totp" (code from an authenticator app: nothing is sent, so no resend).
+const OtpStep = ({ kind, title, sentTo, code, onCodeChange, error, verifying, resendIn, onResend, onPaste }) => (
+  <>
+    <h1 className="as-title as-title-otp" id="as-title">
+      {title}
+    </h1>
+    <p className="as-subtitle">
+      {kind === "totp" ? (
+        <>Open your authenticator app and enter the 6-digit code for EX.IO.</>
+      ) : (
+        <>
+          Enter the 6-digit code we sent {kind === "sms" ? "by SMS " : ""}to <strong>{sentTo}</strong>. It expires in{" "}
+          {kind === "sms" ? "5" : "10"} minutes.
+        </>
+      )}
+    </p>
+    <OtpInput code={code} onChange={onCodeChange} error={error} disabled={verifying} />
+    {error && (
+      <p className="as-hint is-error" aria-live="polite">
+        {error}
+      </p>
+    )}
+    <div className="as-otp-actions">
+      {kind === "totp" ? (
+        <span />
+      ) : resendIn > 0 ? (
+        <span className="as-resend">Resend in {resendIn}s</span>
+      ) : (
+        <button type="button" className="as-link" onClick={onResend}>
+          Resend code
+        </button>
+      )}
+      <button type="button" className="as-link" onClick={onPaste} disabled={verifying}>
+        Paste
+      </button>
+    </div>
+  </>
+);
+
+// "Try another way": a bottom sheet over the page sheet listing the other
+// verification methods. `methods`: [{ kind, label, value }].
+const MethodPicker = ({ open, methods, onPick, onClose }) => (
+  <div className={`as-picker${open ? " is-open" : ""}`} aria-hidden={!open}>
+    <div className="as-picker-scrim" onClick={onClose} />
+    <div className="as-picker-sheet" role="dialog" aria-modal="true" aria-labelledby="as-picker-title">
+      <div className="as-picker-grabber" aria-hidden="true" />
+      <h2 className="as-picker-title" id="as-picker-title">
+        Choose verification method
+      </h2>
+      <div className="as-picker-list">
+        {methods.map((m) => (
+          <button key={m.kind} type="button" className="as-method" tabIndex={open ? 0 : -1} onClick={() => onPick(m.kind)}>
+            <MethodIcon kind={m.kind} />
+            <span>
+              {m.label}
+              {m.value && (
+                <>
+                  {" "}
+                  <strong>{m.value}</strong>
+                </>
+              )}
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+// Last step of sign up, once the email code is accepted: the account exists.
+// Figma: 19505:35862.
+const ACTIVATED_IMG = `${import.meta.env.BASE_URL}images/home/account-activated.png`;
+// Confetti for "Account activated": one burst from the success icon plus a
+// shot from each bottom corner, falling under gravity for about 3s. Drawn on a
+// canvas over the sheet (no clicks blocked). Skipped under reduced motion.
+// Green, purple and blue only (brand greens weighted a little heavier).
+const CONFETTI_COLORS = ["#00dd95", "#00e59a", "#36cdca", "#8f7cff", "#a77bff", "#019ff8", "#4f8cff"];
+const Confetti = () => {
+  const ref = useRef(null);
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas || reducedMotion()) return undefined;
+    const ctx = canvas.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.scale(dpr, dpr);
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    const parts = [];
+    const shoot = (x, y, n, angle, spread, speed) => {
+      for (let i = 0; i < n; i++) {
+        const a = angle + rnd(-spread, spread);
+        const v = speed * rnd(0.55, 1.1);
+        parts.push({
+          x,
+          y,
+          vx: Math.cos(a) * v,
+          vy: Math.sin(a) * v,
+          size: rnd(8, 13),
+          ratio: rnd(0.35, 0.7),
+          rot: rnd(0, Math.PI * 2),
+          vr: rnd(-0.25, 0.25),
+          tilt: rnd(0, Math.PI * 2),
+          vt: rnd(0.08, 0.2),
+          color: CONFETTI_COLORS[(Math.random() * CONFETTI_COLORS.length) | 0],
+          round: Math.random() < 0.25,
+        });
+      }
+    };
+    // Burst from the icon (about 124px below the sheet top), then side cannons.
+    shoot(w / 2, 124, 110, -Math.PI / 2, Math.PI, 9);
+    shoot(0, h * 0.72, 70, -Math.PI / 3, 0.35, 15);
+    shoot(w, h * 0.72, 70, (-2 * Math.PI) / 3, 0.35, 15);
+    const start = performance.now();
+    const LIFE = 3200;
+    let raf = 0;
+    const frame = (now) => {
+      const t = now - start;
+      ctx.clearRect(0, 0, w, h);
+      const fade = t > LIFE - 700 ? Math.max(0, (LIFE - t) / 700) : 1;
+      for (const p of parts) {
+        p.vx *= 0.985;
+        p.vy = p.vy * 0.985 + 0.32;
+        p.x += p.vx + Math.sin(p.tilt) * 0.6;
+        p.y += p.vy;
+        p.rot += p.vr;
+        p.tilt += p.vt;
+        if (p.y > h + 20) continue;
+        ctx.save();
+        ctx.globalAlpha = fade;
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.scale(1, Math.cos(p.tilt));
+        ctx.fillStyle = p.color;
+        if (p.round) {
+          ctx.beginPath();
+          ctx.arc(0, 0, p.size * 0.4, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.fillRect(-p.size / 2, (-p.size * p.ratio) / 2, p.size, p.size * p.ratio);
+        }
+        ctx.restore();
+      }
+      if (t < LIFE) raf = requestAnimationFrame(frame);
+      else ctx.clearRect(0, 0, w, h);
+    };
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return <canvas ref={ref} className="as-confetti" aria-hidden="true" />;
+};
+
+const AccountActivated = () => (
+  <div className="as-done">
+    <img className="as-done-img" src={ACTIVATED_IMG} width="120" height="120" alt="" />
+    <h1 className="as-done-title" id="as-title">
+      Account activated
+    </h1>
+    <p className="as-done-text">
+      Your account has been successfully created. Now, we’ll ask you for information such as name and date of birth to
+      verify your identity. You’ll also need to submit photo ID.
+    </p>
+  </div>
+);
+
 /* ---------- The sheet ---------- */
 // `mode`: null (closed), "signup" or "signin". `screenRef` is the Home screen
 // behind the sheet; `phoneRef` is the frame both sit in (it carries the
 // open-progress variable both animate from).
-const AuthSheet = ({ mode, onModeChange, onClose, labelStyle, platform, phoneRef, screenRef }) => {
+const AuthSheet = ({ mode, onModeChange, onClose, onSignedIn, labelStyle, platform, signinCheck = "email", phoneRef, screenRef }) => {
   // What is rendered: stays on the last page while the sheet animates closed.
   const [page, setPage] = useState(mode);
   const [mounted, setMounted] = useState(Boolean(mode));
@@ -276,6 +671,24 @@ const AuthSheet = ({ mode, onModeChange, onClose, labelStyle, platform, phoneRef
   const [marketing, setMarketing] = useState(false);
   const [fading, setFading] = useState(false);
   const [toast, setToast] = useState("");
+  // Page-to-page motion: "fade" (Sign up <-> Sign in), "forward" / "back" (into and out of the OTP step).
+  const [nav, setNav] = useState("none");
+  const [code, setCode] = useState(EMPTY_CODE);
+  const [otpError, setOtpError] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [resendIn, setResendIn] = useState(0);
+  // Which page led to the code step ("signup" / "signin") and what kind of code it asks for.
+  const [otpFrom, setOtpFrom] = useState("signup");
+  const [otpKind, setOtpKind] = useState("email");
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const otpFromRef = useRef(otpFrom);
+  otpFromRef.current = otpFrom;
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  const pickerOpenRef = useRef(false);
+  pickerOpenRef.current = pickerOpen;
+  const pageRef = useRef(page);
+  pageRef.current = page;
   const sheetRef = useRef(null);
   const scrollRef = useRef(null);
   const referralRef = useRef(null);
@@ -321,6 +734,12 @@ const AuthSheet = ({ mode, onModeChange, onClose, labelStyle, platform, phoneRef
         setReferralOpen(false);
         setMarketing(false);
         setToast("");
+        setNav("none");
+        setCode(EMPTY_CODE);
+        setOtpError("");
+        setVerifying(false);
+        setResendIn(0);
+        setPickerOpen(false);
         if (returnFocus.current?.focus) returnFocus.current.focus({ preventScroll: true });
       },
       reducedMotion() ? 0 : DURATION_MS
@@ -349,7 +768,9 @@ const AuthSheet = ({ mode, onModeChange, onClose, labelStyle, platform, phoneRef
   useEffect(() => {
     if (!mode) return undefined;
     const onKey = (e) => {
-      if (e.key === "Escape") onClose();
+      if (e.key !== "Escape") return;
+      if (pickerOpenRef.current) setPickerOpen(false);
+      else onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -358,6 +779,7 @@ const AuthSheet = ({ mode, onModeChange, onClose, labelStyle, platform, phoneRef
   // Switching between the two pages: a quick cross-fade, back at the top.
   const switchTo = (next) => {
     if (next === page) return;
+    setNav("fade");
     setFading(true);
     setTimeout(
       () => {
@@ -370,10 +792,141 @@ const AuthSheet = ({ mode, onModeChange, onClose, labelStyle, platform, phoneRef
     );
   };
 
+  // Into the OTP step. It gets its own history entry, so the back gesture or
+  // button returns to Sign up rather than closing the sheet.
+  const goToOtp = (from, kind) => {
+    setOtpFrom(from);
+    setOtpKind(kind);
+    window.history.pushState({ asSheet: true, otp: true }, "");
+    setNav("forward");
+    setCode(EMPTY_CODE);
+    setOtpError("");
+    setResendIn(kind === "totp" ? 0 : RESEND_SECONDS);
+    onModeChange("otp");
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+    requestAnimationFrame(() => document.getElementById("as-otp-0")?.focus());
+  };
+  // Back arrow: return to the page it came from straight away, then drop the step's
+  // history entry quietly.
+  const backFromOtp = () => {
+    setPickerOpen(false);
+    setNav("back");
+    onModeChange(otpFrom);
+    if (window.history.state?.otp) {
+      window.__asSilentPopUntil = Date.now() + 800;
+      window.history.back();
+    }
+  };
+  useEffect(() => {
+    const onPop = () => {
+      if (Date.now() < (window.__asSilentPopUntil || 0)) return;
+      // Back from "Account activated" leaves the flow (like Do it later).
+      if (pageRef.current === "done") {
+        onCloseRef.current();
+        return;
+      }
+      if (pageRef.current === "otp" && window.history.state?.asSheet && !window.history.state?.otp) {
+        setNav("back");
+        onModeChange(otpFromRef.current);
+      }
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [onModeChange]);
+
+  // Resend countdown.
+  useEffect(() => {
+    if (page !== "otp" || resendIn <= 0) return undefined;
+    const t = setTimeout(() => setResendIn((n) => n - 1), 1000);
+    return () => clearTimeout(t);
+  }, [page, resendIn]);
+
+  const verify = (digits) => {
+    setVerifying(true);
+    setOtpError("");
+    document.activeElement?.blur?.();
+    setTimeout(() => {
+      setVerifying(false);
+      // Prototype: 000000 stands in for a wrong code; anything else passes.
+      if (digits === "000000") {
+        setOtpError("That code isn’t right. Check it and try again, or resend a new one.");
+        requestAnimationFrame(() => document.getElementById("as-otp-0")?.focus());
+      } else {
+        // Verified: the account is in. Home switches to its logged-in state
+        // behind the sheet, then the sheet closes over it.
+        // Signing in with an email: greet with the part before "@" (the prototype
+        // has no account lookup to find the real username).
+        const who = values.account.trim().split("@")[0];
+        if (onSignedIn) onSignedIn(otpFrom, who);
+        else showToast(otpFrom === "signin" ? "Signed in — this is a prototype" : "Email verified — this is a prototype");
+        // Sign up ends on "Account activated". The code step's history entry
+        // becomes this page's, so back / Esc / X all leave the flow from here.
+        if (otpFrom === "signup") {
+          window.history.replaceState({ asSheet: true, otp: true, done: true }, "");
+          setNav("forward");
+          onModeChange("done");
+          if (scrollRef.current) scrollRef.current.scrollTop = 0;
+        }
+      }
+    }, 900);
+  };
+  const changeCode = (next) => {
+    setCode(next);
+    if (otpError) setOtpError("");
+    // Check as soon as the last digit is in.
+    if (next.every((d) => d !== "") && !verifying) verify(next.join(""));
+  };
+  // Paste: read the clipboard and fill the boxes from its first 6 digits.
+  // Browsers may refuse clipboard access (or ask first), so fall back to a
+  // hint about pasting into a box, which the boxes already handle.
+  const pasteCode = async () => {
+    let text = "";
+    try {
+      text = (await navigator.clipboard.readText()) || "";
+    } catch {
+      showToast("Can’t read the clipboard here. Long-press a box and paste.");
+      document.getElementById("as-otp-0")?.focus();
+      return;
+    }
+    const digits = text.replace(/\D/g, "").slice(0, OTP_LENGTH).split("");
+    if (digits.length < OTP_LENGTH) {
+      showToast("No 6-digit code on the clipboard");
+      return;
+    }
+    changeCode(digits);
+  };
+  // Picking another method: the code page swaps to it (a fresh code is "sent").
+  const pickMethod = (kind) => {
+    setPickerOpen(false);
+    setNav("fade");
+    setFading(true);
+    setTimeout(
+      () => {
+        setOtpKind(kind);
+        setCode(EMPTY_CODE);
+        setOtpError("");
+        setResendIn(kind === "totp" ? 0 : RESEND_SECONDS);
+        setFading(false);
+        requestAnimationFrame(() => document.getElementById("as-otp-0")?.focus());
+      },
+      reducedMotion() ? 0 : 160
+    );
+  };
+
+  const resend = () => {
+    setCode(EMPTY_CODE);
+    setOtpError("");
+    setResendIn(RESEND_SECONDS);
+    showToast(`New code sent to ${sentTo}`);
+    requestAnimationFrame(() => document.getElementById("as-otp-0")?.focus());
+  };
+
   /* ----- Drag to dismiss (iOS page sheet only) ----- */
   const drag = useRef(null);
   const startDrag = (y, target) => {
     if (!ios || !mode) return;
+    // Not while the method picker is up: it sits over the page sheet.
+    if (pickerOpenRef.current || target.closest?.(".as-picker")) return;
     const scroller = scrollRef.current;
     // Inside the scrolling area only once it's scrolled to the top.
     if (scroller && scroller.contains(target) && scroller.scrollTop > 0) return;
@@ -439,7 +992,6 @@ const AuthSheet = ({ mode, onModeChange, onClose, labelStyle, platform, phoneRef
     if (e.target.closest("input, button, label, a")) return;
     startDrag(e.clientY, e.target);
     if (!drag.current) return;
-    e.preventDefault(); // no text selection while dragging the sheet
     e.currentTarget.setPointerCapture(e.pointerId);
   };
   const onPointerMove = (e) => {
@@ -452,8 +1004,16 @@ const AuthSheet = ({ mode, onModeChange, onClose, labelStyle, platform, phoneRef
   /* ----- Form state ----- */
   const change = (name, value, opts = {}) => {
     setValues((v) => ({ ...v, [name]: value }));
-    // Once a field shows an error, it updates live as it is corrected.
-    setErrors((er) => (opts.clearError ? { ...er, [name]: "" } : er[name] ? { ...er, [name]: VALIDATE[name](value) } : er));
+    // Errors show as soon as what's typed is invalid; an empty field only
+    // gets its "Enter …" error when the form is submitted.
+    // Fields marked lateError (email) don't flag a format problem mid-typing:
+    // the error waits until the field is left, but clears as soon as it's fixed.
+    setErrors((er) => {
+      if (opts.clearError || value === "") return { ...er, [name]: "" };
+      const problem = VALIDATE[name](value);
+      if (FIELDS[name]?.lateError) return { ...er, [name]: problem ? er[name] : "" };
+      return { ...er, [name]: problem };
+    });
   };
   const valuesRef = useRef(values);
   valuesRef.current = values;
@@ -470,8 +1030,30 @@ const AuthSheet = ({ mode, onModeChange, onClose, labelStyle, platform, phoneRef
     onBlur: blur,
   });
 
+  // Where the code went. Signing in with an email shows that email; with a
+  // username, the prototype's stand-in address.
+  const signinEmail = values.account.includes("@") ? values.account : DEMO_EMAIL;
+  const sentTo =
+    otpKind === "sms" ? maskPhone(DEMO_PHONE) : maskEmail(otpFrom === "signin" ? signinEmail : values.email);
+  const otpTitle =
+    otpKind === "totp"
+      ? "Enter authenticator code"
+      : otpKind === "sms"
+        ? "Check your phone"
+        : otpFrom === "signin"
+          ? "Check your email"
+          : "Verify your email";
+
+  // The other ways to get a code, for "Try another way".
+  const otherMethods = [
+    { kind: "totp", label: "Enter code from authenticator app" },
+    { kind: "sms", label: "Send an SMS to", value: maskPhone(DEMO_PHONE) },
+    { kind: "email", label: "Code from email to", value: maskEmail(signinEmail) },
+  ].filter((m) => m.kind !== otpKind);
+
   const required = REQUIRED[page] || [];
-  const ready = required.every((k) => !VALIDATE[k](values[k]));
+  const codeFull = code.every((d) => d !== "");
+  const ready = page === "otp" ? codeFull && !verifying : required.every((k) => !VALIDATE[k](values[k]));
 
   const showToast = (text) => {
     setToast(text);
@@ -482,6 +1064,17 @@ const AuthSheet = ({ mode, onModeChange, onClose, labelStyle, platform, phoneRef
 
   const submit = (e) => {
     e.preventDefault();
+    if (page === "done") return;
+    if (page === "otp") {
+      if (verifying) return;
+      if (!codeFull) {
+        setOtpError("Enter the 6-digit code.");
+        document.getElementById(`as-otp-${code.findIndex((d) => d === "")}`)?.focus();
+        return;
+      }
+      verify(code.join(""));
+      return;
+    }
     if (!ready) {
       setErrors((er) => ({ ...er, ...Object.fromEntries(required.map((k) => [k, VALIDATE[k](values[k])])) }));
       // Take the user to the first problem.
@@ -490,7 +1083,9 @@ const AuthSheet = ({ mode, onModeChange, onClose, labelStyle, platform, phoneRef
       return;
     }
     document.activeElement?.blur?.();
-    showToast("Looks good — this is a prototype");
+    if (page === "signup") goToOtp("signup", "email");
+    else if (signinCheck === "passkey") showToast("Passkey sign-in is still to be designed");
+    else goToOtp("signin", signinCheck);
   };
 
   const toggleReferral = () => {
@@ -518,6 +1113,11 @@ const AuthSheet = ({ mode, onModeChange, onClose, labelStyle, platform, phoneRef
         onPointerCancel={onPointerUp}
       >
         <div className="as-topbar">
+          {page === "otp" && (
+            <button type="button" className="as-close as-back" aria-label={otpFrom === "signin" ? "Back to sign in" : "Back to sign up"} onClick={backFromOtp}>
+              <BackIcon />
+            </button>
+          )}
           <button type="button" className="as-close" aria-label="Close" onClick={onClose}>
             <CloseIcon />
           </button>
@@ -525,7 +1125,23 @@ const AuthSheet = ({ mode, onModeChange, onClose, labelStyle, platform, phoneRef
 
         <form className="as-body" noValidate onSubmit={submit}>
           <div ref={scrollRef} className={`as-scroll${fading ? " is-fading" : ""}`}>
-            {page === "signin" ? (
+            <div key={page} className={`as-page as-enter-${nav}`}>
+            {page === "done" ? (
+              <AccountActivated />
+            ) : page === "otp" ? (
+              <OtpStep
+                kind={otpKind}
+                title={otpTitle}
+                sentTo={sentTo}
+                code={code}
+                onCodeChange={changeCode}
+                error={otpError}
+                verifying={verifying}
+                resendIn={resendIn}
+                onResend={resend}
+                onPaste={pasteCode}
+              />
+            ) : page === "signin" ? (
               <SignIn fieldProps={fieldProps} onForgot={() => showToast("Password reset isn’t in this prototype")} />
             ) : (
               <SignUp
@@ -537,23 +1153,55 @@ const AuthSheet = ({ mode, onModeChange, onClose, labelStyle, platform, phoneRef
                 referralRef={referralRef}
               />
             )}
+            </div>
           </div>
 
           <div className="as-footer">
             <div className={`as-toast${toast ? " is-shown" : ""}`} role="status">
               {toast}
             </div>
-            <button type="submit" className={`as-submit${ready ? " is-ready" : ""}`}>
-              Next
-            </button>
+            {page === "done" ? (
+              <>
+                <button
+                  type="button"
+                  className="as-submit is-ready"
+                  onClick={() => showToast("KYC process isn’t in this prototype yet")}
+                >
+                  Verify identity
+                </button>
+                <p className="as-switch">
+                  <button type="button" className="as-link" onClick={onClose}>
+                    Do it later
+                  </button>
+                </p>
+              </>
+            ) : (
+              <button type="submit" className={`as-submit${ready ? " is-ready" : ""}`} aria-busy={verifying || undefined}>
+                {page === "otp" ? (verifying ? "Verifying…" : "Verify") : "Next"}
+              </button>
+            )}
+            {page === "otp" && otpFrom === "signin" && (
+              <p className="as-switch">
+                Not available?{" "}
+                <button type="button" className="as-link" onClick={() => setPickerOpen(true)}>
+                  Try another way
+                </button>
+              </p>
+            )}
+            {(page === "signin" || page === "signup") && (
             <p className="as-switch">
               {page === "signin" ? "Don’t have an account? " : "Have an account? "}
               <button type="button" className="as-link" onClick={() => switchTo(page === "signin" ? "signup" : "signin")}>
                 {page === "signin" ? "Sign up" : "Sign in"}
               </button>
             </p>
+            )}
           </div>
         </form>
+
+        {page === "done" && <Confetti />}
+
+        <MethodPicker open={pickerOpen} methods={otherMethods} onPick={pickMethod} onClose={() => setPickerOpen(false)} />
       </section>
     </>
   );

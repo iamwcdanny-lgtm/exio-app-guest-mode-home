@@ -1,0 +1,436 @@
+/* Logged-in Home (Figma: Home Custody NoAssets, 19497:35542). */
+.lh {
+  --lh-line: #f2f2f2;
+  --lh-fill-5: rgba(0, 0, 0, 0.05);
+  --lh-fill-3: rgba(0, 0, 0, 0.03);
+  --lh-text-30: rgba(0, 0, 0, 0.3);
+  --lh-info: #019ff8;
+  --lh-brand: #00e59a;
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  font-family: "Manrope", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+  background: #fff;
+}
+
+.lh-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: calc(env(safe-area-inset-top, 0px) + var(--dc-top, 0px) + 16px);
+  scrollbar-width: none;
+}
+.lh-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.lh button {
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Header: avatar left; customer service + bell right, 24px apart. */
+.lh-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+}
+.lh-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.lh-icon-btn {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.lh-icon-btn img {
+  display: block;
+}
+
+/* Total value + the four actions, 12px apart. */
+.lh-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.lh-total {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 16px;
+}
+.lh-total-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text-tertiary);
+}
+.lh-eye {
+  display: flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.lh-eye.is-off {
+  opacity: 0.5;
+}
+.lh-total-value {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+.lh-amount {
+  font-weight: 800;
+  font-size: 28px;
+  line-height: 36px;
+  letter-spacing: -0.84px;
+  color: var(--text-primary);
+}
+.lh-ccy {
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 26px;
+  padding-bottom: 2px;
+  color: var(--text-tertiary);
+}
+
+.lh-actions {
+  display: flex;
+  padding: 8px 0;
+}
+.lh-action {
+  flex: 1 0 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.lh-action-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--lh-fill-5);
+  transition: filter 0.15s ease;
+}
+.lh-action-icon.is-primary {
+  background: var(--lh-brand);
+}
+.lh-action:active .lh-action-icon {
+  filter: brightness(0.94);
+}
+.lh-action-label {
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* Marketing banner, with dividers above and below. */
+.lh-banner {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 12px 16px;
+  border: 0;
+  border-top: 1px solid var(--lh-line);
+  border-bottom: 1px solid var(--lh-line);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.lh-banner-img {
+  flex-shrink: 0;
+  width: 100px;
+  height: 100px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.lh-banner-img img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.lh-banner-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 16px;
+  font-weight: 700;
+}
+.lh-banner-title {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-primary);
+}
+.lh-banner-sub {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text-secondary);
+}
+.lh-banner-pager {
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: var(--lh-fill-5);
+  backdrop-filter: blur(10px);
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 14px;
+  letter-spacing: -0.3px;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  color: var(--text-tertiary);
+}
+
+/* Watchlist / Custody / Trading / OTC. */
+.lh-tabs {
+  display: flex;
+  gap: 16px;
+  padding: 8px 16px 0;
+}
+.lh-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 0 16px;
+  border: 0;
+  background: none;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--lh-text-30);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.lh-tab.is-on {
+  color: var(--text-primary);
+}
+/* 3px indicator, 13px under the label. */
+.lh-tab.is-on::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  border-radius: 9999px;
+  background: var(--text-primary);
+}
+
+/* The selected wallet. 8px gap above comes from the scroll column; it sits
+   flush under the tabs in Figma, so pull it up. */
+.lh-wallet {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  min-height: 276px;
+  margin-top: -8px;
+}
+.lh-wallet-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: var(--lh-fill-3);
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text-tertiary);
+}
+.lh-wallet-amount {
+  font-weight: 500;
+  color: var(--lh-text-30);
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  white-space: pre;
+}
+.lh-wallet-amount b {
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.48px;
+  color: var(--text-primary);
+  margin-right: 4px;
+}
+
+.lh-wallet-tools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--lh-line);
+}
+.lh-hide-small {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+.lh-ring {
+  box-sizing: border-box;
+  width: 13.33px;
+  height: 13.33px;
+  margin: 1.33px;
+  border: 1.5px solid rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+}
+.lh-vdivider {
+  width: 1px;
+  height: 24px;
+  background: var(--lh-line);
+}
+.lh-outline-btn {
+  height: 26px;
+  padding: 0 12px;
+  border: 1px solid var(--lh-info);
+  border-radius: 24px;
+  background: none;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--lh-info);
+  cursor: pointer;
+}
+
+.lh-list-head {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+.lh-list-head i {
+  font-style: normal;
+  color: var(--lh-text-30);
+}
+.lh-col-name {
+  display: flex;
+  align-items: center;
+  width: 124px;
+  color: var(--text-secondary);
+}
+.lh-col-price {
+  width: 92px;
+  text-align: right;
+  color: var(--text-secondary);
+}
+.lh-col-qty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  color: var(--text-primary);
+}
+.lh-col-qty img {
+  margin-left: -4px;
+}
+.lh-hdivider {
+  width: 1px;
+  height: 16px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.lh-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 32px;
+}
+.lh-empty-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 8px;
+  background: var(--lh-fill-3);
+}
+.lh-empty-box img {
+  flex-shrink: 0;
+}
+.lh-empty-box p {
+  margin: 0;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.lh-inline-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--lh-info);
+  cursor: pointer;
+}
+
+.lh button:focus-visible {
+  outline: 2px solid var(--success);
+  outline-offset: 2px;
+}
+
+.lh-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translate(-50%, 4px);
+  width: max-content;
+  max-width: calc(100% - 32px);
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.lh-toast.is-shown {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}

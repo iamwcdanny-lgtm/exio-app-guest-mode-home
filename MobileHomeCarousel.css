@@ -3,11 +3,12 @@
 
 .mhc-stage {
   font-family: "Manrope", -apple-system, BlinkMacSystemFont, sans-serif;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
+  flex-direction: column;
   justify-content: center;
-  align-items: center;
+  align-items: stretch;
   background: #fff;
   font-feature-settings: "lnum" 1, "tnum" 1;
 }
@@ -15,8 +16,8 @@
 .mhc-phone {
   position: relative;
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   background: #fff;
@@ -26,10 +27,16 @@
 /* On wider screens show the prototype inside a phone-sized frame. */
 @media (min-width: 480px) {
   .mhc-stage {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    align-items: center;
+    gap: 16px;
     background: #eef0f3;
     padding: 24px;
   }
   .mhc-phone {
+    flex: none;
     width: 375px;
     height: 812px;
     border-radius: 40px;
@@ -42,7 +49,7 @@
   flex-shrink: 0;
   /* No mock status bar: the device draws its own. The safe-area inset only
      applies when the page runs full-screen on a notched phone. */
-  margin-top: calc(env(safe-area-inset-top, 0px) + 16px);
+  margin-top: calc(env(safe-area-inset-top, 0px) + var(--dc-top, 0px) + 16px);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -248,7 +255,9 @@
 /* ========== Buttons ========== */
 .mhc-btn-group {
   flex-shrink: 0;
-  display: flex;
+  /* Two equal columns (the outline button's border doesn't make it wider). */
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 165px));
   justify-content: center;
   gap: 16px;
   padding: 16px;
@@ -256,10 +265,10 @@
 }
 
 .mhc-btn {
-  flex: 1;
-  max-width: 165px;
-  height: 40px;
-  padding: 10px 32px;
+  width: 100%;
+  box-sizing: border-box;
+  height: 48px;
+  padding: 0 32px;
   border-radius: 24px;
   font-family: inherit;
   font-weight: 700;
@@ -296,7 +305,7 @@
   padding-top: 10px;
   /* No mock home indicator: the device draws its own. Full-screen on a
      phone with a home bar, the safe-area inset keeps the tabs clear of it. */
-  padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+  padding-bottom: max(10px, env(safe-area-inset-bottom, 0px), var(--dc-bottom, 0px));
   box-sizing: border-box;
   border-top: 1px solid #ebedf1;
   background: #fff;
@@ -331,17 +340,14 @@
 }
 
 .mhc-nav-icon {
-  position: relative;
-  width: 22px;
-  height: 22px;
-  overflow: hidden;
+  width: 24px;
+  height: 24px;
 }
 
 .mhc-nav-icon img {
-  position: absolute;
   display: block;
-  width: auto;
-  height: auto;
+  width: 24px;
+  height: 24px;
 }
 
 

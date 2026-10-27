@@ -7,11 +7,15 @@
   --as-p: 0;
   /* Where the Home card sits once it has shrunk back (below the status bar
      on a real device). The sheet starts 10px below it. */
-  --as-top: calc(env(safe-area-inset-top, 0px) + 10px);
+  /* Mock device chrome, drawn only in the desktop phone frame (a real
+     phone draws its own): status bar and home indicator heights. */
+  --dc-top: 0px;
+  --dc-bottom: 0px;
+  --as-top: calc(env(safe-area-inset-top, 0px) + var(--dc-top) + 10px);
   --as-ease: cubic-bezier(0.32, 0.72, 0, 1);
   --as-dur: 0.45s;
   --as-link: #0a9bf5;
-  --as-error-line: #ff649b;
+  --as-error-line: #f3518b;
   --as-error-text: #f3518b;
   transition: background-color var(--as-dur) var(--as-ease);
 }
@@ -65,6 +69,9 @@
   font-family: inherit;
   color: var(--text-primary);
   outline: none;
+  /* App-like: dragging the sheet shouldn't select its text. Fields stay selectable. */
+  -webkit-user-select: none;
+  user-select: none;
   transform: translateY(calc((1 - var(--as-p)) * 100%));
   transition: transform var(--as-dur) var(--as-ease);
   will-change: transform;
@@ -79,7 +86,7 @@
 /* Android: a full-screen page that slides up over Home. */
 .as-sheet.as-android {
   top: 0;
-  padding-top: env(safe-area-inset-top, 0px);
+  padding-top: calc(env(safe-area-inset-top, 0px) + var(--dc-top));
 }
 
 /* While a finger (or mouse) drags the sheet, follow it exactly. */
@@ -90,13 +97,27 @@
   transition: none;
 }
 
+/* The top of the sheet floats over the scrolling content and fades it out:
+   solid white at the very top to clear at the bottom of the band. The close
+   button sits in its top 48px. */
 .as-topbar {
-  flex-shrink: 0;
-  height: 48px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  height: 64px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-end;
-  padding: 0 12px;
+  /* 40px tap areas 8px in, so the 24px icons sit 16px from the top, left and right. */
+  padding: 8px 8px 0;
+  background: linear-gradient(to bottom, #fff 0%, rgba(255, 255, 255, 0) 100%);
+  border-radius: inherit;
+  pointer-events: none;
+}
+.as-sheet.as-android .as-topbar {
+  top: calc(env(safe-area-inset-top, 0px) + var(--dc-top));
 }
 
 .as-close {
@@ -111,6 +132,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  pointer-events: auto;
 }
 
 .as-body {
@@ -127,7 +149,8 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding: 16px 16px 24px;
+  /* Starts below the faded top band (48px close row + 16px). */
+  padding: 64px 16px 24px;
   transition: opacity 0.16s ease;
 }
 .as-scroll.is-fading {
@@ -136,14 +159,14 @@
 
 .as-logo {
   display: block;
-  height: 32px;
+  height: 24px;
   width: auto;
   margin-bottom: 16px;
 }
 
 .as-title {
   margin: 0 0 32px;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 24px;
   line-height: 32px;
   color: #000;
@@ -172,6 +195,8 @@
 }
 
 .as-box {
+  /* Height includes padding and border: IFTA is 56px, Floating / Traditional 48px. */
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -179,10 +204,12 @@
   border: 1px solid transparent;
   border-radius: 8px;
   cursor: text;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .as-input {
+  -webkit-user-select: text;
+  user-select: text;
   -webkit-appearance: none;
   appearance: none;
   flex: 1;
@@ -244,9 +271,11 @@
 
 .as-field.is-focused .as-box {
   border-color: var(--text-primary);
+  box-shadow: inset 0 0 0 0.5px var(--text-primary);
 }
 .as-field.is-error .as-box {
   border-color: var(--as-error-line);
+  box-shadow: inset 0 0 0 0.5px var(--as-error-line);
 }
 
 /* Traditional: label above a grey field. */
@@ -307,7 +336,7 @@
 
 /* IFTA: grey field, small label fixed at the top inside it. */
 .as-style-ifta .as-box {
-  height: 58px;
+  height: 56px;
   padding: 8px 12px;
   background: rgba(0, 0, 0, 0.04);
 }
@@ -319,8 +348,9 @@
   gap: 2px;
 }
 .as-style-ifta .as-label {
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 10px;
+  line-height: 14px;
+  color: var(--text-tertiary);
   cursor: text;
 }
 .as-style-ifta .as-field.is-focused .as-label {
@@ -328,6 +358,216 @@
 }
 .as-style-ifta .as-field.is-error .as-label {
   color: var(--as-error-text);
+}
+
+/* ========== New-password strength checklist ==========
+   Expands under the password field while it is focused. */
+.as-strength {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.25s ease, opacity 0.2s ease;
+}
+.as-strength.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.as-strength-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+.as-strength-card {
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.as-strength-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.as-strength-bar {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+.as-strength-bar span {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s ease;
+}
+.as-strength[data-score="1"] .as-strength-bar .is-on,
+.as-strength[data-score="2"] .as-strength-bar .is-on { background: var(--as-error-line); }
+.as-strength[data-score="3"] .as-strength-bar .is-on { background: #ff9f43; }
+.as-strength[data-score="4"] .as-strength-bar .is-on { background: #f5c33b; }
+.as-strength[data-score="5"] .as-strength-bar .is-on { background: var(--success); }
+.as-rules-title {
+  margin: 0 0 -2px;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text-primary);
+}
+.as-strength-label {
+  min-width: 44px;
+  text-align: right;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-secondary);
+}
+.as-rules {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.as-rules li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text-tertiary);
+  transition: color 0.2s ease;
+}
+.as-rules li.is-met {
+  color: var(--text-primary);
+}
+.as-rules svg {
+  flex-shrink: 0;
+}
+.as-rule-ring {
+  fill: none;
+  stroke: rgba(0, 0, 0, 0.2);
+  stroke-width: 1.4;
+  transition: fill 0.2s ease, stroke 0.2s ease;
+}
+.as-rule-tick {
+  stroke: #fff;
+  opacity: 0;
+  transform: scale(0.6);
+  transform-origin: 8px 8px;
+  transition: opacity 0.15s ease, transform 0.2s ease;
+}
+.is-met .as-rule-ring,
+.as-check.is-on .as-rule-ring {
+  fill: var(--success);
+  stroke: var(--success);
+}
+.is-met .as-rule-tick,
+.as-check.is-on .as-rule-tick {
+  opacity: 1;
+  transform: scale(1);
+}
+.as-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ========== Email OTP ========== */
+.as-title-otp {
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+.as-subtitle {
+  margin: 0 0 32px;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-secondary);
+}
+.as-subtitle strong {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.as-otp {
+  display: flex;
+  gap: 8px;
+}
+.as-otp-box {
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-user-select: text;
+  user-select: text;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 56px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  outline: none;
+  background: rgba(0, 0, 0, 0.04);
+  text-align: center;
+  font: 700 22px/28px "Manrope", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+  caret-color: var(--success);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.as-style-float .as-otp-box {
+  background: #fff;
+  border-color: rgba(0, 0, 0, 0.12);
+}
+.as-otp-box:focus {
+  border-color: var(--text-primary);
+  box-shadow: inset 0 0 0 0.5px var(--text-primary);
+}
+.as-otp.is-error .as-otp-box {
+  border-color: var(--as-error-line);
+  box-shadow: inset 0 0 0 0.5px var(--as-error-line);
+}
+.as-otp-box:disabled {
+  color: var(--text-tertiary);
+}
+/* Under the code boxes: resend on the left, Paste on the right. */
+.as-otp-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  font-size: 14px;
+  line-height: 20px;
+}
+.as-otp-actions .as-link:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.as-resend {
+  font-weight: 500;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+.as-back {
+  margin-right: auto;
+}
+
+/* Page-to-page motion inside the sheet. */
+.as-enter-forward {
+  animation: as-in-forward 0.28s var(--as-ease);
+}
+.as-enter-back {
+  animation: as-in-back 0.28s var(--as-ease);
+}
+@keyframes as-in-forward {
+  from { opacity: 0; transform: translateX(32px); }
+}
+@keyframes as-in-back {
+  from { opacity: 0; transform: translateX(-32px); }
 }
 
 /* ========== Other controls ========== */
@@ -371,11 +611,6 @@
 }
 .as-check svg {
   flex-shrink: 0;
-  color: rgba(0, 0, 0, 0.3);
-  transition: color 0.15s ease;
-}
-.as-check.is-on svg {
-  color: var(--success);
 }
 .as-check:has(input:focus-visible) svg {
   outline: 2px solid var(--success);
@@ -383,21 +618,22 @@
   border-radius: 50%;
 }
 
+/* Text buttons (Sign in / Sign up, Forgot your password?, Resend code, Paste):
+   one style everywhere — 14/20 Bold, #0A9BF5. */
 .as-link {
   padding: 0;
   border: 0;
   background: none;
   font-family: inherit;
   font-weight: 700;
-  font-size: inherit;
-  line-height: inherit;
+  font-size: 14px;
+  line-height: 20px;
   color: var(--as-link);
   cursor: pointer;
 }
 
 .as-forgot {
   align-self: flex-start;
-  font-weight: 500;
   font-size: 14px;
   line-height: 20px;
   /* Sits 8px under the password field whatever the field gap is. */
@@ -411,10 +647,104 @@
 }
 
 /* ========== Footer ========== */
+/* ========== "Try another way" bottom sheet (over the page sheet) ========== */
+.as-picker {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.as-picker.is-open {
+  pointer-events: auto;
+}
+.as-picker-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transition: opacity 0.3s var(--as-ease);
+}
+.as-picker.is-open .as-picker-scrim {
+  opacity: 1;
+}
+.as-picker-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 8px 16px max(24px, env(safe-area-inset-bottom, 0px), var(--dc-bottom));
+  border-radius: 16px 16px 0 0;
+  background: #fff;
+  transform: translateY(100%);
+  transition: transform 0.36s var(--as-ease);
+}
+.as-picker.is-open .as-picker-sheet {
+  transform: none;
+}
+.as-picker-grabber {
+  width: 32px;
+  height: 4px;
+  margin: 0 auto 20px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.1);
+}
+.as-picker-title {
+  margin: 0 0 24px;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 28px;
+  color: var(--text-title);
+}
+.as-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.as-method {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 16px;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.04);
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.as-method:active {
+  background: rgba(0, 0, 0, 0.08);
+}
+.as-method:focus-visible {
+  outline: 2px solid var(--success);
+  outline-offset: 2px;
+}
+.as-method svg {
+  flex-shrink: 0;
+  color: var(--text-primary);
+}
+.as-method strong {
+  font-weight: 700;
+}
+@media (prefers-reduced-motion: reduce) {
+  .as-picker-scrim,
+  .as-picker-sheet {
+    transition: none;
+  }
+}
+
 .as-footer {
   position: relative;
   flex-shrink: 0;
-  padding: 12px 16px max(16px, env(safe-area-inset-bottom, 0px));
+  padding: 12px 16px max(16px, env(safe-area-inset-bottom, 0px), var(--dc-bottom));
   background: #fff;
 }
 
@@ -439,6 +769,81 @@
 }
 .as-submit:active {
   transform: scale(0.98);
+}
+
+/* Email host suggestions under the field (after "@"). */
+.as-hosts {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.as-hosts::-webkit-scrollbar {
+  display: none;
+}
+.as-host {
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.05);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.as-host:active {
+  background: rgba(0, 0, 0, 0.1);
+}
+.as-host:focus-visible {
+  outline: 2px solid var(--success);
+  outline-offset: 1px;
+}
+
+/* "Account activated" (end of sign up). */
+.as-confetti {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.as-done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 0 0 32px;
+  text-align: center;
+}
+.as-done-img {
+  display: block;
+  width: 120px;
+  height: 120px;
+}
+.as-done-title {
+  margin: 0 0 -16px;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 32px;
+  color: var(--text-title);
+}
+.as-done-text {
+  margin: 0;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--text-primary);
 }
 
 .as-switch {
@@ -481,68 +886,250 @@
   outline-offset: 2px;
 }
 
-/* ========== Prototype controls (outside the phone, wide screens only) ========== */
+/* ========== Prototype switches (outside the phone) ==========
+   Above the phone by default; a panel beside it once there is room. */
 .as-proto {
-  display: none;
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 10px 20px;
+  font-family: "Manrope", -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+.as-proto-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.as-proto-label {
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.as-seg {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.as-seg-btn {
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 9999px;
+  background: none;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.as-seg-btn.is-on {
+  background: #fff;
+  color: var(--text-title);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+.as-seg-btn:focus-visible {
+  outline: 2px solid var(--success);
+  outline-offset: 1px;
+}
+
+.as-select {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-secondary);
+}
+.as-select select {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 32px;
+  padding: 0 30px 0 12px;
+  border: 0;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.06);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-title);
+  cursor: pointer;
+}
+.as-select select:focus-visible {
+  outline: 2px solid var(--success);
+  outline-offset: 1px;
+}
+.as-select svg {
+  position: absolute;
+  right: 12px;
+  pointer-events: none;
+}
+
+.as-proto-note {
+  display: none;
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-tertiary);
+}
+
+/* Phone-sized screens: a slim bar across the top of the screen. */
+@media (max-width: 479px) {
+  .as-proto {
+    padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px;
+    gap: 8px 12px;
+    background: #fff;
+    border-bottom: 1px solid #ebedf1;
+  }
+  .as-proto-label {
+    display: none;
+  }
+}
+
+/* Wide screens: a panel to the left of the phone. */
 @media (min-width: 840px) {
   .as-proto {
     position: fixed;
     top: 24px;
     left: 24px;
     z-index: 50;
-    display: flex;
+    width: 236px;
     flex-direction: column;
+    align-items: flex-start;
     gap: 16px;
-    width: 196px;
     padding: 16px;
     border-radius: 12px;
     background: #fff;
     box-shadow: 0 4px 24px rgba(159, 162, 191, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.04);
-    font-size: 12px;
-    color: var(--text-secondary);
+  }
+  .as-proto-note {
+    display: block;
+  }
+  .as-proto .as-proto-group:has(.as-select),
+  .as-select,
+  .as-select select {
+    width: 100%;
   }
 }
 
-.as-proto-group {
-  margin: 0;
-  padding: 0;
-  border: 0;
+/* ========== Mock device chrome (phone frame only) ========== */
+.dc {
+  display: none;
+}
+
+@media (min-width: 480px) {
+  .mhc-phone.as-platform-ios {
+    --dc-top: 44px;
+    --dc-bottom: 34px;
+  }
+  .mhc-phone.as-platform-android {
+    --dc-top: 28px;
+    --dc-bottom: 24px;
+  }
+  .dc {
+    display: block;
+  }
+}
+
+.dc-status {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  height: var(--dc-top);
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  color: #000;
+  pointer-events: none;
+  transition: color var(--as-dur) var(--as-ease);
+}
+.dc-status svg {
+  display: block;
+}
+.dc-icons {
+  display: flex;
+  align-items: center;
+}
+
+/* iOS: time and icons sit either side of the notch. */
+.dc-ios {
+  padding: 0 26px 0 40px;
+  font-family: -apple-system, "SF Pro Text", "Manrope", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.2px;
+}
+.dc-ios .dc-icons {
+  gap: 5px;
+  padding-top: 1px;
+}
+/* On the black backdrop behind a page sheet the status bar turns white. */
+.mhc-phone.as-open.as-platform-ios .dc-status {
+  color: #fff;
+}
+
+.dc-android {
+  padding: 0 16px 0 20px;
+  font-family: "Roboto", "Manrope", sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+}
+.dc-android .dc-icons {
   gap: 6px;
 }
 
-.as-proto-group legend {
+.dc-home {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  z-index: 30;
+  transform: translateX(-50%);
+  border-radius: 100px;
+  background: #000;
+  pointer-events: none;
+}
+.dc-home.dc-ios {
+  width: 134px;
+  height: 5px;
   padding: 0;
-  margin-bottom: 6px;
-  font-weight: 700;
-  color: var(--text-primary);
 }
-
-.as-proto-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-  font-size: 13px;
-  color: var(--text-primary);
-  cursor: pointer;
-}
-
-.as-proto-option input {
-  margin: 0;
-  accent-color: var(--success);
-}
-
-.as-proto-note {
-  margin: 0;
-  line-height: 16px;
-  color: var(--text-tertiary);
+.dc-home.dc-android {
+  bottom: 9px;
+  width: 108px;
+  height: 4px;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.55);
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .dc-status {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .as-enter-forward,
+  .as-enter-back {
+    animation: none;
+  }
+  .as-strength,
+  .as-strength-bar span,
+  .as-rules li,
+  .as-rule-ring,
+  .as-rule-tick,
   .mhc-phone,
   .mhc-screen,
   .as-scrim,

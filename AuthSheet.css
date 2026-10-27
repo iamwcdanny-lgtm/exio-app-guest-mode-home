@@ -808,6 +808,297 @@
   outline-offset: 1px;
 }
 
+/* ---- Passkey sheet (Figma 18706:103683) ---- */
+.as-passkey .as-picker-sheet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 8px;
+  text-align: center;
+}
+.as-passkey .as-picker-grabber {
+  margin-bottom: 16px;
+}
+.as-passkey-img {
+  display: block;
+  width: 120px;
+  height: 120px;
+}
+.as-passkey-title {
+  margin: 16px 0 8px;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 26px;
+  color: var(--text-title);
+}
+.as-passkey-text {
+  margin: 0 0 24px;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--text-primary);
+}
+.as-passkey .as-submit {
+  margin-top: 16px;
+}
+
+/* ---- Passkey set-up invitation (Figma 19010:59697) ---- */
+.as-promo {
+  z-index: 35;
+}
+.as-promo .as-picker-sheet {
+  padding-bottom: max(16px, var(--dc-bottom, 0px));
+}
+.as-promo-img {
+  display: block;
+  width: 320px;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+.as-promo-later {
+  margin-top: 12px;
+}
+
+/* ---- Simulated device passkey prompt (stand-in for iOS / Android UI) ---- */
+.dp {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  border-radius: inherit;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto, "Manrope", sans-serif;
+  animation: dp-fade 0.2s ease;
+}
+.dp-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+}
+.dp-sheet {
+  position: relative;
+  box-sizing: border-box;
+  width: calc(100% - 16px);
+  margin-bottom: max(8px, var(--dc-bottom, 0px));
+  padding: 16px 16px 16px;
+  border-radius: 28px;
+  background: #fff;
+  color: #000;
+  text-align: center;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
+  animation: dp-up 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.dp-ios .dp-sheet {
+  background: rgba(246, 246, 248, 0.98);
+}
+.dp-ios-head {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.dp-ios-key {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+.dp-x {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.07);
+  font-size: 20px;
+  line-height: 30px;
+  color: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+.dp-title {
+  margin: 4px 0 4px;
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 22px;
+}
+.dp-sub {
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.55);
+}
+.dp-account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 16px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #fff;
+  text-align: left;
+}
+.dp-android .dp-account {
+  background: rgba(0, 0, 0, 0.04);
+}
+.dp-avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #36cdca, #00dd95);
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+}
+.dp-account b {
+  display: block;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 20px;
+}
+.dp-account i {
+  display: block;
+  font-style: normal;
+  font-size: 12px;
+  line-height: 16px;
+  color: rgba(0, 0, 0, 0.5);
+}
+.dp-continue {
+  width: 100%;
+  height: 50px;
+  border: 0;
+  border-radius: 14px;
+  background: #007aff;
+  font: inherit;
+  font-weight: 600;
+  font-size: 17px;
+  color: #fff;
+  cursor: pointer;
+}
+.dp-android .dp-continue {
+  width: auto;
+  height: 40px;
+  padding: 0 24px;
+  border-radius: 20px;
+  background: #0b57d0;
+  font-size: 14px;
+}
+.dp-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.dp-text {
+  height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 20px;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  color: #0b57d0;
+  cursor: pointer;
+}
+.dp-android .dp-sheet {
+  border-radius: 28px 28px 0 0;
+  width: 100%;
+  margin-bottom: 0;
+  padding: 24px 24px max(16px, var(--dc-bottom, 0px));
+  text-align: left;
+}
+
+/* Face ID: a rounded square in the middle of the screen. */
+.dp-bio {
+  align-items: center;
+}
+.dp-faceid {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: 32px;
+  background: rgba(240, 240, 242, 0.96);
+  color: #1c1c1e;
+  font-size: 15px;
+  font-weight: 500;
+  animation: dp-pop 0.25s ease;
+}
+.dp-faceid svg {
+  animation: dp-pulse 1s ease-in-out infinite;
+}
+.dp-bio.is-ok .dp-faceid svg,
+.dp-bio.is-ok .dp-finger-icon svg {
+  animation: none;
+  color: #34c759;
+}
+.dp-bio.dp-android {
+  align-items: flex-end;
+}
+.dp-finger {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.dp-finger-icon {
+  display: flex;
+  margin: 8px 0 16px;
+  padding: 16px;
+  border-radius: 50%;
+  background: rgba(11, 87, 208, 0.08);
+  color: #0b57d0;
+}
+.dp-finger-icon svg {
+  animation: dp-pulse 1s ease-in-out infinite;
+}
+@keyframes dp-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes dp-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes dp-pop {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+}
+@keyframes dp-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dp,
+  .dp-sheet,
+  .dp-faceid,
+  .dp-faceid svg,
+  .dp-finger-icon svg {
+    animation: none;
+  }
+}
+
 /* "Account activated" (end of sign up). */
 .as-confetti {
   position: absolute;
@@ -974,6 +1265,95 @@
   position: absolute;
   right: 12px;
   pointer-events: none;
+}
+
+.as-proto-group:has(.as-binds) {
+  align-self: stretch;
+  min-width: 204px;
+}
+.as-binds {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.as-bind {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.as-bind.is-fixed {
+  cursor: default;
+}
+.as-bind-name {
+  flex: 1;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-title);
+}
+.as-bind-state {
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--text-tertiary);
+}
+.as-bind.is-on .as-bind-state {
+  color: #00a870;
+}
+.as-bind-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 30px;
+  height: 18px;
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.15);
+  transition: background 0.2s ease;
+}
+.as-bind-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+.as-bind.is-on .as-bind-switch {
+  background: var(--success);
+}
+.as-bind.is-on .as-bind-switch::after {
+  transform: translateX(12px);
+}
+.as-bind.is-fixed .as-bind-switch {
+  opacity: 0.45;
+}
+.as-bind:focus-visible {
+  outline: 2px solid var(--success);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.as-bind-note {
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--text-tertiary);
+}
+.as-bind-note b {
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .as-proto-note {

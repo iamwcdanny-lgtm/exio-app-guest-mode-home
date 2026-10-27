@@ -657,11 +657,203 @@ const AccountActivated = () => (
   </div>
 );
 
+// Passkey sign-in (Figma: passkey_modal, 18706:103683): a bottom sheet over
+// the page sheet. "Start verification" hands over to the device.
+const PASSKEY_IMG = `${import.meta.env.BASE_URL}images/home/passkey.svg`;
+const PasskeySheet = ({ open, onStart, onOther, onClose }) => (
+  <div className={`as-picker as-passkey${open ? " is-open" : ""}`} aria-hidden={!open}>
+    <div className="as-picker-scrim" onClick={onClose} />
+    <div className="as-picker-sheet" role="dialog" aria-modal="true" aria-labelledby="as-passkey-title">
+      <div className="as-picker-grabber" aria-hidden="true" />
+      <img className="as-passkey-img" src={PASSKEY_IMG} width="120" height="120" alt="" />
+      <h2 className="as-passkey-title" id="as-passkey-title">
+        Complete verification with passkey
+      </h2>
+      <p className="as-passkey-text">Please follow the instructions on your device to complete verification</p>
+      <button type="button" className="as-submit is-ready" tabIndex={open ? 0 : -1} onClick={onStart}>
+        Start verification
+      </button>
+      <p className="as-switch">
+        Passkey not available?{" "}
+        <button type="button" className="as-link" tabIndex={open ? 0 : -1} onClick={onOther}>
+          Try another way
+        </button>
+      </p>
+    </div>
+  </div>
+);
+
+// Stand-in for the phone's own passkey prompt, so the path can be tried in a
+// browser: iOS shows a passkey sheet then Face ID, Android a saved-passkey
+// sheet then the fingerprint prompt. stage: "ask" | "scan" | "ok".
+const FaceIdGlyph = ({ ok }) => (
+  <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    {ok ? (
+      <path d="M18 33l9 9 19-20" />
+    ) : (
+      <>
+        <path d="M6 18V12a6 6 0 0 1 6-6h6M46 6h6a6 6 0 0 1 6 6v6M58 46v6a6 6 0 0 1-6 6h-6M18 58h-6a6 6 0 0 1-6-6v-6" />
+        <path d="M22 24v4M42 24v4M32 24v12h-3M24 44c4 4 12 4 16 0" />
+      </>
+    )}
+  </svg>
+);
+const FingerprintGlyph = ({ ok }) => (
+  <svg width="56" height="56" viewBox="0 0 56 56" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
+    {ok ? (
+      <path d="M16 29l8 8 16-17" />
+    ) : (
+      <>
+        <path d="M14 16a19 19 0 0 1 28 0" />
+        <path d="M11 27a17 17 0 0 1 34 0v3" />
+        <path d="M17 41c2-4 3-8 3-14a8 8 0 0 1 16 0c0 5-1 10-3 14" />
+        <path d="M28 27c0 7-1 13-4 18" />
+        <path d="M43 37c-1 3-2 6-4 9" />
+      </>
+    )}
+  </svg>
+);
+export const DevicePasskey = ({ platform, stage, account, onContinue, onCancel, mode = "signin" }) => {
+  const create = mode === "create";
+  if (!stage) return null;
+  const ios = platform === "ios";
+  if (stage === "ask") {
+    return (
+      <div className={`dp dp-${platform}`}>
+        <div className="dp-scrim" onClick={onCancel} />
+        <div className="dp-sheet" role="dialog" aria-modal="true" aria-label="Use passkey">
+          {ios ? (
+            <>
+              <div className="dp-ios-head">
+                <span className="dp-ios-key" aria-hidden="true">
+                  <img src={PASSKEY_IMG} width="28" height="28" alt="" />
+                </span>
+                <button type="button" className="dp-x" aria-label="Cancel" onClick={onCancel}>
+                  ×
+                </button>
+              </div>
+              <p className="dp-title">{create ? "Save a passkey for “ex.io”?" : "Sign in to “ex.io”?"}</p>
+              <p className="dp-sub">
+                {create
+                  ? "A passkey will be saved in your iCloud Keychain and available on all your devices."
+                  : "Use the passkey saved in your iCloud Keychain."}
+              </p>
+              <div className="dp-account">
+                <span className="dp-avatar" aria-hidden="true">
+                  {account.slice(0, 1).toUpperCase() || "E"}
+                </span>
+                <span>
+                  <b>{account || "chantaiman.88"}</b>
+                  <i>{create ? "New passkey" : "Passkey · iCloud Keychain"}</i>
+                </span>
+              </div>
+              <button type="button" className="dp-continue" onClick={onContinue}>
+                Continue
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="dp-title">{create ? "Create a passkey for ex.io?" : "Use your saved passkey for ex.io?"}</p>
+              <div className="dp-account">
+                <span className="dp-avatar" aria-hidden="true">
+                  {account.slice(0, 1).toUpperCase() || "E"}
+                </span>
+                <span>
+                  <b>{account || "chantaiman.88"}</b>
+                  <i>{create ? "Saved to Google Password Manager" : "Passkey · Google Password Manager"}</i>
+                </span>
+              </div>
+              <div className="dp-actions">
+                <button type="button" className="dp-text" onClick={onCancel}>
+                  Cancel
+                </button>
+                <button type="button" className="dp-continue" onClick={onContinue}>
+                  {create ? "Create" : "Continue"}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+  // Biometric check, then a tick.
+  const ok = stage === "ok";
+  return (
+    <div className={`dp dp-${platform} dp-bio${ok ? " is-ok" : ""}`} role="status" aria-live="polite">
+      <div className="dp-scrim" />
+      {ios ? (
+        <div className="dp-faceid">
+          <FaceIdGlyph ok={ok} />
+          <span>{ok ? "Done" : "Face ID"}</span>
+        </div>
+      ) : (
+        <div className="dp-sheet dp-finger">
+          <p className="dp-title">Verify it’s you</p>
+          <p className="dp-sub">Touch the fingerprint sensor</p>
+          <span className="dp-finger-icon">
+            <FingerprintGlyph ok={ok} />
+          </span>
+          {!ok && (
+            <button type="button" className="dp-text" onClick={onCancel}>
+              Cancel
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// After signing in without a passkey: invite the user to set one up
+// (Figma: passkey_modal, 19010:59697). Shown over the logged-in Home.
+const PASSKEY_ILLU = `${import.meta.env.BASE_URL}images/home/passkey-illustration.jpg`;
+export const PasskeyPromo = ({ open, onSetUp, onLater }) => {
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => e.key === "Escape" && onLater();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onLater]);
+  return (
+    <div className={`as-picker as-passkey as-promo${open ? " is-open" : ""}`} aria-hidden={!open}>
+      <div className="as-picker-scrim" onClick={onLater} />
+      <div className="as-picker-sheet" role="dialog" aria-modal="true" aria-labelledby="as-promo-title">
+        <div className="as-picker-grabber" aria-hidden="true" />
+        <img className="as-promo-img" src={PASSKEY_ILLU} width="320" height="320" alt="" />
+        <h2 className="as-passkey-title" id="as-promo-title">
+          Protect your account with a passkey
+        </h2>
+        <p className="as-passkey-text">A faster, phishing-resistant way to verify, using the biometrics already on your device.</p>
+        <button type="button" className="as-submit is-ready" tabIndex={open ? 0 : -1} onClick={onSetUp}>
+          Set up now
+        </button>
+        <p className="as-switch as-promo-later">
+          <button type="button" className="as-link" tabIndex={open ? 0 : -1} onClick={onLater}>
+            Do it later
+          </button>
+        </p>
+      </div>
+    </div>
+  );
+};
+
 /* ---------- The sheet ---------- */
 // `mode`: null (closed), "signup" or "signin". `screenRef` is the Home screen
 // behind the sheet; `phoneRef` is the frame both sit in (it carries the
 // open-progress variable both animate from).
-const AuthSheet = ({ mode, onModeChange, onClose, onSignedIn, labelStyle, platform, signinCheck = "email", phoneRef, screenRef }) => {
+const AuthSheet = ({
+  mode,
+  onModeChange,
+  onClose,
+  onSignedIn,
+  labelStyle,
+  platform,
+  signinCheck = "email",
+  bound = { email: true },
+  phoneRef,
+  screenRef,
+}) => {
   // What is rendered: stays on the last page while the sheet animates closed.
   const [page, setPage] = useState(mode);
   const [mounted, setMounted] = useState(Boolean(mode));
@@ -681,12 +873,18 @@ const AuthSheet = ({ mode, onModeChange, onClose, onSignedIn, labelStyle, platfo
   const [otpFrom, setOtpFrom] = useState("signup");
   const [otpKind, setOtpKind] = useState("email");
   const [pickerOpen, setPickerOpen] = useState(false);
+  // Passkey path: the EXIO sheet, then the device's own prompt (simulated).
+  const [passkeyOpen, setPasskeyOpen] = useState(false);
+  const [deviceStage, setDeviceStage] = useState(null); // null | "ask" | "scan" | "ok"
+  const deviceTimer = useRef(null);
+  // Which method "Try another way" was opened from ("passkey" or the code step).
+  const [pickerFrom, setPickerFrom] = useState("otp");
   const otpFromRef = useRef(otpFrom);
   otpFromRef.current = otpFrom;
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const pickerOpenRef = useRef(false);
-  pickerOpenRef.current = pickerOpen;
+  pickerOpenRef.current = pickerOpen || passkeyOpen || Boolean(deviceStage);
   const pageRef = useRef(page);
   pageRef.current = page;
   const sheetRef = useRef(null);
@@ -740,6 +938,9 @@ const AuthSheet = ({ mode, onModeChange, onClose, onSignedIn, labelStyle, platfo
         setVerifying(false);
         setResendIn(0);
         setPickerOpen(false);
+        setPasskeyOpen(false);
+        setDeviceStage(null);
+        clearTimeout(deviceTimer.current);
         if (returnFocus.current?.focus) returnFocus.current.focus({ preventScroll: true });
       },
       reducedMotion() ? 0 : DURATION_MS
@@ -769,8 +970,12 @@ const AuthSheet = ({ mode, onModeChange, onClose, onSignedIn, labelStyle, platfo
     if (!mode) return undefined;
     const onKey = (e) => {
       if (e.key !== "Escape") return;
-      if (pickerOpenRef.current) setPickerOpen(false);
-      else onClose();
+      if (pickerOpenRef.current) {
+        setPickerOpen(false);
+        setPasskeyOpen(false);
+        setDeviceStage(null);
+        clearTimeout(deviceTimer.current);
+      } else onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -898,6 +1103,10 @@ const AuthSheet = ({ mode, onModeChange, onClose, onSignedIn, labelStyle, platfo
   // Picking another method: the code page swaps to it (a fresh code is "sent").
   const pickMethod = (kind) => {
     setPickerOpen(false);
+    if (pickerFrom === "passkey") {
+      goToOtp("signin", kind);
+      return;
+    }
     setNav("fade");
     setFading(true);
     setTimeout(
@@ -926,7 +1135,7 @@ const AuthSheet = ({ mode, onModeChange, onClose, onSignedIn, labelStyle, platfo
   const startDrag = (y, target) => {
     if (!ios || !mode) return;
     // Not while the method picker is up: it sits over the page sheet.
-    if (pickerOpenRef.current || target.closest?.(".as-picker")) return;
+    if (pickerOpenRef.current || target.closest?.(".as-picker, .dp")) return;
     const scroller = scrollRef.current;
     // Inside the scrolling area only once it's scrolled to the top.
     if (scroller && scroller.contains(target) && scroller.scrollTop > 0) return;
@@ -1044,12 +1253,41 @@ const AuthSheet = ({ mode, onModeChange, onClose, onSignedIn, labelStyle, platfo
           ? "Check your email"
           : "Verify your email";
 
+  // Passkey: hand over to the device, then finish signing in.
+  const startPasskey = () => {
+    setPasskeyOpen(false);
+    setDeviceStage("ask");
+  };
+  const cancelPasskey = () => {
+    clearTimeout(deviceTimer.current);
+    setDeviceStage(null);
+    setPasskeyOpen(true);
+    showToast("Passkey verification was cancelled");
+  };
+  const continuePasskey = () => {
+    setDeviceStage("scan");
+    deviceTimer.current = setTimeout(() => {
+      setDeviceStage("ok");
+      deviceTimer.current = setTimeout(() => {
+        setDeviceStage(null);
+        const who = values.account.trim().split("@")[0];
+        if (onSignedIn) onSignedIn("signin", who);
+      }, 700);
+    }, 1400);
+  };
+  useEffect(() => () => clearTimeout(deviceTimer.current), []);
+
   // The other ways to get a code, for "Try another way".
   const otherMethods = [
     { kind: "totp", label: "Enter code from authenticator app" },
     { kind: "sms", label: "Send an SMS to", value: maskPhone(DEMO_PHONE) },
     { kind: "email", label: "Code from email to", value: maskEmail(signinEmail) },
-  ].filter((m) => m.kind !== otpKind);
+  ]
+    // Only methods the account has set up; email is always bound.
+    .filter((m) => m.kind === "email" || bound[m.kind])
+    .filter((m) => pickerFrom === "passkey" || m.kind !== otpKind);
+  // From a code page: is there anything else to switch to?
+  const otherFromOtp = ["totp", "sms", "email"].filter((k) => k !== otpKind && (k === "email" || bound[k]));
 
   const required = REQUIRED[page] || [];
   const codeFull = code.every((d) => d !== "");
@@ -1084,7 +1322,7 @@ const AuthSheet = ({ mode, onModeChange, onClose, onSignedIn, labelStyle, platfo
     }
     document.activeElement?.blur?.();
     if (page === "signup") goToOtp("signup", "email");
-    else if (signinCheck === "passkey") showToast("Passkey sign-in is still to be designed");
+    else if (signinCheck === "passkey") setPasskeyOpen(true);
     else goToOtp("signin", signinCheck);
   };
 
@@ -1180,10 +1418,17 @@ const AuthSheet = ({ mode, onModeChange, onClose, onSignedIn, labelStyle, platfo
                 {page === "otp" ? (verifying ? "Verifying…" : "Verify") : "Next"}
               </button>
             )}
-            {page === "otp" && otpFrom === "signin" && (
+            {page === "otp" && otpFrom === "signin" && otherFromOtp.length > 0 && (
               <p className="as-switch">
                 Not available?{" "}
-                <button type="button" className="as-link" onClick={() => setPickerOpen(true)}>
+                <button
+                  type="button"
+                  className="as-link"
+                  onClick={() => {
+                    setPickerFrom("otp");
+                    setPickerOpen(true);
+                  }}
+                >
                   Try another way
                 </button>
               </p>
@@ -1200,6 +1445,24 @@ const AuthSheet = ({ mode, onModeChange, onClose, onSignedIn, labelStyle, platfo
         </form>
 
         {page === "done" && <Confetti />}
+
+        <PasskeySheet
+          open={passkeyOpen}
+          onStart={startPasskey}
+          onOther={() => {
+            setPasskeyOpen(false);
+            setPickerFrom("passkey");
+            setPickerOpen(true);
+          }}
+          onClose={() => setPasskeyOpen(false)}
+        />
+        <DevicePasskey
+          platform={platform}
+          stage={deviceStage}
+          account={values.account.trim().split("@")[0]}
+          onContinue={continuePasskey}
+          onCancel={cancelPasskey}
+        />
 
         <MethodPicker open={pickerOpen} methods={otherMethods} onPick={pickMethod} onClose={() => setPickerOpen(false)} />
       </section>

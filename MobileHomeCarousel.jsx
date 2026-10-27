@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import "./tokens.css";
 import "./MobileHomeCarousel.css";
-import AuthSheet from "./AuthSheet";
+import AuthSheet, { PasskeyPromo, DevicePasskey } from "./AuthSheet";
 import TradePage from "./TradePage";
 import LoggedInHome from "./LoggedInHome";
 
@@ -149,12 +149,33 @@ const HOME_STATES = [
   { key: "member", short: "Logged in" },
 ];
 
-export const SIGNIN_CHECKS = [
-  { key: "passkey", short: "Passkey enabled", disabled: true, note: "discuss later" },
-  { key: "totp", short: "Authenticator code enabled" },
-  { key: "sms", short: "Mobile number bound" },
-  { key: "email", short: "Only email" },
+// The account's security bindings. Email is always bound (it's needed to
+// create the account). Sign in asks for the strongest bound method, in this
+// order; "Try another way" offers the other bound ones.
+export const BINDINGS = [
+  { key: "passkey", label: "Passkey", on: "Set", off: "Not set" },
+  { key: "totp", label: "Authenticator", on: "Set", off: "Not set" },
+  { key: "sms", label: "Mobile", on: "Bound", off: "Not bound" },
+  { key: "email", label: "Email", on: "Bound", off: "Bound", fixed: true },
 ];
+const SIGNIN_LABEL = { passkey: "Passkey", totp: "Authenticator code", sms: "SMS code", email: "Email code" };
+export const signinMethod = (bound) => ["passkey", "totp", "sms"].find((k) => bound[k]) || "email";
+const readBindings = () => {
+  const q = new URLSearchParams(window.location.search);
+  const list = q.get("bind");
+  if (list !== null) {
+    const keys = list.split(",");
+    return { passkey: keys.includes("passkey"), totp: keys.includes("totp"), sms: keys.includes("sms"), email: true };
+  }
+  // Older links: ?verify=<method> meant "this method is set up".
+  const v = q.get("verify");
+  return { passkey: v === "passkey", totp: v === "totp", sms: v === "sms", email: true };
+};
+const writeBindings = (bound) =>
+  writeParam(
+    "bind",
+    ["passkey", "totp", "sms"].filter((k) => bound[k]).join(",")
+  );
 const readParam = (name, options, fallback) => {
   const v = new URLSearchParams(window.location.search).get(name);
   return options.some((o) => o.key === v && !o.disabled) ? v : fallback;
@@ -195,33 +216,44 @@ const Segmented = ({ label, options, value, onChange }) => (
   </div>
 );
 
-// A dropdown, for options too long for a segmented switch.
-const Dropdown = ({ label, options, value, onChange }) => (
-  <label className="as-proto-group">
-    <span className="as-proto-label">{label}</span>
-    <span className="as-select">
-      <select value={value} onChange={(e) => onChange(e.target.value)} aria-label={label}>
-        {options.map((o) => (
-          <option key={o.key} value={o.key} disabled={o.disabled}>
-            {o.short}
-            {o.note ? ` (${o.note})` : ""}
-          </option>
-        ))}
-      </select>
-      <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-        <path d="M3 4.5 6 7.5l3-3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+// Security bindings: one switch per method, with what sign in will ask for.
+const Bindings = ({ bound, onToggle }) => (
+  <div className="as-proto-group" role="group" aria-label="Security bindings">
+    <span className="as-proto-label">Security bindings</span>
+    <ul className="as-binds">
+      {BINDINGS.map((b) => {
+        const on = Boolean(bound[b.key]);
+        return (
+          <li key={b.key}>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={on}
+              aria-disabled={b.fixed || undefined}
+              className={`as-bind${on ? " is-on" : ""}${b.fixed ? " is-fixed" : ""}`}
+              onClick={() => !b.fixed && onToggle(b.key)}
+            >
+              <span className="as-bind-name">{b.label}</span>
+              <span className="as-bind-state">{on ? b.on : b.off}</span>
+              <span className="as-bind-switch" aria-hidden="true" />
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+    <span className="as-bind-note">
+      Sign in asks for: <b>{SIGNIN_LABEL[signinMethod(bound)]}</b>
     </span>
-  </label>
+  </div>
 );
 
 // Sits outside the phone: beside it on wide screens, above it otherwise.
-const ProtoControls = ({ home, onHome, labelStyle, onLabelStyle, platform, onPlatform, signinCheck, onSigninCheck }) => (
+const ProtoControls = ({ home, onHome, labelStyle, onLabelStyle, platform, onPlatform, bound, onToggleBinding }) => (
   <aside className="as-proto" aria-label="Prototype settings">
     <Segmented label="Home" options={HOME_STATES} value={home} onChange={onHome} />
     <Segmented label="Input style" options={LABEL_STYLES} value={labelStyle} onChange={onLabelStyle} />
     <Segmented label="Sheet" options={PLATFORMS} value={platform} onChange={onPlatform} />
-    <Dropdown label="Sign-in verification" options={SIGNIN_CHECKS} value={signinCheck} onChange={onSigninCheck} />
+    <Bindings bound={bound} onToggle={onToggleBinding} />
     <p className="as-proto-note">Tap Login or Sign up to see it. Switching works with the sheet open too.</p>
   </aside>
 );
@@ -546,7 +578,8 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
   authRef.current = auth;
   const [labelStyle, setLabelStyle] = useState(() => readParam("label", LABEL_STYLES, "float"));
   const [platform, setPlatform] = useState(() => readParam("platform", PLATFORMS, defaultPlatform()));
-  const [signinCheck, setSigninCheck] = useState(() => readParam("verify", SIGNIN_CHECKS, "email"));
+  const [bound, setBound] = useState(readBindings);
+  const signinCheck = signinMethod(bound);
   const [home, setHome] = useState(() => readParam("home", HOME_STATES, "guest"));
   // A one-off note on the logged-in Home after signing in / up (n remounts it).
   const [welcome, setWelcome] = useState({ text: "", n: 0 });
@@ -585,12 +618,56 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
     window.addEventListener("popstate", () => setTimeout(() => writeParam("home", "member"), 0), { once: true });
   };
   // End of sign in / sign up: back to where the flow started, logged in.
-  const finishAuth = (text) => {
+  const finishAuth = (text, { offerPasskey = false } = {}) => {
     setHome("member");
     setTab(originTab.current);
-    setWelcome((w) => ({ text, n: w.n + 1 }));
     closeAuth();
     keepMember();
+    if (offerPasskey) {
+      // No passkey yet: once the sheet has closed, invite them to set one up.
+      // The welcome note waits until that's dealt with.
+      pendingWelcome.current = text;
+      setTimeout(() => setPromo(true), 520);
+    } else setWelcome((w) => ({ text, n: w.n + 1 }));
+  };
+
+  // Passkey set-up invitation and its simulated device prompt.
+  const [promo, setPromo] = useState(false);
+  const [createStage, setCreateStage] = useState(null); // null | "ask" | "scan" | "ok"
+  const pendingWelcome = useRef("");
+  const createTimer = useRef(null);
+  const [userName, setUserName] = useState("");
+  useEffect(() => () => clearTimeout(createTimer.current), []);
+  const showNote = (text) => setWelcome((w) => ({ text, n: w.n + 1 }));
+  const promoLater = useCallback(() => {
+    setPromo(false);
+    if (pendingWelcome.current) showNote(pendingWelcome.current);
+    pendingWelcome.current = "";
+  }, []);
+  const promoSetUp = () => {
+    setPromo(false);
+    setCreateStage("ask");
+  };
+  const createCancel = () => {
+    clearTimeout(createTimer.current);
+    setCreateStage(null);
+    setPromo(true);
+  };
+  const createContinue = () => {
+    setCreateStage("scan");
+    createTimer.current = setTimeout(() => {
+      setCreateStage("ok");
+      createTimer.current = setTimeout(() => {
+        setCreateStage(null);
+        pendingWelcome.current = "";
+        setBound((b) => {
+          const next = { ...b, passkey: true };
+          writeBindings(next);
+          return next;
+        });
+        showNote("Passkey set up — use it next time you sign in");
+      }, 700);
+    }, 1400);
   };
 
   useEffect(() => {
@@ -768,10 +845,11 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
           setPlatform(v);
           writeParam("platform", v);
         }}
-        signinCheck={signinCheck}
-        onSigninCheck={(v) => {
-          setSigninCheck(v);
-          writeParam("verify", v);
+        bound={bound}
+        onToggleBinding={(k) => {
+          const next = { ...bound, [k]: !bound[k] };
+          setBound(next);
+          writeBindings(next);
         }}
       />
       <div ref={phoneRef} className={`mhc-phone as-platform-${platform}`}>
@@ -903,13 +981,25 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
             // shows "Account activated" in the sheet first.
             setHome("member");
             keepMember();
-            if (from === "signin") finishAuth(name ? `Welcome back, ${name}` : "Welcome back");
+            setUserName(name || "");
+            if (from === "signin") finishAuth(name ? `Welcome back, ${name}` : "Welcome back", { offerPasskey: !bound.passkey });
           }}
           labelStyle={labelStyle}
           platform={platform}
           signinCheck={signinCheck}
+          bound={bound}
           phoneRef={phoneRef}
           screenRef={screenRef}
+        />
+
+        <PasskeyPromo open={promo} onSetUp={promoSetUp} onLater={promoLater} />
+        <DevicePasskey
+          mode="create"
+          platform={platform}
+          stage={createStage}
+          account={userName}
+          onContinue={createContinue}
+          onCancel={createCancel}
         />
 
         <DeviceChrome platform={platform} />

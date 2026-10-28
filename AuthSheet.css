@@ -539,7 +539,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 16px;
+  /* Same 8px as other text buttons under a field (e.g. Forgot your password?). */
+  margin-top: 8px;
   font-size: 14px;
   line-height: 20px;
 }

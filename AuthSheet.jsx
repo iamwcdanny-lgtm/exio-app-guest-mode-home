@@ -895,9 +895,12 @@ const AuthSheet = ({
   const toastTimer = useRef(null);
   const ios = platform === "ios";
 
-  const focusFirstField = (which) => {
-    if (pageRef.current !== which) return;
-    document.getElementById("as-field-username")?.focus({ preventScroll: true });
+  // Auto-focus on arrival: Sign up -> Username, Sign in -> Username / Email,
+  // or the password when the username is already filled in (after sign up).
+  const FIRST_FIELD = { signup: "as-field-username", signin: "as-field-account" };
+  const focusFirstField = (which, id = FIRST_FIELD[which]) => {
+    if (pageRef.current !== which || !id) return;
+    document.getElementById(id)?.focus({ preventScroll: true });
   };
 
   const setProgress = useCallback(
@@ -965,14 +968,14 @@ const AuthSheet = ({
     return undefined;
   }, [mounted, screenRef]);
 
-  // Move focus into the dialog. Sign up then focuses its first field
-  // (Username) once the sheet has slid up, so the keyboard comes up straight
-  // away; other pages leave the keyboard down.
+  // Move focus into the dialog, then (once the sheet has slid up) into the
+  // page's first field so the keyboard comes up without a tap.
   useEffect(() => {
     if (!mounted) return undefined;
     sheetRef.current?.focus({ preventScroll: true });
-    if (pageRef.current !== "signup") return undefined;
-    const t = setTimeout(() => focusFirstField("signup"), reducedMotion() ? 0 : DURATION_MS);
+    const which = pageRef.current;
+    if (!FIRST_FIELD[which]) return undefined;
+    const t = setTimeout(() => focusFirstField(which), reducedMotion() ? 0 : DURATION_MS);
     return () => clearTimeout(t);
   }, [mounted]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -993,7 +996,7 @@ const AuthSheet = ({
   }, [mode, onClose]);
 
   // Switching between the two pages: a quick cross-fade, back at the top.
-  const switchTo = (next) => {
+  const switchTo = (next, focusId) => {
     if (next === page) return;
     setNav("fade");
     setFading(true);
@@ -1003,7 +1006,7 @@ const AuthSheet = ({
         setPage(next);
         if (scrollRef.current) scrollRef.current.scrollTop = 0;
         setFading(false);
-        if (next === "signup") requestAnimationFrame(() => document.getElementById("as-field-username")?.focus({ preventScroll: true }));
+        requestAnimationFrame(() => focusFirstField(next, focusId));
       },
       reducedMotion() ? 0 : 160
     );
@@ -1052,7 +1055,7 @@ const AuthSheet = ({
   }, [onModeChange]);
 
   // Sign up doesn't log the user in: "Login" on "Account activated" opens the
-  // sign-in page with the new username filled in. The page's history entry is
+  // sign-in page with the new username filled in and the password focused. The page's history entry is
   // dropped quietly so back / X then behave as on a fresh sign in.
   const loginAfterSignup = () => {
     const name = values.username.trim();
@@ -1064,7 +1067,8 @@ const AuthSheet = ({
       window.__asSilentPopUntil = Date.now() + 800;
       window.history.back();
     }
-    switchTo("signin");
+    // Username is already there, so the password field takes focus.
+    switchTo("signin", name ? "as-field-loginPassword" : undefined);
   };
 
   // Resend countdown.

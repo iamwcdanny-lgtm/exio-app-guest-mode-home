@@ -343,6 +343,13 @@
   width: 24px;
   height: 24px;
 }
+/* Lottie draws its own <svg>; the static image is only a fallback. */
+.mhc-nav-icon.is-ready .mhc-nav-fallback {
+  display: none;
+}
+.mhc-nav-icon svg {
+  display: block;
+}
 
 .mhc-nav-icon img {
   display: block;

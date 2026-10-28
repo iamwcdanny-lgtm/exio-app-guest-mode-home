@@ -44,7 +44,7 @@ Pick the variant from the panel beside the phone on a wide screen, or with URL p
 - **Trade → Order book** (`TradePage.jsx`): simulated order book, Buy / Sell, Limit / Market, linked quantity and total, open orders and assets.
 - **Trade → OTC** (`OtcPanel.jsx`, [Figma](https://www.figma.com/design/G7I2GRfIh701JkOBkbTkdE/%F0%9F%8D%87-OTC-Chat-Trading?node-id=9231-100184)): From / To currency pickers, pay or receive amount with All and an available-balance check, Get quote, and Processing / Filled quotes.
 - Trade fields follow the same input-style switch as the sign-up sheet.
-- The bottom nav uses the new 24px icons ([Figma](https://www.figma.com/design/66kn3r5FtdeMTKTvS0hYTg/Xirry-Workspace?node-id=2953-7272)): Regular when not selected, Fill with brand green when selected.
+- The bottom nav icons are the approved Lottie animations ([Figma](https://www.figma.com/design/66kn3r5FtdeMTKTvS0hYTg/Xirry-Workspace?node-id=2953-7272), files in `nav-icons/`, played with `lottie-web`'s SVG player in `NavIcon.jsx`). Frame 0 is the gray Regular state; selecting a tab jumps to frame 1 and plays once to the black / #00D690 Fill state (frame 24, Trade 42) and holds it; the tab being left jumps straight back to frame 0. First load and reduced motion show the end state without playing. The static SVGs (`nav-*-on/off.svg`) are the fallback.
 
 ## Deployment
 

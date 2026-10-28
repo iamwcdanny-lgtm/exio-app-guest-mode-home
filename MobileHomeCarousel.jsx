@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import "./tokens.css";
 import "./MobileHomeCarousel.css";
+import NavIcon from "./NavIcon.jsx";
 import AuthSheet, { PasskeyPromo, DevicePasskey } from "./AuthSheet";
 import TradePage from "./TradePage";
 import LoggedInHome from "./LoggedInHome";
@@ -106,9 +107,7 @@ const BottomNav = ({ active, onChange }) => (
           aria-current={active === t.key ? "page" : undefined}
           onClick={() => onChange(t.key)}
         >
-          <span className="mhc-nav-icon">
-            <img src={`${ICONS}/${t.icon.replace(".svg", active === t.key ? "-on.svg" : "-off.svg")}`} width="24" height="24" alt="" />
-          </span>
+          <NavIcon name={t.key} active={active === t.key} fallback={`${ICONS}/${t.icon.replace(".svg", active === t.key ? "-on.svg" : "-off.svg")}`} />
           {t.label}
         </button>
       ))}

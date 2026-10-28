@@ -23,6 +23,8 @@ const FIELDS = {
   referral: { label: "Referral code", placeholder: "EX8K2Q", autoComplete: "off" },
   account: { label: "Username / Email", placeholder: "chantaiman.88", autoComplete: "username", emailHosts: true },
   loginPassword: { label: "Login password", placeholder: "Enter your password", password: true, autoComplete: "current-password" },
+  newPassword: { label: "New login password", placeholder: "Create a password", password: true, autoComplete: "new-password", strength: true },
+  confirmPassword: { label: "Confirm new login password", placeholder: "Re-enter the new password", password: true, autoComplete: "new-password", lateError: true },
 };
 
 const VALIDATE = {
@@ -37,6 +39,13 @@ const VALIDATE = {
   referral: () => "",
   account: (v) => (v ? "" : "Enter your username or email."),
   loginPassword: (v) => (v ? "" : "Enter your password."),
+  newPassword: (v) => {
+    if (!v) return "Enter a new password.";
+    const miss = PASSWORD_RULES.find((r) => !r.test(v));
+    return miss ? (typeof miss.error === "function" ? miss.error(v) : miss.error) : "";
+  },
+  // Compared with the new password; see check() in the sheet.
+  confirmPassword: (v, all = {}) => (!v ? "Re-enter your new password." : v !== all.newPassword ? "Passwords don’t match." : ""),
 };
 
 // What a new password must contain. While the field is focused these show
@@ -52,7 +61,16 @@ const PASSWORD_RULES = [
 // Label for how many of the five rules are met.
 const STRENGTH = ["", "Weak", "Weak", "Fair", "Good", "Strong"];
 
-const REQUIRED = { signup: ["username", "email", "password"], signin: ["account", "loginPassword"] };
+const REQUIRED = {
+  signup: ["username", "email", "password"],
+  signin: ["account", "loginPassword"],
+  forgot: ["account"],
+  reset: ["newPassword", "confirmPassword"],
+};
+// Reset password: Forgot password -> Check your email (link sent) -> [email
+// link] -> Reset login password -> Login password updated.
+const RESET_PAGES = ["forgot", "forgotSent", "reset", "resetDone"];
+const RESET_LINK_MINUTES = 30;
 
 const EMPTY = Object.fromEntries(Object.keys(FIELDS).map((k) => [k, ""]));
 
@@ -391,6 +409,112 @@ const SignIn = ({ fieldProps, onForgot }) => (
       </button>
     </div>
   </>
+);
+
+/* ---------- Reset password ---------- */
+// Shown on every page that changes the login password.
+const WarnIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+    <circle cx="8" cy="8" r="8" fill="currentColor" />
+    <path d="M8 4.25v4.5" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" />
+    <circle cx="8" cy="11.4" r="0.95" fill="#fff" />
+  </svg>
+);
+export const WithdrawAlert = () => (
+  <div className="as-alert" role="note">
+    <WarnIcon />
+    <p>To ensure the safety of your assets, withdrawals will be disabled for 24 hours after login password is changed.</p>
+  </div>
+);
+
+const ForgotPassword = ({ fieldProps }) => (
+  <>
+    <h1 className="as-title as-title-otp" id="as-title">
+      Forgot password
+    </h1>
+    <p className="as-subtitle">Enter your username or email. We’ll email you a link to reset your login password.</p>
+    <div className="as-form">
+      <WithdrawAlert />
+      <Field name="account" {...fieldProps("account")} />
+    </div>
+  </>
+);
+
+const ResetLinkSent = ({ sentTo, resendIn, onResend }) => (
+  <>
+    <h1 className="as-title as-title-otp" id="as-title">
+      Check your email
+    </h1>
+    <p className="as-subtitle">
+      We’ve sent a password reset link to <strong>{sentTo}</strong>. Open the link on this phone to set a new login
+      password. It expires in {RESET_LINK_MINUTES} minutes.
+    </p>
+    <div className="as-otp-actions as-link-actions">
+      {resendIn > 0 ? (
+        <span className="as-resend">Resend in {resendIn}s</span>
+      ) : (
+        <button type="button" className="as-link" onClick={onResend}>
+          Resend email
+        </button>
+      )}
+    </div>
+  </>
+);
+
+const ResetPassword = ({ fieldProps }) => (
+  <>
+    <h1 className="as-title as-title-otp" id="as-title">
+      Reset login password
+    </h1>
+    <p className="as-subtitle">Create a new login password for your EX.IO account.</p>
+    <div className="as-form">
+      <WithdrawAlert />
+      <Field name="newPassword" {...fieldProps("newPassword")} />
+      <Field name="confirmPassword" {...fieldProps("confirmPassword")} />
+    </div>
+  </>
+);
+
+// The prototype can't send email: "Open email app" shows this stand-in for
+// the reset email, and its button plays the part of the link opening the app.
+const MailPreview = ({ open, to, name, onOpenLink, onClose }) => (
+  <div className={`as-mail${open ? " is-open" : ""}`} aria-hidden={!open}>
+    <div className="as-mail-app" role="dialog" aria-modal="true" aria-labelledby="as-mail-subject">
+      <div className="as-mail-bar">
+        <button type="button" className="as-mail-back" tabIndex={open ? 0 : -1} onClick={onClose}>
+          <BackIcon /> Inbox
+        </button>
+        <span className="as-mail-proto">Email app (prototype)</span>
+      </div>
+      <div className="as-mail-head">
+        <h2 id="as-mail-subject">Reset your EX.IO login password</h2>
+        <p>
+          <strong>EX.IO</strong> &lt;no-reply@exio.com&gt;
+          <br />
+          to {to}
+        </p>
+      </div>
+      <div className="as-mail-body">
+        <Logo />
+        <p>Hi {name},</p>
+        <p>We received a request to reset the login password for your EX.IO account. Tap the button below to set a new one. This link expires in {RESET_LINK_MINUTES} minutes.</p>
+        <button type="button" className="as-submit is-ready" tabIndex={open ? 0 : -1} onClick={onOpenLink}>
+          Reset password
+        </button>
+        <p className="as-mail-small">If you didn’t ask to reset your password, ignore this email. Your password won’t change.</p>
+      </div>
+    </div>
+  </div>
+);
+
+const PasswordUpdated = () => (
+  <div className="as-done">
+    <img className="as-done-img" src={ACTIVATED_IMG} width="120" height="120" alt="" />
+    <h1 className="as-done-title" id="as-title">
+      Login password updated, please login
+    </h1>
+    <WithdrawAlert />
+  </div>
 );
 
 /* ---------- Email OTP (step 2 of sign up) ---------- */
@@ -873,6 +997,7 @@ const AuthSheet = ({
   const [otpFrom, setOtpFrom] = useState("signup");
   const [otpKind, setOtpKind] = useState("email");
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [mailOpen, setMailOpen] = useState(false);
   // Passkey path: the EXIO sheet, then the device's own prompt (simulated).
   const [passkeyOpen, setPasskeyOpen] = useState(false);
   const [deviceStage, setDeviceStage] = useState(null); // null | "ask" | "scan" | "ok"
@@ -884,7 +1009,9 @@ const AuthSheet = ({
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const pickerOpenRef = useRef(false);
+  const mailOpenRef = useRef(false);
   pickerOpenRef.current = pickerOpen || passkeyOpen || Boolean(deviceStage);
+  mailOpenRef.current = mailOpen;
   const pageRef = useRef(page);
   pageRef.current = page;
   const sheetRef = useRef(null);
@@ -897,7 +1024,7 @@ const AuthSheet = ({
 
   // Auto-focus on arrival: Sign up -> Username, Sign in -> Username / Email,
   // or the password when the username is already filled in (after sign up).
-  const FIRST_FIELD = { signup: "as-field-username", signin: "as-field-account" };
+  const FIRST_FIELD = { signup: "as-field-username", signin: "as-field-account", forgot: "as-field-account", reset: "as-field-newPassword" };
   const focusFirstField = (which, id = FIRST_FIELD[which]) => {
     if (pageRef.current !== which || !id) return;
     document.getElementById(id)?.focus({ preventScroll: true });
@@ -946,6 +1073,7 @@ const AuthSheet = ({
         setVerifying(false);
         setResendIn(0);
         setPickerOpen(false);
+        setMailOpen(false);
         setPasskeyOpen(false);
         setDeviceStage(null);
         clearTimeout(deviceTimer.current);
@@ -984,7 +1112,9 @@ const AuthSheet = ({
     if (!mode) return undefined;
     const onKey = (e) => {
       if (e.key !== "Escape") return;
-      if (pickerOpenRef.current) {
+      if (mailOpenRef.current) {
+        setMailOpen(false);
+      } else if (pickerOpenRef.current) {
         setPickerOpen(false);
         setPasskeyOpen(false);
         setDeviceStage(null);
@@ -1045,6 +1175,17 @@ const AuthSheet = ({
         onCloseRef.current();
         return;
       }
+      // Back from the reset-password pages: the first two return to Sign in;
+      // once the email link has been opened, back leaves the flow.
+      if (RESET_PAGES.includes(pageRef.current) && window.history.state?.asSheet && !window.history.state?.otp) {
+        setMailOpen(false);
+        if (pageRef.current === "reset" || pageRef.current === "resetDone") onCloseRef.current();
+        else {
+          setNav("back");
+          onModeChange("signin");
+        }
+        return;
+      }
       if (pageRef.current === "otp" && window.history.state?.asSheet && !window.history.state?.otp) {
         setNav("back");
         onModeChange(otpFromRef.current);
@@ -1071,9 +1212,58 @@ const AuthSheet = ({
     switchTo("signin", name ? "as-field-loginPassword" : undefined);
   };
 
+  /* ----- Reset password ----- */
+  // Next page in the reset flow (one history entry for the whole flow, like
+  // the code step, so back returns to Sign in).
+  const goReset = (next, dir = "forward") => {
+    if (next === "forgot" && !window.history.state?.otp) window.history.pushState({ asSheet: true, otp: true }, "");
+    setNav(dir);
+    onModeChange(next);
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+    const id = FIRST_FIELD[next];
+    if (id) setTimeout(() => document.getElementById(id)?.focus({ preventScroll: true }), reducedMotion() ? 0 : 320);
+  };
+  const openForgot = () => {
+    setErrors((er) => ({ ...er, account: "" }));
+    goReset("forgot");
+  };
+  const backFromReset = () => {
+    if (page === "forgotSent") {
+      goReset("forgot", "back");
+      return;
+    }
+    setNav("back");
+    onModeChange("signin");
+    if (window.history.state?.otp) {
+      window.__asSilentPopUntil = Date.now() + 800;
+      window.history.back();
+    }
+  };
+  const resendLink = () => {
+    setResendIn(RESEND_SECONDS);
+    showToast(`New link sent to ${resetTo}`);
+  };
+  const openResetLink = () => {
+    setMailOpen(false);
+    setValues((v) => ({ ...v, newPassword: "", confirmPassword: "" }));
+    setErrors((er) => ({ ...er, newPassword: "", confirmPassword: "" }));
+    goReset("reset");
+  };
+  // After the update: Sign in with the username / email still filled in.
+  const loginAfterReset = () => {
+    const account = values.account.trim();
+    setValues({ ...EMPTY, account });
+    setErrors(EMPTY);
+    if (window.history.state?.otp) {
+      window.__asSilentPopUntil = Date.now() + 800;
+      window.history.back();
+    }
+    switchTo("signin", account ? "as-field-loginPassword" : undefined);
+  };
+
   // Resend countdown.
   useEffect(() => {
-    if (page !== "otp" || resendIn <= 0) return undefined;
+    if ((page !== "otp" && page !== "forgotSent") || resendIn <= 0) return undefined;
     const t = setTimeout(() => setResendIn((n) => n - 1), 1000);
     return () => clearTimeout(t);
   }, [page, resendIn]);
@@ -1243,15 +1433,24 @@ const AuthSheet = ({
   };
 
   /* ----- Form state ----- */
+  const check = (name, v, all = valuesRef.current) => VALIDATE[name](v, all);
   const change = (name, value, opts = {}) => {
     setValues((v) => ({ ...v, [name]: value }));
+    // Changing the new password re-checks a confirmation already typed.
+    if (name === "newPassword") {
+      setErrors((er) => {
+        const c = valuesRef.current.confirmPassword;
+        if (!c || !er.confirmPassword) return er;
+        return { ...er, confirmPassword: VALIDATE.confirmPassword(c, { ...valuesRef.current, newPassword: value }) };
+      });
+    }
     // Errors show as soon as what's typed is invalid; an empty field only
     // gets its "Enter …" error when the form is submitted.
     // Fields marked lateError (email) don't flag a format problem mid-typing:
     // the error waits until the field is left, but clears as soon as it's fixed.
     setErrors((er) => {
       if (opts.clearError || value === "") return { ...er, [name]: "" };
-      const problem = VALIDATE[name](value);
+      const problem = check(name, value, { ...valuesRef.current, [name]: value });
       if (FIELDS[name]?.lateError) return { ...er, [name]: problem ? er[name] : "" };
       return { ...er, [name]: problem };
     });
@@ -1261,7 +1460,7 @@ const AuthSheet = ({
   const blur = (name) => {
     // Checked on leaving a field, but only if something was typed.
     const v = valuesRef.current[name];
-    if (v !== "") setErrors((er) => ({ ...er, [name]: VALIDATE[name](v) }));
+    if (v !== "") setErrors((er) => ({ ...er, [name]: check(name, v) }));
   };
   const fieldProps = (name) => ({
     labelStyle,
@@ -1323,7 +1522,9 @@ const AuthSheet = ({
 
   const required = REQUIRED[page] || [];
   const codeFull = code.every((d) => d !== "");
-  const ready = page === "otp" ? codeFull && !verifying : required.every((k) => !VALIDATE[k](values[k]));
+  const ready = page === "otp" ? codeFull && !verifying : required.every((k) => !VALIDATE[k](values[k], values));
+  const resetTo = maskEmail(values.account.includes("@") ? values.account : DEMO_EMAIL);
+  const resetName = values.account.trim().split("@")[0] || "there";
 
   const showToast = (text) => {
     setToast(text);
@@ -1334,7 +1535,7 @@ const AuthSheet = ({
 
   const submit = (e) => {
     e.preventDefault();
-    if (page === "done") return;
+    if (page === "done" || page === "resetDone" || page === "forgotSent") return;
     if (page === "otp") {
       if (verifying) return;
       if (!codeFull) {
@@ -1346,13 +1547,23 @@ const AuthSheet = ({
       return;
     }
     if (!ready) {
-      setErrors((er) => ({ ...er, ...Object.fromEntries(required.map((k) => [k, VALIDATE[k](values[k])])) }));
+      setErrors((er) => ({ ...er, ...Object.fromEntries(required.map((k) => [k, VALIDATE[k](values[k], values)])) }));
       // Take the user to the first problem.
-      const first = required.find((k) => VALIDATE[k](values[k]));
+      const first = required.find((k) => VALIDATE[k](values[k], values));
       document.getElementById(`as-field-${first}`)?.focus();
       return;
     }
     document.activeElement?.blur?.();
+    if (page === "forgot") {
+      setResendIn(RESEND_SECONDS);
+      goReset("forgotSent");
+      return;
+    }
+    if (page === "reset") {
+      window.history.replaceState({ asSheet: true, otp: true, done: true }, "");
+      goReset("resetDone");
+      return;
+    }
     if (page === "signup") goToOtp("signup", "email");
     else if (signinCheck === "passkey") setPasskeyOpen(true);
     else goToOtp("signin", signinCheck);
@@ -1383,6 +1594,11 @@ const AuthSheet = ({
         onPointerCancel={onPointerUp}
       >
         <div className="as-topbar">
+          {(page === "forgot" || page === "forgotSent") && (
+            <button type="button" className="as-close as-back" aria-label={page === "forgot" ? "Back to sign in" : "Back"} onClick={backFromReset}>
+              <BackIcon />
+            </button>
+          )}
           {page === "otp" && (
             <button type="button" className="as-close as-back" aria-label={otpFrom === "signin" ? "Back to sign in" : "Back to sign up"} onClick={backFromOtp}>
               <BackIcon />
@@ -1398,6 +1614,14 @@ const AuthSheet = ({
             <div key={page} className={`as-page as-enter-${nav}`}>
             {page === "done" ? (
               <AccountActivated />
+            ) : page === "forgot" ? (
+              <ForgotPassword fieldProps={fieldProps} />
+            ) : page === "forgotSent" ? (
+              <ResetLinkSent sentTo={resetTo} resendIn={resendIn} onResend={resendLink} />
+            ) : page === "reset" ? (
+              <ResetPassword fieldProps={fieldProps} />
+            ) : page === "resetDone" ? (
+              <PasswordUpdated />
             ) : page === "otp" ? (
               <OtpStep
                 kind={otpKind}
@@ -1412,7 +1636,7 @@ const AuthSheet = ({
                 onPaste={pasteCode}
               />
             ) : page === "signin" ? (
-              <SignIn fieldProps={fieldProps} onForgot={() => showToast("Password reset isn’t in this prototype")} />
+              <SignIn fieldProps={fieldProps} onForgot={openForgot} />
             ) : (
               <SignUp
                 fieldProps={fieldProps}
@@ -1430,11 +1654,16 @@ const AuthSheet = ({
             <div className={`as-toast${toast ? " is-shown" : ""}`} role="status">
               {toast}
             </div>
-            {page === "done" ? (
+            {page === "done" || page === "resetDone" ? (
+              <button type="button" className="as-submit is-ready" onClick={page === "done" ? loginAfterSignup : loginAfterReset}>
+                Login
+              </button>
+            ) : page === "forgotSent" ? (
               <>
-                <button type="button" className="as-submit is-ready" onClick={loginAfterSignup}>
-                  Login
+                <button type="button" className="as-submit is-ready" onClick={() => setMailOpen(true)}>
+                  Open email app
                 </button>
+                <p className="as-otp-tip">Didn’t receive the email? Check your spam folder and mark it as “Not Spam”.</p>
               </>
             ) : (
               <button type="submit" className={`as-submit${ready ? " is-ready" : ""}`} aria-busy={verifying || undefined}>
@@ -1494,6 +1723,7 @@ const AuthSheet = ({
 
         <MethodPicker open={pickerOpen} methods={otherMethods} onPick={pickMethod} onClose={() => setPickerOpen(false)} />
       </section>
+      <MailPreview open={mailOpen} to={resetTo} name={resetName} onOpenLink={openResetLink} onClose={() => setMailOpen(false)} />
     </>
   );
 };

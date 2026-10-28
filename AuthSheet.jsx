@@ -775,8 +775,8 @@ const AccountActivated = () => (
       Account activated
     </h1>
     <p className="as-done-text">
-      Your account has been successfully created. Now, we’ll ask you for information such as name and date of birth to
-      verify your identity. You’ll also need to submit photo ID.
+      Your account has been created. Log in to continue — we’ll then guide you through verifying your identity so you
+      can start trading.
     </p>
   </div>
 );

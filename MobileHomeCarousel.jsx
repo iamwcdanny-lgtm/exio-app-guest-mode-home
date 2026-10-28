@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from
 import "./tokens.css";
 import "./MobileHomeCarousel.css";
 import NavIcon from "./NavIcon.jsx";
+import GlassNav from "./GlassNav.jsx";
 import AuthSheet, { PasskeyPromo, DevicePasskey } from "./AuthSheet";
 import TradePage from "./TradePage";
 import LoggedInHome from "./LoggedInHome";
@@ -143,6 +144,11 @@ const PLATFORMS = [
 // What the account has set up for 2-step verification: decides which
 // verification page follows Sign in. Passkey is to be designed later.
 // Which Home shows: the guest one (onboarding carousel) or the logged-in one.
+// Bottom nav look: the current bar, or a floating "liquid glass" capsule (iOS 26).
+const NAV_STYLES = [
+  { key: "classic", short: "Classic" },
+  { key: "glass", short: "Liquid glass" },
+];
 const HOME_STATES = [
   { key: "guest", short: "Guest" },
   { key: "member", short: "Logged in" },
@@ -247,9 +253,10 @@ const Bindings = ({ bound, onToggle }) => (
 );
 
 // Sits outside the phone: beside it on wide screens, above it otherwise.
-const ProtoControls = ({ home, onHome, labelStyle, onLabelStyle, platform, onPlatform, bound, onToggleBinding }) => (
+const ProtoControls = ({ home, onHome, navStyle, onNavStyle, labelStyle, onLabelStyle, platform, onPlatform, bound, onToggleBinding }) => (
   <aside className="as-proto" aria-label="Prototype settings">
     <Segmented label="Home" options={HOME_STATES} value={home} onChange={onHome} />
+    <Segmented label="Bottom nav" options={NAV_STYLES} value={navStyle} onChange={onNavStyle} />
     <Segmented label="Input style" options={LABEL_STYLES} value={labelStyle} onChange={onLabelStyle} />
     <Segmented label="Sheet" options={PLATFORMS} value={platform} onChange={onPlatform} />
     <Bindings bound={bound} onToggle={onToggleBinding} />
@@ -580,6 +587,7 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
   const [bound, setBound] = useState(readBindings);
   const signinCheck = signinMethod(bound);
   const [home, setHome] = useState(() => readParam("home", HOME_STATES, "guest"));
+  const [navStyle, setNavStyle] = useState(() => readParam("nav", NAV_STYLES, "classic"));
   // A one-off note on the logged-in Home after signing in / up (n remounts it).
   const [welcome, setWelcome] = useState({ text: "", n: 0 });
   // Where the sheet was opened from, to return there when the flow ends.
@@ -834,6 +842,11 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
           setTab("home");
           writeParam("home", v);
         }}
+        navStyle={navStyle}
+        onNavStyle={(v) => {
+          setNavStyle(v);
+          writeParam("nav", v);
+        }}
         labelStyle={labelStyle}
         onLabelStyle={(v) => {
           setLabelStyle(v);
@@ -852,7 +865,7 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
         }}
       />
       <div ref={phoneRef} className={`mhc-phone as-platform-${platform}`}>
-        <div ref={screenRef} className="mhc-screen">
+        <div ref={screenRef} className={`mhc-screen nav-${navStyle}`}>
           {tab === "trade" ? (
             <TradePage labelStyle={labelStyle} />
           ) : home === "member" ? (
@@ -968,7 +981,16 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
           </>
           )}
 
-          <BottomNav active={tab} onChange={setTab} />
+          {navStyle === "glass" ? (
+            <GlassNav
+              tabs={NAV_TABS}
+              active={tab}
+              onChange={setTab}
+              iconSrc={(t, on) => `${ICONS}/${t.icon.replace(".svg", on ? "-on.svg" : "-off.svg")}`}
+            />
+          ) : (
+            <BottomNav active={tab} onChange={setTab} />
+          )}
         </div>
 
         <AuthSheet

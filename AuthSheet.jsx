@@ -1025,7 +1025,7 @@ const AuthSheet = ({
   useEffect(() => {
     const onPop = () => {
       if (Date.now() < (window.__asSilentPopUntil || 0)) return;
-      // Back from "Account activated" leaves the flow (like Do it later).
+      // Back from "Account activated" leaves the flow (still logged out).
       if (pageRef.current === "done") {
         onCloseRef.current();
         return;
@@ -1038,6 +1038,22 @@ const AuthSheet = ({
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, [onModeChange]);
+
+  // Sign up doesn't log the user in: "Login" on "Account activated" opens the
+  // sign-in page with the new username filled in. The page's history entry is
+  // dropped quietly so back / X then behave as on a fresh sign in.
+  const loginAfterSignup = () => {
+    const name = values.username.trim();
+    setValues({ ...EMPTY, account: name });
+    setErrors(EMPTY);
+    setCode(EMPTY_CODE);
+    setOtpError("");
+    if (window.history.state?.otp) {
+      window.__asSilentPopUntil = Date.now() + 800;
+      window.history.back();
+    }
+    switchTo("signin");
+  };
 
   // Resend countdown.
   useEffect(() => {
@@ -1400,18 +1416,9 @@ const AuthSheet = ({
             </div>
             {page === "done" ? (
               <>
-                <button
-                  type="button"
-                  className="as-submit is-ready"
-                  onClick={() => showToast("KYC process isn’t in this prototype yet")}
-                >
-                  Verify identity
+                <button type="button" className="as-submit is-ready" onClick={loginAfterSignup}>
+                  Login
                 </button>
-                <p className="as-switch">
-                  <button type="button" className="as-link" onClick={onClose}>
-                    Do it later
-                  </button>
-                </p>
               </>
             ) : (
               <button type="submit" className={`as-submit${ready ? " is-ready" : ""}`} aria-busy={verifying || undefined}>

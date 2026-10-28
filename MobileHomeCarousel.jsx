@@ -975,14 +975,16 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
         <AuthSheet
           mode={auth}
           onModeChange={setAuth}
-          onClose={() => (auth === "done" ? finishAuth("Welcome to EX.IO") : closeAuth())}
+          onClose={closeAuth}
           onSignedIn={(from, name) => {
-            // Logged in from here on. Sign in ends the flow; sign up still
-            // shows "Account activated" in the sheet first.
+            // Only sign in logs the user in. Sign up ends on "Account
+            // activated", whose Login button opens Sign in; closing it from
+            // there leaves the user a guest.
+            if (from !== "signin") return;
             setHome("member");
             keepMember();
             setUserName(name || "");
-            if (from === "signin") finishAuth(name ? `Welcome back, ${name}` : "Welcome back", { offerPasskey: !bound.passkey });
+            finishAuth(name ? `Welcome back, ${name}` : "Welcome back", { offerPasskey: !bound.passkey });
           }}
           labelStyle={labelStyle}
           platform={platform}

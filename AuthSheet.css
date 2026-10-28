@@ -1556,6 +1556,14 @@
   font-size: 14px;
   line-height: 20px;
 }
+/* Headline + subline + alert read as one block: 16px to the alert, then the
+   usual 32px from that block to the first field. */
+.as-subtitle.as-has-alert {
+  margin-bottom: 16px;
+}
+.as-subtitle.as-has-alert + .as-alert {
+  margin-bottom: 32px;
+}
 .as-done .as-alert {
   align-self: stretch;
 }

@@ -432,9 +432,9 @@ const ForgotPassword = ({ fieldProps }) => (
     <h1 className="as-title as-title-otp" id="as-title">
       Forgot password
     </h1>
-    <p className="as-subtitle">Enter your username or email. We’ll email you a link to reset your login password.</p>
+    <p className="as-subtitle as-has-alert">Enter your username or email. We’ll email you a link to reset your login password.</p>
+    <WithdrawAlert />
     <div className="as-form">
-      <WithdrawAlert />
       <Field name="account" {...fieldProps("account")} />
     </div>
   </>
@@ -466,9 +466,9 @@ const ResetPassword = ({ fieldProps }) => (
     <h1 className="as-title as-title-otp" id="as-title">
       Reset login password
     </h1>
-    <p className="as-subtitle">Create a new login password for your EX.IO account.</p>
+    <p className="as-subtitle as-has-alert">Create a new login password for your EX.IO account.</p>
+    <WithdrawAlert />
     <div className="as-form">
-      <WithdrawAlert />
       <Field name="newPassword" {...fieldProps("newPassword")} />
       <Field name="confirmPassword" {...fieldProps("confirmPassword")} />
     </div>

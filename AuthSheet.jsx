@@ -1425,6 +1425,11 @@ const AuthSheet = ({
                 {page === "otp" ? (verifying ? "Verifying…" : "Verify") : "Next"}
               </button>
             )}
+            {page === "otp" && otpKind === "email" && (
+              <p className="as-otp-tip">
+                Didn’t receive the verification code? Check your spam folder and mark it as “Not Spam”.
+              </p>
+            )}
             {page === "otp" && otpFrom === "signin" && otherFromOtp.length > 0 && (
               <p className="as-switch">
                 Not available?{" "}

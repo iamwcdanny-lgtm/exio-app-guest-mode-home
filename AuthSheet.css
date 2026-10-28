@@ -1379,16 +1379,120 @@
   color: var(--text-tertiary);
 }
 
-/* Phone-sized screens: a slim bar across the top of the screen. */
+/* Drawer parts: only used on phone-sized screens. */
+.as-proto-tab,
+.as-proto-scrim,
+.as-proto-head {
+  display: none;
+}
+
+/* Phone-sized screens: the settings slide in from the right, opened by a
+   small tab on the right edge, so the demo has the whole screen. */
 @media (max-width: 479px) {
-  .as-proto {
-    padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px;
-    gap: 8px 12px;
-    background: #fff;
-    border-bottom: 1px solid #ebedf1;
+  .as-proto-tab {
+    position: fixed;
+    right: 0;
+    top: 50%;
+    z-index: 95;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 48px;
+    padding: 0 0 0 2px;
+    border: 0;
+    border-radius: 12px 0 0 12px;
+    background: rgba(0, 0, 0, 0.55);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    color: #fff;
+    transform: translateY(-50%);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.2s ease;
   }
-  .as-proto-label {
-    display: none;
+  .as-proto-tab.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .as-proto-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 96;
+    display: block;
+    background: rgba(0, 0, 0, 0.32);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .as-proto-scrim.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .as-proto {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 97;
+    width: min(320px, 86vw);
+    box-sizing: border-box;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 16px;
+    padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px calc(env(safe-area-inset-bottom, 0px) + 16px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: #fff;
+    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.16);
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1), visibility 0s linear 0.3s;
+  }
+  .as-proto.is-open {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1), visibility 0s;
+  }
+  .as-proto-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+    color: var(--text-title, #000);
+  }
+  .as-proto-close {
+    display: flex;
+    padding: 6px;
+    margin: -6px;
+    border: 0;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+  }
+  .as-proto-note {
+    display: block;
+  }
+  .as-proto .as-proto-group,
+  .as-proto .as-seg {
+    width: 100%;
+  }
+  .as-proto .as-seg {
+    display: flex;
+  }
+  .as-proto .as-seg-btn {
+    flex: 1 1 0;
+  }
+}
+@media (max-width: 479px) and (prefers-reduced-motion: reduce) {
+  .as-proto,
+  .as-proto.is-open,
+  .as-proto-scrim {
+    transition: none;
   }
 }
 

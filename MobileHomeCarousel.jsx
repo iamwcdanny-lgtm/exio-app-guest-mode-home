@@ -253,16 +253,53 @@ const Bindings = ({ bound, onToggle }) => (
 );
 
 // Sits outside the phone: beside it on wide screens, above it otherwise.
-const ProtoControls = ({ home, onHome, navStyle, onNavStyle, labelStyle, onLabelStyle, platform, onPlatform, bound, onToggleBinding }) => (
-  <aside className="as-proto" aria-label="Prototype settings">
-    <Segmented label="Home" options={HOME_STATES} value={home} onChange={onHome} />
-    <Segmented label="Bottom nav" options={NAV_STYLES} value={navStyle} onChange={onNavStyle} />
-    <Segmented label="Input style" options={LABEL_STYLES} value={labelStyle} onChange={onLabelStyle} />
-    <Segmented label="Sheet" options={PLATFORMS} value={platform} onChange={onPlatform} />
-    <Bindings bound={bound} onToggle={onToggleBinding} />
-    <p className="as-proto-note">Tap Login or Sign up to see it. Switching works with the sheet open too.</p>
-  </aside>
-);
+const ProtoControls = ({ home, onHome, navStyle, onNavStyle, labelStyle, onLabelStyle, platform, onPlatform, bound, onToggleBinding }) => {
+  // On a phone the settings live in a drawer from the right edge, opened by a
+  // small tab, so the demo gets the whole screen. Wider screens keep the panel.
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+  return (
+    <>
+      <button
+        type="button"
+        className={`as-proto-tab${open ? " is-hidden" : ""}`}
+        aria-label="Demo settings"
+        aria-expanded={open}
+        aria-controls="as-proto"
+        onClick={() => setOpen(true)}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+          <path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0" />
+          <circle cx="16" cy="6" r="2" />
+          <circle cx="10" cy="12" r="2" />
+          <circle cx="18" cy="18" r="2" />
+        </svg>
+      </button>
+      <div className={`as-proto-scrim${open ? " is-open" : ""}`} onClick={() => setOpen(false)} aria-hidden="true" />
+      <aside id="as-proto" className={`as-proto${open ? " is-open" : ""}`} aria-label="Prototype settings">
+        <div className="as-proto-head">
+          <span>Demo settings</span>
+          <button type="button" className="as-proto-close" aria-label="Close demo settings" onClick={() => setOpen(false)}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        </div>
+        <Segmented label="Home" options={HOME_STATES} value={home} onChange={onHome} />
+        <Segmented label="Bottom nav" options={NAV_STYLES} value={navStyle} onChange={onNavStyle} />
+        <Segmented label="Input style" options={LABEL_STYLES} value={labelStyle} onChange={onLabelStyle} />
+        <Segmented label="Sheet" options={PLATFORMS} value={platform} onChange={onPlatform} />
+        <Bindings bound={bound} onToggle={onToggleBinding} />
+        <p className="as-proto-note">Tap Login or Sign up to see it. Switching works with the sheet open too.</p>
+      </aside>
+    </>
+  );
+};
 
 // Mock status bar and home indicator for the chosen OS. Shown only in the
 // desktop phone frame (CSS hides them on a real phone, which draws its own).

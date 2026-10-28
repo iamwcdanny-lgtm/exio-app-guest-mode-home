@@ -36,7 +36,7 @@ The guest Home's Login and Sign up buttons open the matching page ([Figma: Sign 
 - **Forgot password** → enter username / email → *Check your email* (reset link, resend timer) → *Open email app* shows a stand-in email whose button plays the link opening the app → **Reset login password** (new + confirm, with the strength check) → **Login password updated** → Sign in. Pages that change the password show the 24-hour withdrawal-lock notice.
 - **Auto-focus**: Sign up focuses Username and Sign in / Forgot password focus Username / Email once the sheet is up; Reset focuses the new password.
 
-Pick the variant from the panel beside the phone on a wide screen, or with URL parameters (e.g. `?label=float&platform=android&bind=passkey,sms&home=member`; `bind` lists what's set up besides email). The viewport sets `maximum-scale=1` so iOS Safari doesn't zoom in when a 14px field is focused.
+Pick the variant from the panel beside the phone on a wide screen (on a phone, from the drawer behind the small tab on the right edge), or with URL parameters (e.g. `?label=float&platform=android&bind=passkey,sms&home=member`; `bind` lists what's set up besides email). The viewport sets `maximum-scale=1` so iOS Safari doesn't zoom in when a 14px field is focused.
 
 ## Logged-in Home and Trade
 

@@ -895,6 +895,11 @@ const AuthSheet = ({
   const toastTimer = useRef(null);
   const ios = platform === "ios";
 
+  const focusFirstField = (which) => {
+    if (pageRef.current !== which) return;
+    document.getElementById("as-field-username")?.focus({ preventScroll: true });
+  };
+
   const setProgress = useCallback(
     (p) => {
       phoneRef.current?.style.setProperty("--as-p", String(p));
@@ -960,10 +965,16 @@ const AuthSheet = ({
     return undefined;
   }, [mounted, screenRef]);
 
-  // Move focus into the dialog (not into a field, so no keyboard pops up).
+  // Move focus into the dialog. Sign up then focuses its first field
+  // (Username) once the sheet has slid up, so the keyboard comes up straight
+  // away; other pages leave the keyboard down.
   useEffect(() => {
-    if (mounted) sheetRef.current?.focus({ preventScroll: true });
-  }, [mounted]);
+    if (!mounted) return undefined;
+    sheetRef.current?.focus({ preventScroll: true });
+    if (pageRef.current !== "signup") return undefined;
+    const t = setTimeout(() => focusFirstField("signup"), reducedMotion() ? 0 : DURATION_MS);
+    return () => clearTimeout(t);
+  }, [mounted]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Escape closes.
   useEffect(() => {
@@ -992,6 +1003,7 @@ const AuthSheet = ({
         setPage(next);
         if (scrollRef.current) scrollRef.current.scrollTop = 0;
         setFading(false);
+        if (next === "signup") requestAnimationFrame(() => document.getElementById("as-field-username")?.focus({ preventScroll: true }));
       },
       reducedMotion() ? 0 : 160
     );

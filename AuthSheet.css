@@ -1148,12 +1148,13 @@
 }
 
 /* Email code: hint about the spam folder, under the Verify button. */
+/* Same size and gap as the "Have an account? Sign in" line (.as-switch). */
 .as-otp-tip {
-  margin: 12px 0 0;
+  margin: 16px 0 0;
   text-align: center;
   font-weight: 500;
-  font-size: 12px;
-  line-height: 18px;
+  font-size: 14px;
+  line-height: 20px;
   color: var(--text-tertiary);
 }
 .as-otp-tip + .as-switch {

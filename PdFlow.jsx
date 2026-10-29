@@ -545,7 +545,7 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
           <div className="otc-pair">
             <AssetBox s={from} label="From" id="pd-from" />
             <span className="pd-arrow" aria-hidden="true">
-              →
+              ↓
             </span>
             <AssetBox s={to} label="To" id="pd-to" />
           </div>

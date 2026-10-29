@@ -625,3 +625,16 @@
 .rw-card .rw-card-top {
   align-items: center;
 }
+/* Breathing room (2026-10-30). */
+.rw-card {
+  gap: 16px;
+}
+.rw-card .rw-card-top {
+  gap: 12px;
+}
+.rw-card .rw-name {
+  margin-top: 2px;
+}
+.rw-list {
+  gap: 12px;
+}

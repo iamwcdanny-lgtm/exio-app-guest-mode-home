@@ -5,6 +5,7 @@ import NavIcon from "./NavIcon.jsx";
 import GlassNav from "./GlassNav.jsx";
 import AuthSheet, { PasskeyPromo, DevicePasskey } from "./AuthSheet";
 import TradePage from "./TradePage";
+import RwaPage from "./RwaPage";
 import LoggedInHome from "./LoggedInHome";
 
 // Asset paths follow Vite's base, so the build also works from a subpath
@@ -905,6 +906,8 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
         <div ref={screenRef} className={`mhc-screen nav-${navStyle}`}>
           {tab === "trade" ? (
             <TradePage labelStyle={labelStyle} />
+          ) : tab === "rwa" ? (
+            <RwaPage labelStyle={labelStyle} />
           ) : home === "member" ? (
             <LoggedInHome key={welcome.n} welcome={welcome.text} />
           ) : (

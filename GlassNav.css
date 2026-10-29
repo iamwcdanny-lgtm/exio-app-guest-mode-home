@@ -127,7 +127,8 @@
   padding-bottom: var(--gn-space);
 }
 .mhc-screen.nav-glass .lh-scroll,
-.mhc-screen.nav-glass .tp {
+.mhc-screen.nav-glass .tp,
+.mhc-screen.nav-glass .rw {
   padding-bottom: var(--gn-space);
 }
 .mhc-screen.nav-glass .lh-toast {

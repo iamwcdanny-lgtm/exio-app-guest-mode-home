@@ -54,3 +54,12 @@ Pick the variant from the panel beside the phone on a wide screen (on a phone, f
 One-time setup: in **Settings → Pages**, set **Source** to **GitHub Actions**.
 
 This repo is the source of truth for the carousel. It was first built in [`rwa-portal`](https://github.com/iamwcdanny-lgtm/rwa-portal), whose copy is kept for reference only; `tokens.css` carries the few EXIO design tokens it needs.
+
+## RWA product list
+
+Tapping **RWA** in the bottom nav opens `RwaPage.jsx`: the 25 products from the RWA
+"before" screen in the new layout (tabs ★ / All / Fund / Note / Depository).
+Search matches code, full name and issuer and follows the input style switch without a
+label. Sort and Filters (currency, risk, PI/RI) open bottom sheets; applied filters show
+as removable chips with a result count. Logos live in `public/images/rwa/`.
+Issuer names and tab categories are prototype assumptions.

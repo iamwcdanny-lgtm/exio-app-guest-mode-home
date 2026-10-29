@@ -590,3 +590,35 @@
 .rw-card .rw-logo {
   margin-top: 0;
 }
+
+/* Readability pass (2026-10-30): no 10px text on the card, darker secondary text. */
+.rw-card .rw-logo {
+  width: 36px;
+  height: 36px;
+}
+.rw-card .rw-yield {
+  font-size: 16px;
+  line-height: 24px;
+}
+.rw-card .rw-name {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--rw-t60);
+}
+.rw-card .rw-badge {
+  height: 20px;
+  min-width: 20px;
+  padding: 0 4px;
+  font-size: 12px;
+  line-height: 16px;
+}
+.rw-card .rw-risk,
+.rw-card .rw-chip {
+  font-size: 12px;
+  line-height: 16px;
+}
+.rw-list-head {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--rw-t60);
+}

@@ -112,7 +112,7 @@
   box-shadow: inset 0 0 0 1px var(--rw-line-2);
 }
 .rw-search.is-filled {
-  background: var(--rw-fill);
+  background: rgba(0, 0, 0, 0.04); /* same grey as the app's Traditional / IFTA fields */
 }
 .rw-search.is-focused {
   box-shadow: inset 0 0 0 1.5px var(--rw-t90);
@@ -650,10 +650,8 @@
   border-color: transparent;
   background: #fff;
 }
-.rw-wrap.is-card-solid .rw-search.is-outlined {
-  background: #fff;
-}
-.rw-wrap.is-card-solid .rw-search.is-filled,
+/* The search field keeps the app-wide input style; only the icon buttons
+   turn white so they stay visible on the grey page. */
 .rw-wrap.is-card-solid .rw-icon-btn {
   background: #fff;
 }

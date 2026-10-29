@@ -410,12 +410,11 @@ const Agreements = ({ onDone, onClose }) => {
 };
 
 /* ---------- Order form ---------- */
-const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say }) => {
+const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "float" }) => {
   const a = attr(p);
   const sub = instr === "subscribe";
   const [quote, setQuote] = useState(p.currency[0]);
   const [amount, setAmount] = useState("");
-  const [pickQuote, setPickQuote] = useState(false);
   const [gates, setGates] = useState([]); // remaining Round 2 steps
   const [snap, setSnap] = useState(null);
   const [sheet, setSheet] = useState(null); // dka | rpq | received
@@ -479,16 +478,53 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say }) => {
   const fee = sub ? { pct: a.subscribeFeePct, qty: a.subscribeHandlingFeeQty } : { pct: a.redeemPlatformFeePct, qty: a.redeemHandlingFeeQty };
   const from = sub ? quote : p.symbol;
   const to = sub ? p.symbol : quote;
-  const Asset = ({ s, pick }) => (
-    <button type="button" className={`pd-asset${pick ? " is-pick" : ""}`} disabled={!pick} onClick={() => pick && setPickQuote(true)}>
-      {s === p.symbol ? <img src={`${LOGO}/${p.symbol.toLowerCase()}.png`} width="16" height="16" alt="" /> : <span className="pd-flag">{FLAG[s]}</span>}
-      <b>{s}</b>
-      {pick && p.currency.length > 1 && (
-        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-          <path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
-      )}
-    </button>
+  // Fields use the same input style as the rest of the app (OtcPanel's
+  // field classes): Traditional = label above a grey box, Floating = white
+  // outlined box with the label on the border, IFTA = grey box, label inside.
+  const [focused, setFocused] = useState(false);
+  const up = focused || amount !== "";
+  const AssetBox = ({ s, label, id }) => {
+    const pick = s !== p.symbol && p.currency.length > 1;
+    return (
+      <div className="otc-pick">
+        <label className="otc-label" htmlFor={id}>
+          {label}
+        </label>
+        <div className="otc-pick-box">
+          <span className="otc-ccy">
+            {s === p.symbol ? <img src={`${LOGO}/${p.symbol.toLowerCase()}.png`} width="18" height="18" alt="" /> : <span className="pd-flag">{FLAG[s]}</span>}
+            {s}
+          </span>
+          {pick && (
+            <>
+              <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+                <path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              <select id={id} value={quote} onChange={(e) => setQuote(e.target.value)} aria-label={label}>
+                {p.currency.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+  const amountLabel = (
+    <label className="otc-label" htmlFor="pd-amount">
+      {sub ? "Subscription amount" : "Redemption amount"}
+    </label>
+  );
+  const avail = (
+    <span className="otc-avail">
+      {sub ? "Avail." : "Holding"}
+      <b>
+        {fmt(bal)} {unit}
+      </b>
+    </span>
   );
 
   return (
@@ -505,46 +541,74 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say }) => {
         </div>
         {g && !top && <Banner g={g} onAction={onBannerAction} />}
 
-        <div className="pd-pair">
-          <div>
-            <span className="pd-k">From</span>
-            <Asset s={from} pick={sub} />
-          </div>
-          <span className="pd-arrow" aria-hidden="true">
-            →
-          </span>
-          <div>
-            <span className="pd-k">To</span>
-            <Asset s={to} pick={!sub} />
-          </div>
-        </div>
-
-        <div className={`pd-amount${err ? " is-error" : ""}${g ? " is-disabled" : ""}`}>
-          <div className="pd-amount-top">
-            <span>{sub ? "Subscription amount" : "Redemption amount"}</span>
-            <span>
-              {sub ? "Avail." : "Holding"} <b>{fmt(bal)}</b> {unit}
+        <div className={`otc otc-style-${labelStyle} pd-otc${g ? " is-disabled" : ""}`}>
+          <div className="otc-pair">
+            <AssetBox s={from} label="From" id="pd-from" />
+            <span className="pd-arrow" aria-hidden="true">
+              →
             </span>
+            <AssetBox s={to} label="To" id="pd-to" />
           </div>
-          <div className="pd-amount-row">
-            <input
-              ref={inputRef}
-              inputMode="decimal"
-              placeholder="0"
-              aria-label={sub ? "Subscription amount" : "Redemption amount"}
-              aria-invalid={!!err}
-              disabled={!!g}
-              value={amount}
-              onChange={(e) => setAmount(e.target.value.replace(/[^0-9.,]/g, ""))}
-            />
-            <span className="pd-unit">{unit}</span>
-            <i className="pd-vr" />
-            <button type="button" className="pd-max" disabled={!!g || holdingLow} onClick={() => setAmount(String(+floorStep(rules.max, rules.step).toFixed(6)))}>
-              Max
-            </button>
+
+          <div className={`otc-amount${focused ? " is-focused" : ""}${up ? " is-up" : ""}${err ? " is-error" : ""}`}>
+            {labelStyle === "trad" && (
+              <div className="otc-amount-head">
+                {amountLabel}
+                {avail}
+              </div>
+            )}
+            <div
+              className="otc-amount-box"
+              onMouseDown={(e) => {
+                if (e.target === inputRef.current || e.target.closest("button")) return;
+                e.preventDefault();
+                inputRef.current?.focus();
+              }}
+            >
+              {labelStyle === "ifta" && (
+                <div className="otc-amount-head">
+                  {amountLabel}
+                  {avail}
+                </div>
+              )}
+              <div className="otc-amount-row">
+                <input
+                  ref={inputRef}
+                  id="pd-amount"
+                  className="otc-input"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  placeholder={labelStyle === "float" && !focused ? "" : "0"}
+                  aria-invalid={err ? true : undefined}
+                  aria-describedby={err ? "pd-amount-note" : undefined}
+                  disabled={!!g}
+                  value={amount}
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setFocused(false)}
+                  onChange={(e) => setAmount(e.target.value.replace(/[^0-9.,]/g, ""))}
+                />
+                <span className="otc-unit">{unit}</span>
+                <span className="otc-vdiv" aria-hidden="true" />
+                <button
+                  type="button"
+                  className="otc-all"
+                  disabled={!!g || holdingLow}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => setAmount(String(+floorStep(rules.max, rules.step).toFixed(6)))}
+                >
+                  Max
+                </button>
+              </div>
+              {labelStyle === "float" && amountLabel}
+            </div>
+            {labelStyle === "float" && <div className="otc-amount-foot">{avail}</div>}
+            {err && (
+              <p id="pd-amount-note" className="otc-note" aria-live="polite">
+                {err}
+              </p>
+            )}
           </div>
         </div>
-        {err && <p className="pd-err">{err}</p>}
         {holdingLow && (
           <div className="pd-note">
             <Warn />
@@ -613,30 +677,6 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say }) => {
           {sub ? "Subscribe" : "Redeem"}
         </button>
       </div>
-
-      {/* Settlement currency picker */}
-      <PdSheet open={pickQuote} onClose={() => setPickQuote(false)} label="Settlement currency">
-        <div className="pd-doc">
-          <h2 className="pd-sheet-title">{sub ? "Pay with" : "Receive in"}</h2>
-          <div className="pd-list">
-            {p.currency.map((c) => (
-              <button
-                key={c}
-                type="button"
-                className={`pd-li${c === quote ? " is-on" : ""}`}
-                onClick={() => {
-                  setQuote(c);
-                  setPickQuote(false);
-                }}
-              >
-                <span className="pd-flag">{FLAG[c]}</span>
-                <b>{c}</b>
-                <span>{sub ? `Avail. ${fmt(BALANCE[c])}` : ""}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </PdSheet>
 
       {/* Round 2 */}
       {["risk", "conc"].map((k) => (
@@ -774,7 +814,7 @@ const RpqStub = ({ onDone }) => (
 /* ---------- Product detail ---------- */
 const navOf = (p) => (p.symbol.startsWith("a") && p.symbol !== "aAAPL" ? 100 + (p.symbol.length * 37) % 400 : 1 + ((p.symbol.charCodeAt(0) * 7) % 90) / 10);
 
-export default function PdProduct({ p, u, setU, fav, onFav, onClose, say }) {
+export default function PdProduct({ p, u, setU, fav, onFav, onClose, say, labelStyle = "float" }) {
   const [instr, setInstr] = useState("subscribe");
   const [order, setOrder] = useState(false);
   const [sheet, setSheet] = useState(null);
@@ -866,7 +906,7 @@ export default function PdProduct({ p, u, setU, fav, onFav, onClose, say }) {
 
       {order && (
         <div className="pd-layer is-order">
-          <OrderPage p={p} u={u} setU={setU} instr={instr} setInstr={setInstr} onBack={() => setOrder(false)} say={say} />
+          <OrderPage p={p} u={u} setU={setU} instr={instr} setInstr={setInstr} onBack={() => setOrder(false)} say={say} labelStyle={labelStyle} />
         </div>
       )}
       <PdSheet open={sheet === "dka"} full onClose={() => setSheet(null)} label="Derivative Knowledge Assessment">

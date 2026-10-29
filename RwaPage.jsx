@@ -248,7 +248,7 @@ export default function RwaPage({ labelStyle = "float", cardStyle = "border", pd
     scrollRef.current && (scrollRef.current.scrollTop = 0);
   }, [tab, sort, filters]);
 
-  const fieldStyle = labelStyle === "ifta" ? "is-filled" : "is-outlined";
+  const fieldStyle = labelStyle === "float" ? "is-outlined" : "is-filled"; // as every other field: only Floating is outlined
 
   return (
     <div className={`rw-wrap is-card-${cardStyle}`}>
@@ -454,6 +454,7 @@ export default function RwaPage({ labelStyle = "float", cardStyle = "border", pd
       </Sheet>
       {openSym && (
         <PdProduct
+          labelStyle={labelStyle}
           p={PRODUCTS.find((x) => x.symbol === openSym)}
           u={pdUser}
           setU={(patch) => setPdUser({ ...pdUser, ...patch })}

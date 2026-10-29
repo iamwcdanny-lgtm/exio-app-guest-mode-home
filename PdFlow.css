@@ -911,3 +911,41 @@
   line-height: 16px;
   color: var(--text-tertiary, rgba(0, 0, 0, 0.4));
 }
+
+/* PD form fields reuse the OTC field styles (OtcPanel.css) for each input style. */
+.pd-otc.otc {
+  gap: 0;
+  padding: 0;
+}
+.pd-otc .otc-pair {
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.otc-style-trad.pd-otc .otc-pair {
+  margin-bottom: 24px;
+}
+.otc-style-float.pd-otc .otc-pair {
+  margin-bottom: 20px;
+}
+.pd-otc .pd-arrow {
+  flex: none;
+  width: 16px;
+  height: auto;
+  align-self: flex-end;
+  line-height: 48px;
+  text-align: center;
+}
+.otc-style-ifta.pd-otc .pd-arrow {
+  line-height: 56px;
+}
+.pd-otc .otc-pick-box svg {
+  flex: none;
+  color: rgba(0, 0, 0, 0.6);
+}
+.pd-otc.is-disabled .otc-amount {
+  opacity: 0.45;
+}
+.pd-otc .otc-all:disabled {
+  color: rgba(0, 0, 0, 0.2);
+  cursor: default;
+}

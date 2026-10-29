@@ -638,3 +638,25 @@
 .rw-list {
   gap: 12px;
 }
+
+/* Card style "solid": white cards without a border on a light grey page. */
+.rw-wrap.is-card-solid {
+  background: #f5f5f7;
+}
+.rw-wrap.is-card-solid .rw-head {
+  background: rgba(245, 245, 247, 0.9);
+}
+.rw-wrap.is-card-solid .rw-card {
+  border-color: transparent;
+  background: #fff;
+}
+.rw-wrap.is-card-solid .rw-search.is-outlined {
+  background: #fff;
+}
+.rw-wrap.is-card-solid .rw-search.is-filled,
+.rw-wrap.is-card-solid .rw-icon-btn {
+  background: #fff;
+}
+.rw-wrap.is-card-solid .rw-tabs {
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}

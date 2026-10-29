@@ -157,6 +157,11 @@ const RWA_VIEWS = [
   { key: "current", short: "Current" },
   { key: "asset", short: "By asset" },
 ];
+// RWA list cards: white with a border, or solid white cards on a grey page.
+const CARD_STYLES = [
+  { key: "border", short: "Border" },
+  { key: "solid", short: "Solid" },
+];
 const HOME_STATES = [
   { key: "guest", short: "Guest" },
   { key: "member", short: "Logged in" },
@@ -317,7 +322,7 @@ const Bindings = ({ bound, onToggle }) => (
 );
 
 // Demo settings live in a drawer from the right edge at every screen size.
-const ProtoControls = ({ home, onHome, rwaView, onRwaView, pdUser, onPdUser, showPd, navStyle, onNavStyle, labelStyle, onLabelStyle, platform, onPlatform, bound, onToggleBinding }) => {
+const ProtoControls = ({ home, onHome, rwaView, onRwaView, pdUser, onPdUser, showPd, cardStyle, onCardStyle, navStyle, onNavStyle, labelStyle, onLabelStyle, platform, onPlatform, bound, onToggleBinding }) => {
   // On a phone the settings live in a drawer from the right edge, opened by a
   // small tab, so the demo gets the whole screen. Wider screens keep the panel.
   const [open, setOpen] = useState(false);
@@ -356,6 +361,7 @@ const ProtoControls = ({ home, onHome, rwaView, onRwaView, pdUser, onPdUser, sho
         </div>
         <Segmented label="Home" options={HOME_STATES} value={home} onChange={onHome} />
         <Segmented label="RWA" options={RWA_VIEWS} value={rwaView} onChange={onRwaView} />
+        {showPd && <Segmented label="RWA card style" options={CARD_STYLES} value={cardStyle} onChange={onCardStyle} />}
         {showPd && <PdControls value={pdUser} onChange={onPdUser} />}
         <Segmented label="Bottom nav" options={NAV_STYLES} value={navStyle} onChange={onNavStyle} />
         <Segmented label="Input style" options={LABEL_STYLES} value={labelStyle} onChange={onLabelStyle} />
@@ -698,6 +704,7 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
     writePd(u);
   };
   const [immersive, setImmersive] = useState(false);
+  const [cardStyle, setCardStyle] = useState(() => readParam("card", CARD_STYLES, "border"));
   // A one-off note on the logged-in Home after signing in / up (n remounts it).
   const [welcome, setWelcome] = useState({ text: "", n: 0 });
   // Where the sheet was opened from, to return there when the flow ends.
@@ -955,6 +962,11 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
         pdUser={pdUser}
         onPdUser={setPdUser}
         showPd={tab === "rwa" && rwaView === "current"}
+        cardStyle={cardStyle}
+        onCardStyle={(v) => {
+          setCardStyle(v);
+          writeParam("card", v);
+        }}
         rwaView={rwaView}
         onRwaView={(v) => {
           setRwaView(v);
@@ -988,7 +1000,7 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
           {tab === "trade" ? (
             <TradePage labelStyle={labelStyle} />
           ) : tab === "rwa" ? (
-            rwaView === "asset" ? <RwaExplore labelStyle={labelStyle} /> : <RwaPage labelStyle={labelStyle} pdUser={pdUser} setPdUser={setPdUser} onImmersive={setImmersive} />
+            rwaView === "asset" ? <RwaExplore labelStyle={labelStyle} /> : <RwaPage labelStyle={labelStyle} cardStyle={cardStyle} pdUser={pdUser} setPdUser={setPdUser} onImmersive={setImmersive} />
           ) : home === "member" ? (
             <LoggedInHome key={welcome.n} welcome={welcome.text} />
           ) : (

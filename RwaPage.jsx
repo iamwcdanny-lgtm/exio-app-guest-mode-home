@@ -167,7 +167,7 @@ export const Sheet = ({ open, title, onClose, children, footer, tall }) => {
 
 const toggle = (arr, v) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 
-export default function RwaPage({ labelStyle = "float", pdUser = PD_DEFAULT, setPdUser = () => {}, onImmersive = () => {} }) {
+export default function RwaPage({ labelStyle = "float", cardStyle = "border", pdUser = PD_DEFAULT, setPdUser = () => {}, onImmersive = () => {} }) {
   const [openSym, setOpenSym] = useState(null);
   const [toast, setToast] = useState("");
   const toastT = useRef(0);
@@ -251,7 +251,7 @@ export default function RwaPage({ labelStyle = "float", pdUser = PD_DEFAULT, set
   const fieldStyle = labelStyle === "ifta" ? "is-filled" : "is-outlined";
 
   return (
-    <div className="rw-wrap">
+    <div className={`rw-wrap is-card-${cardStyle}`}>
       <div className="rw" ref={scrollRef}>
         <header className="rw-head">
           <div className="rw-tabs" role="tablist" aria-label="Product type">

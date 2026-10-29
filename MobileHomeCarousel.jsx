@@ -6,6 +6,7 @@ import GlassNav from "./GlassNav.jsx";
 import AuthSheet, { PasskeyPromo, DevicePasskey } from "./AuthSheet";
 import TradePage from "./TradePage";
 import RwaPage from "./RwaPage";
+import RwaExplore from "./RwaExplore";
 import LoggedInHome from "./LoggedInHome";
 
 // Asset paths follow Vite's base, so the build also works from a subpath
@@ -150,6 +151,11 @@ const NAV_STYLES = [
   { key: "classic", short: "Classic" },
   { key: "glass", short: "Liquid glass" },
 ];
+// RWA tab: the current product-first list, or the asset-and-issuer-first concept.
+const RWA_VIEWS = [
+  { key: "current", short: "Current" },
+  { key: "asset", short: "By asset" },
+];
 const HOME_STATES = [
   { key: "guest", short: "Guest" },
   { key: "member", short: "Logged in" },
@@ -254,7 +260,7 @@ const Bindings = ({ bound, onToggle }) => (
 );
 
 // Sits outside the phone: beside it on wide screens, above it otherwise.
-const ProtoControls = ({ home, onHome, navStyle, onNavStyle, labelStyle, onLabelStyle, platform, onPlatform, bound, onToggleBinding }) => {
+const ProtoControls = ({ home, onHome, rwaView, onRwaView, navStyle, onNavStyle, labelStyle, onLabelStyle, platform, onPlatform, bound, onToggleBinding }) => {
   // On a phone the settings live in a drawer from the right edge, opened by a
   // small tab, so the demo gets the whole screen. Wider screens keep the panel.
   const [open, setOpen] = useState(false);
@@ -292,6 +298,7 @@ const ProtoControls = ({ home, onHome, navStyle, onNavStyle, labelStyle, onLabel
           </button>
         </div>
         <Segmented label="Home" options={HOME_STATES} value={home} onChange={onHome} />
+        <Segmented label="RWA" options={RWA_VIEWS} value={rwaView} onChange={onRwaView} />
         <Segmented label="Bottom nav" options={NAV_STYLES} value={navStyle} onChange={onNavStyle} />
         <Segmented label="Input style" options={LABEL_STYLES} value={labelStyle} onChange={onLabelStyle} />
         <Segmented label="Sheet" options={PLATFORMS} value={platform} onChange={onPlatform} />
@@ -626,6 +633,7 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
   const signinCheck = signinMethod(bound);
   const [home, setHome] = useState(() => readParam("home", HOME_STATES, "guest"));
   const [navStyle, setNavStyle] = useState(() => readParam("nav", NAV_STYLES, "classic"));
+  const [rwaView, setRwaView] = useState(() => readParam("rwa", RWA_VIEWS, "current"));
   // A one-off note on the logged-in Home after signing in / up (n remounts it).
   const [welcome, setWelcome] = useState({ text: "", n: 0 });
   // Where the sheet was opened from, to return there when the flow ends.
@@ -880,6 +888,12 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
           setTab("home");
           writeParam("home", v);
         }}
+        rwaView={rwaView}
+        onRwaView={(v) => {
+          setRwaView(v);
+          setTab("rwa");
+          writeParam("rwa", v);
+        }}
         navStyle={navStyle}
         onNavStyle={(v) => {
           setNavStyle(v);
@@ -907,7 +921,7 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
           {tab === "trade" ? (
             <TradePage labelStyle={labelStyle} />
           ) : tab === "rwa" ? (
-            <RwaPage labelStyle={labelStyle} />
+            rwaView === "asset" ? <RwaExplore labelStyle={labelStyle} /> : <RwaPage labelStyle={labelStyle} />
           ) : home === "member" ? (
             <LoggedInHome key={welcome.n} welcome={welcome.text} />
           ) : (

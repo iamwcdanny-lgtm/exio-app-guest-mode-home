@@ -63,3 +63,12 @@ Search matches code, full name and issuer and follows the input style switch wit
 label. Sort and Filters (currency, risk, PI/RI) open bottom sheets; applied filters show
 as removable chips with a result count. Logos live in `public/images/rwa/`.
 Issuer names and tab categories are prototype assumptions.
+
+### RWA: current vs by asset
+
+Demo settings → **RWA** switches between `Current` (the product list above) and
+`By asset` (`RwaExplore.jsx`, `?rwa=asset`): browse by underlying asset with its market
+chart, issuer-first cards with numbers that fit each asset class (drawdown, fund size,
+premium to spot, price), product detail with a benchmark overlay and risk factors, and
+issuer pages. Prices, AUM, drawdowns, benchmarks and issuer facts in this view are
+illustrative and generated for the prototype.

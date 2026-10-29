@@ -10,13 +10,13 @@ import "./RwaPage.css";
 // Prototype assumptions: issuer names and the Fund / Note / Depository tab
 // categories are filled in for the demo and are not from the product source.
 
-const LOGO = `${import.meta.env.BASE_URL}images/rwa`;
+export const LOGO = `${import.meta.env.BASE_URL}images/rwa`;
 
 const P = (symbol, yld, risk, badge, currency, meta, name, issuer, cat, extra) => ({
   symbol, yld, risk, badge, currency: currency.split("/"), meta, name, issuer, cat, extra,
 });
 
-const PRODUCTS = [
+export const PRODUCTS = [
   P("CMBMINT", 3.42, 4, "PI", "USD/USDC/USDT", "Tokenised · T+1 · Daily", "CMBI USD Money Market Fund Token", "CMB International", "fund"),
   P("grBENJI", 3.55, 1, "PI", "USD", "Tokenised · T+0 · Daily", "Franklin OnChain U.S. Government Liquidity Fund - AB (Ddis) USD", "Franklin Templeton", "fund"),
   P("XAUm", 60, 3, "PI", "USD/HKD", "Tokenised · Real-time", "Matrixdock Gold", "Matrixdock", "depository"),
@@ -47,7 +47,7 @@ const TABS = [
   { key: "depository", label: "Depository / Trust Receipt" },
 ];
 
-const RISK = ["", "Very low risk", "Low risk", "Medium risk", "High risk", "Very high risk"];
+export const RISK = ["", "Very low risk", "Low risk", "Medium risk", "High risk", "Very high risk"];
 const SORTS = [
   { key: "default", label: "Default" },
   { key: "yieldDesc", label: "Yield: high to low" },
@@ -66,7 +66,7 @@ const EMPTY_FILTERS = { currency: [], risk: [], badge: [] };
 const fmtYield = (y) => `${y}%`;
 
 /* ---------- Icons ---------- */
-const Star = ({ on }) => (
+export const Star = ({ on }) => (
   <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
     <path
       d="M8.6822 2.66576C9.09739 1.33366 10.9052 1.33366 11.3204 2.66576L12.3368 5.92666C12.5225 6.5224 13.055 6.92574 13.6559 6.92574H16.945C18.2886 6.92574 18.8472 8.71806 17.7602 9.54134L15.0993 11.5567C14.6132 11.9249 14.4098 12.5775 14.5955 13.1732L15.6118 16.4341C16.027 17.7662 14.5645 18.8739 13.4775 18.0507L10.8166 16.0353C10.3304 15.6671 9.67217 15.6671 9.18605 16.0353L6.52512 18.0507C5.43812 18.8739 3.97557 17.7662 4.39076 16.4341L5.40715 13.1732C5.59283 12.5775 5.38942 11.9249 4.90329 11.5567L2.24236 9.54134C1.15536 8.71806 1.71401 6.92574 3.05762 6.92574H6.34671C6.94759 6.92574 7.48013 6.5224 7.66581 5.92666L8.6822 2.66576Z"
@@ -76,13 +76,13 @@ const Star = ({ on }) => (
     />
   </svg>
 );
-const SearchIcon = () => (
+export const SearchIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
     <circle cx="7.25" cy="7.25" r="4.75" stroke="currentColor" strokeWidth="1.5" />
     <path d="M10.75 10.75L13.5 13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 );
-const CloseIcon = ({ size = 16 }) => (
+export const CloseIcon = ({ size = 16 }) => (
   <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
     <path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
@@ -97,14 +97,14 @@ const FilterIcon = () => (
     <path d="M3 5.5h14M5.5 10h9M8 14.5h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 );
-const Info = () => (
+export const Info = () => (
   <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
     <circle cx="6" cy="6" r="5" stroke="currentColor" />
     <path d="M6 5.5v3" stroke="currentColor" strokeLinecap="round" />
     <circle cx="6" cy="3.75" r=".6" fill="currentColor" />
   </svg>
 );
-const Check = () => (
+export const Check = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
     <path d="M5 10.5l3.5 3.5L15 7" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
@@ -137,7 +137,7 @@ const Card = ({ p, fav, onFav }) => (
 );
 
 /* ---------- Bottom sheet ---------- */
-const Sheet = ({ open, title, onClose, children, footer }) => {
+export const Sheet = ({ open, title, onClose, children, footer, tall }) => {
   useEffect(() => {
     if (!open) return;
     const k = (e) => e.key === "Escape" && onClose();
@@ -147,7 +147,7 @@ const Sheet = ({ open, title, onClose, children, footer }) => {
   return (
     <>
       <div className={`rw-scrim${open ? " is-open" : ""}`} onClick={onClose} aria-hidden="true" />
-      <div className={`rw-sheet${open ? " is-open" : ""}`} role="dialog" aria-modal="true" aria-label={title} aria-hidden={!open}>
+      <div className={`rw-sheet${open ? " is-open" : ""}${tall ? " is-tall" : ""}`} role="dialog" aria-modal="true" aria-label={title} aria-hidden={!open}>
         <div className="rw-sheet-head">
           <h2>{title}</h2>
           <button type="button" className="rw-sheet-close" aria-label="Close" onClick={onClose} tabIndex={open ? 0 : -1}>

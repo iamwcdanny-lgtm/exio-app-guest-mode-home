@@ -316,7 +316,7 @@ const Bindings = ({ bound, onToggle }) => (
   </div>
 );
 
-// Sits outside the phone: beside it on wide screens, above it otherwise.
+// Demo settings live in a drawer from the right edge at every screen size.
 const ProtoControls = ({ home, onHome, rwaView, onRwaView, pdUser, onPdUser, showPd, navStyle, onNavStyle, labelStyle, onLabelStyle, platform, onPlatform, bound, onToggleBinding }) => {
   // On a phone the settings live in a drawer from the right edge, opened by a
   // small tab, so the demo gets the whole screen. Wider screens keep the panel.

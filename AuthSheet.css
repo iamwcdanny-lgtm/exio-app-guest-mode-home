@@ -1379,16 +1379,16 @@
   color: var(--text-tertiary);
 }
 
-/* Drawer parts: only used on phone-sized screens. */
+/* Drawer parts (tab, scrim, header): the settings always live in a drawer. */
 .as-proto-tab,
 .as-proto-scrim,
 .as-proto-head {
   display: none;
 }
 
-/* Phone-sized screens: the settings slide in from the right, opened by a
-   small tab on the right edge, so the demo has the whole screen. */
-@media (max-width: 479px) {
+/* The settings slide in from the right, opened by a small tab on the right
+   edge, so the demo keeps the whole screen at every size. */
+@media all {
   .as-proto-tab {
     position: fixed;
     right: 0;
@@ -1488,7 +1488,7 @@
     flex: 1 1 0;
   }
 }
-@media (max-width: 479px) and (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: reduce) {
   .as-proto,
   .as-proto.is-open,
   .as-proto-scrim {
@@ -1496,30 +1496,14 @@
   }
 }
 
-/* Wide screens: a panel to the left of the phone. */
-@media (min-width: 840px) {
-  .as-proto {
-    position: fixed;
-    top: 24px;
-    left: 24px;
-    z-index: 50;
-    width: 236px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-    padding: 16px;
-    border-radius: 12px;
-    background: #fff;
-    box-shadow: 0 4px 24px rgba(159, 162, 191, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.04);
-  }
-  .as-proto-note {
-    display: block;
-  }
-  .as-proto .as-proto-group:has(.as-select),
-  .as-select,
-  .as-select select {
-    width: 100%;
-  }
+/* Wide screens: the drawer's select menus fill its width. */
+.as-proto .as-proto-group:has(.as-select),
+.as-proto .as-select,
+.as-proto .as-select select {
+  width: 100%;
+}
+.as-proto .as-proto-note {
+  display: block;
 }
 
 /* ========== Mock device chrome (phone frame only) ========== */

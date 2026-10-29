@@ -249,9 +249,9 @@
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  border: 1px solid var(--rw-line);
+  border: 1px solid var(--rw-line-2);
   border-radius: 8px;
-  background: var(--rw-fill);
+  background: #fff;
 }
 .rw-card-top {
   display: flex;

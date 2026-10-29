@@ -125,16 +125,18 @@ const Card = ({ p, fav, onFav, onOpen }) => (
         </div>
         <div className="rw-name">{p.name}</div>
       </div>
-      <button type="button" className="rw-fav" aria-pressed={fav} aria-label={fav ? `Remove ${p.symbol} from favourites` : `Add ${p.symbol} to favourites`} onClick={onFav}>
-        <Star on={fav} />
-      </button>
     </div>
     <div className="rw-tags">
       <span className={`rw-risk is-r${p.risk}`}>{RISK[p.risk]}</span>
       <span className="rw-chip">{p.currency.join(" / ")}</span>
       {p.extra && <span className="rw-chip">{p.extra}</span>}
     </div>
-    <div className="rw-meta">{p.meta}</div>
+    <div className="rw-card-foot">
+      <div className="rw-meta">{p.meta}</div>
+      <button type="button" className="rw-fav" aria-pressed={fav} aria-label={fav ? `Remove ${p.symbol} from favourites` : `Add ${p.symbol} to favourites`} onClick={onFav}>
+        <Star on={fav} />
+      </button>
+    </div>
   </article>
 );
 

@@ -566,3 +566,14 @@
   opacity: 0.3;
   cursor: default;
 }
+
+/* Favourite star sits bottom right, on the meta row. */
+.rw-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.rw-card-foot .rw-fav {
+  margin: -6px -6px -6px 0;
+}

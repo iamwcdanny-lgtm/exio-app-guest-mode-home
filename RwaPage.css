@@ -574,6 +574,19 @@
   justify-content: space-between;
   gap: 8px;
 }
+/* The star's 20px box sits exactly on the card's 16px padding; a larger
+   invisible hit area keeps it easy to tap. */
 .rw-card-foot .rw-fav {
-  margin: -6px -6px -6px 0;
+  position: relative;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+}
+.rw-card-foot .rw-fav::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
+}
+.rw-card .rw-logo {
+  margin-top: 0;
 }

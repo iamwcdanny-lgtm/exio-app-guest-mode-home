@@ -7,6 +7,7 @@ import AuthSheet, { PasskeyPromo, DevicePasskey } from "./AuthSheet";
 import TradePage from "./TradePage";
 import RwaPage from "./RwaPage";
 import RwaExplore from "./RwaExplore";
+import { PD_SETTINGS, PD_DEFAULT } from "./PdFlow";
 import LoggedInHome from "./LoggedInHome";
 
 // Asset paths follow Vite's base, so the build also works from a subpath
@@ -198,6 +199,62 @@ const writeParam = (name, value) => {
   // Keep the current history state (the sheet's entry, if it's open).
   window.history.replaceState(window.history.state, "", url);
 };
+// RWA PD account state for the demo: only values that differ from the
+// default go into ?pd=key.value~key.value.
+const readPd = () => {
+  const out = { ...PD_DEFAULT };
+  (new URLSearchParams(window.location.search).get("pd") || "").split("~").forEach((kv) => {
+    const [k, v] = kv.split(".");
+    const def = PD_SETTINGS.find((s) => s.key === k);
+    if (def && def.options.some(([o]) => o === v)) out[k] = v;
+  });
+  return out;
+};
+const writePd = (u) => {
+  const v = Object.keys(u)
+    .filter((k) => u[k] !== PD_DEFAULT[k])
+    .map((k) => `${k}.${u[k]}`)
+    .join("~");
+  if (v) return writeParam("pd", v);
+  const url = new URL(window.location.href);
+  url.searchParams.delete("pd");
+  window.history.replaceState(window.history.state, "", url);
+};
+
+// The RWA product's PD conditions: one dropdown per account fact.
+const PdControls = ({ value, onChange }) => {
+  const changed = PD_SETTINGS.filter((s) => value[s.key] !== PD_DEFAULT[s.key]).length;
+  return (
+    <details className="pd-proto" open>
+      <summary>RWA account state{changed ? ` · ${changed} changed` : ""}</summary>
+      <div className="pd-proto-grid">
+        {PD_SETTINGS.map((s) => (
+          <label key={s.key} className="pd-proto-row">
+            <span>{s.label}</span>
+            <select
+              className={value[s.key] !== PD_DEFAULT[s.key] ? "is-changed" : ""}
+              value={value[s.key]}
+              onChange={(e) => onChange({ ...value, [s.key]: e.target.value })}
+            >
+              {s.options.map(([k, l]) => (
+                <option key={k} value={k}>
+                  {l}
+                </option>
+              ))}
+            </select>
+          </label>
+        ))}
+        <p className="pd-proto-hint">Open a product in the RWA list, then Subscribe / Redeem. DKA applies to XAUm and EXCB25.</p>
+        {changed > 0 && (
+          <button type="button" className="pd-proto-reset" onClick={() => onChange({ ...PD_DEFAULT })}>
+            Reset to eligible
+          </button>
+        )}
+      </div>
+    </details>
+  );
+};
+
 // A history step the app makes itself (tidying up after closing) should not
 // be treated as the user pressing back.
 const silentPop = () => {
@@ -260,7 +317,7 @@ const Bindings = ({ bound, onToggle }) => (
 );
 
 // Sits outside the phone: beside it on wide screens, above it otherwise.
-const ProtoControls = ({ home, onHome, rwaView, onRwaView, navStyle, onNavStyle, labelStyle, onLabelStyle, platform, onPlatform, bound, onToggleBinding }) => {
+const ProtoControls = ({ home, onHome, rwaView, onRwaView, pdUser, onPdUser, showPd, navStyle, onNavStyle, labelStyle, onLabelStyle, platform, onPlatform, bound, onToggleBinding }) => {
   // On a phone the settings live in a drawer from the right edge, opened by a
   // small tab, so the demo gets the whole screen. Wider screens keep the panel.
   const [open, setOpen] = useState(false);
@@ -299,6 +356,7 @@ const ProtoControls = ({ home, onHome, rwaView, onRwaView, navStyle, onNavStyle,
         </div>
         <Segmented label="Home" options={HOME_STATES} value={home} onChange={onHome} />
         <Segmented label="RWA" options={RWA_VIEWS} value={rwaView} onChange={onRwaView} />
+        {showPd && <PdControls value={pdUser} onChange={onPdUser} />}
         <Segmented label="Bottom nav" options={NAV_STYLES} value={navStyle} onChange={onNavStyle} />
         <Segmented label="Input style" options={LABEL_STYLES} value={labelStyle} onChange={onLabelStyle} />
         <Segmented label="Sheet" options={PLATFORMS} value={platform} onChange={onPlatform} />
@@ -634,6 +692,12 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
   const [home, setHome] = useState(() => readParam("home", HOME_STATES, "guest"));
   const [navStyle, setNavStyle] = useState(() => readParam("nav", NAV_STYLES, "classic"));
   const [rwaView, setRwaView] = useState(() => readParam("rwa", RWA_VIEWS, "current"));
+  const [pdUser, setPdUserRaw] = useState(readPd);
+  const setPdUser = (u) => {
+    setPdUserRaw(u);
+    writePd(u);
+  };
+  const [immersive, setImmersive] = useState(false);
   // A one-off note on the logged-in Home after signing in / up (n remounts it).
   const [welcome, setWelcome] = useState({ text: "", n: 0 });
   // Where the sheet was opened from, to return there when the flow ends.
@@ -888,6 +952,9 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
           setTab("home");
           writeParam("home", v);
         }}
+        pdUser={pdUser}
+        onPdUser={setPdUser}
+        showPd={tab === "rwa" && rwaView === "current"}
         rwaView={rwaView}
         onRwaView={(v) => {
           setRwaView(v);
@@ -921,7 +988,7 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
           {tab === "trade" ? (
             <TradePage labelStyle={labelStyle} />
           ) : tab === "rwa" ? (
-            rwaView === "asset" ? <RwaExplore labelStyle={labelStyle} /> : <RwaPage labelStyle={labelStyle} />
+            rwaView === "asset" ? <RwaExplore labelStyle={labelStyle} /> : <RwaPage labelStyle={labelStyle} pdUser={pdUser} setPdUser={setPdUser} onImmersive={setImmersive} />
           ) : home === "member" ? (
             <LoggedInHome key={welcome.n} welcome={welcome.text} />
           ) : (
@@ -1035,7 +1102,7 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
           </>
           )}
 
-          {navStyle === "glass" ? (
+          {immersive && tab === "rwa" ? null : navStyle === "glass" ? (
             <GlassNav
               tabs={NAV_TABS}
               active={tab}

@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import "./RwaPage.css";
+import PdProduct, { PD_DEFAULT } from "./PdFlow";
 
 // RWA product list (EXIO Mobile RWA file, "after" layout with the Before
 // content). Search matches code, full name and issuer; the search field follows
@@ -111,8 +112,9 @@ export const Check = () => (
 );
 
 /* ---------- Card ---------- */
-const Card = ({ p, fav, onFav }) => (
-  <article className="rw-card">
+const Card = ({ p, fav, onFav, onOpen }) => (
+  <article className={`rw-card${onOpen ? " is-tap" : ""}`}>
+    {onOpen && <button type="button" className="rw-card-hit" aria-label={`Open ${p.symbol}, ${p.name}`} onClick={onOpen} />}
     <div className="rw-card-top">
       <img className="rw-logo" src={`${LOGO}/${p.symbol.toLowerCase()}.png`} width="32" height="32" alt="" />
       <div className="rw-card-main">
@@ -163,7 +165,19 @@ export const Sheet = ({ open, title, onClose, children, footer, tall }) => {
 
 const toggle = (arr, v) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 
-export default function RwaPage({ labelStyle = "float" }) {
+export default function RwaPage({ labelStyle = "float", pdUser = PD_DEFAULT, setPdUser = () => {}, onImmersive = () => {} }) {
+  const [openSym, setOpenSym] = useState(null);
+  const [toast, setToast] = useState("");
+  const toastT = useRef(0);
+  const say = (t) => {
+    setToast(t);
+    clearTimeout(toastT.current);
+    toastT.current = setTimeout(() => setToast(""), 1800);
+  };
+  useEffect(() => {
+    onImmersive(!!openSym);
+    return () => onImmersive(false);
+  }, [openSym]);
   const [tab, setTab] = useState("all");
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
@@ -321,7 +335,7 @@ export default function RwaPage({ labelStyle = "float" }) {
         {list.length > 0 ? (
           <div className="rw-list">
             {list.map((p) => (
-              <Card key={p.symbol} p={p} fav={favs.has(p.symbol)} onFav={() => toggleFav(p.symbol)} />
+              <Card key={p.symbol} p={p} fav={favs.has(p.symbol)} onFav={() => toggleFav(p.symbol)} onOpen={() => setOpenSym(p.symbol)} />
             ))}
           </div>
         ) : (
@@ -436,6 +450,20 @@ export default function RwaPage({ labelStyle = "float" }) {
           </fieldset>
         ))}
       </Sheet>
+      {openSym && (
+        <PdProduct
+          p={PRODUCTS.find((x) => x.symbol === openSym)}
+          u={pdUser}
+          setU={(patch) => setPdUser({ ...pdUser, ...patch })}
+          fav={favs.has(openSym)}
+          onFav={() => toggleFav(openSym)}
+          onClose={() => setOpenSym(null)}
+          say={say}
+        />
+      )}
+      <div className={`rx-toast${toast ? " is-shown" : ""}`} role="status">
+        {toast}
+      </div>
     </div>
   );
 }

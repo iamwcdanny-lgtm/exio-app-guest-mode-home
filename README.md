@@ -72,3 +72,15 @@ chart, issuer-first cards with numbers that fit each asset class (drawdown, fund
 premium to spot, price), product detail with a benchmark overlay and risk factors, and
 issuer pages. Prices, AUM, drawdowns, benchmarks and issuer facts in this view are
 illustrative and generated for the prototype.
+
+### RWA primary distribution (Subscribe / Redeem)
+
+In the `Current` RWA list, tap a product for its detail page, then **Subscribe / Redeem**
+(`PdFlow.jsx`). It follows FLOW.md, pd-automation-api.md and the PD design addendum:
+Round 1 eligibility (first failure wins; Subscribe-only checks never block Redeem),
+amount validation (min / max / lot size, minimum holding to redeem), Round 2 risk
+mismatch and concentration, the three agreements (scroll to the end to tick; Back keeps,
+close clears), confirmation and the Order Received demo. DKA runs in-app (pass mark 80%,
+attempts count down). Demo settings → **RWA account state** sets the account facts
+(`?pd=key.value~…`). Fees, limits, lot sizes, balances, NAVs and agreement text are
+placeholders; DKA applies to XAUm and EXCB25.

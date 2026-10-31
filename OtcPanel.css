@@ -498,3 +498,26 @@
   outline: 2px solid var(--success);
   outline-offset: 2px;
 }
+
+/* From above To (2026-10-31): the pickers stack full width with the swap
+   button centred between them; its arrows turn to point up and down. */
+.otc:not(.pd-otc) .otc-pair {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.otc:not(.pd-otc) .otc-pick {
+  flex: none;
+}
+.otc:not(.pd-otc) .otc-swap {
+  align-self: center;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+}
+.otc:not(.pd-otc) .otc-swap img {
+  transform: rotate(90deg);
+}
+.otc-style-trad:not(.pd-otc) .otc-swap {
+  margin: 0 0 -8px;
+}

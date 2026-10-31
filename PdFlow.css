@@ -975,3 +975,24 @@
 .pd-otc .otc-all:not(:disabled) {
   color: #019ff8 !important;
 }
+
+/* PD pay / receive fields follow the OTC layout (2026-10-31). */
+.pd-otc .otc-fields .otc-amount {
+  opacity: 1;
+}
+.pd-otc.is-disabled .otc-amount.is-pay {
+  opacity: 0.45;
+}
+.pd-otc .otc-chip.is-fixed {
+  cursor: default;
+}
+.pd-otc .otc-chip .pd-flag {
+  width: 20px;
+  font-size: 16px;
+}
+.pd-otc .otc-chip svg {
+  color: rgba(0, 0, 0, 0.6);
+}
+.pd-layer .pd-otc .otc-all:not(:disabled) {
+  color: #019ff8 !important;
+}

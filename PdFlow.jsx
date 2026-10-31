@@ -478,53 +478,104 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
   const fee = sub ? { pct: a.subscribeFeePct, qty: a.subscribeHandlingFeeQty } : { pct: a.redeemPlatformFeePct, qty: a.redeemHandlingFeeQty };
   const from = sub ? quote : p.symbol;
   const to = sub ? p.symbol : quote;
-  // Fields use the same input style as the rest of the app (OtcPanel's
-  // field classes): Traditional = label above a grey box, Floating = white
-  // outlined box with the label on the border, IFTA = grey box, label inside.
+  // Same layout as the OTC form (OtcPanel's field classes), following the
+  // app-wide input style: a tall "You pay" field with the amount, the pay
+  // asset and the balance + Max, over a short "You receive" field with the
+  // receive asset only (the amount is confirmed after dealing). The button on
+  // the seam flips Subscribe and Redeem.
   const [focused, setFocused] = useState(false);
-  const up = focused || amount !== "";
-  const AssetBox = ({ s, label, id }) => {
+  const Chip = ({ s, id, label }) => {
     const pick = s !== p.symbol && p.currency.length > 1;
     return (
-      <div className="otc-pick">
-        <label className="otc-label" htmlFor={id}>
-          {label}
-        </label>
-        <div className="otc-pick-box">
-          <span className="otc-ccy">
-            {s === p.symbol ? <img src={`${LOGO}/${p.symbol.toLowerCase()}.png`} width="18" height="18" alt="" /> : <span className="pd-flag">{FLAG[s]}</span>}
-            {s}
-          </span>
-          {pick && (
-            <>
-              <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-                <path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
-              <select id={id} value={quote} onChange={(e) => setQuote(e.target.value)} aria-label={label}>
-                {p.currency.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </>
-          )}
-        </div>
-      </div>
+      <span className={`otc-chip${pick ? "" : " is-fixed"}`}>
+        {s === p.symbol ? <img src={`${LOGO}/${p.symbol.toLowerCase()}.png`} width="20" height="20" alt="" /> : <span className="pd-flag">{FLAG[s]}</span>}
+        <b>{s}</b>
+        {pick && (
+          <>
+            <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+              <path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+            <select id={id} value={quote} onChange={(e) => setQuote(e.target.value)} aria-label={label}>
+              {p.currency.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
+      </span>
     );
   };
-  const amountLabel = (
+  const payLabel = (
     <label className="otc-label" htmlFor="pd-amount">
-      {sub ? "Subscription amount" : "Redemption amount"}
+      You pay
     </label>
   );
+  const receiveLabel = <span className="otc-label">You receive</span>;
   const avail = (
     <span className="otc-avail">
       {sub ? "Avail." : "Holding"}
       <b>
         {fmt(bal)} {unit}
       </b>
+      <button
+        type="button"
+        className="otc-all"
+        disabled={!!g || holdingLow}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => setAmount(String(+floorStep(rules.max, rules.step).toFixed(6)))}
+      >
+        Max
+      </button>
     </span>
+  );
+  const payField = (
+    <div className={`otc-amount is-pay${focused ? " is-focused" : ""}${focused || amount !== "" ? " is-up" : ""}${err ? " is-error" : ""}`}>
+      {labelStyle === "trad" && <div className="otc-amount-head">{payLabel}</div>}
+      <div
+        className="otc-amount-box"
+        onMouseDown={(e) => {
+          if (e.target === inputRef.current || e.target.closest("button, select")) return;
+          e.preventDefault();
+          inputRef.current?.focus();
+        }}
+      >
+        {labelStyle === "ifta" && <div className="otc-amount-head">{payLabel}</div>}
+        <div className="otc-amount-row">
+          <input
+            ref={inputRef}
+            id="pd-amount"
+            className="otc-input"
+            inputMode="decimal"
+            autoComplete="off"
+            placeholder={labelStyle === "float" && !focused ? "" : "0"}
+            aria-invalid={err ? true : undefined}
+            aria-describedby={err ? "pd-amount-note" : undefined}
+            disabled={!!g}
+            value={amount}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            onChange={(e) => setAmount(e.target.value.replace(/[^0-9.,]/g, ""))}
+          />
+          <Chip s={from} id="pd-from" label="Pay with" />
+        </div>
+        <div className="otc-amount-foot">{avail}</div>
+        {labelStyle === "float" && payLabel}
+      </div>
+    </div>
+  );
+  const receiveField = (
+    <div className="otc-amount is-receive is-up">
+      {labelStyle === "trad" && <div className="otc-amount-head">{receiveLabel}</div>}
+      <div className="otc-amount-box">
+        <div className="otc-amount-row">
+          {labelStyle === "ifta" ? receiveLabel : <span className="otc-quote-hint">{sub ? "Units confirmed after dealing" : "Amount confirmed after dealing"}</span>}
+          <Chip s={to} id="pd-to" label="Receive in" />
+        </div>
+        {labelStyle === "float" && receiveLabel}
+      </div>
+    </div>
   );
 
   return (
@@ -542,66 +593,17 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
         {g && !top && <Banner g={g} onAction={onBannerAction} />}
 
         <div className={`otc otc-style-${labelStyle} pd-otc${g ? " is-disabled" : ""}`}>
-          <div className="otc-pair">
-            <AssetBox s={from} label="From" id="pd-from" />
-            <span className="pd-arrow" aria-hidden="true">
-              ↓
-            </span>
-            <AssetBox s={to} label="To" id="pd-to" />
-          </div>
-
-          <div className={`otc-amount${focused ? " is-focused" : ""}${up ? " is-up" : ""}${err ? " is-error" : ""}`}>
-            {labelStyle === "trad" && (
-              <div className="otc-amount-head">
-                {amountLabel}
-                {avail}
-              </div>
-            )}
-            <div
-              className="otc-amount-box"
-              onMouseDown={(e) => {
-                if (e.target === inputRef.current || e.target.closest("button")) return;
-                e.preventDefault();
-                inputRef.current?.focus();
-              }}
+          <div className="otc-fields">
+            {payField}
+            <button
+              type="button"
+              className="otc-swap"
+              aria-label={sub ? "Switch to Redeem" : "Switch to Subscribe"}
+              onClick={() => setInstr(sub ? "redeem" : "subscribe")}
             >
-              {labelStyle === "ifta" && (
-                <div className="otc-amount-head">
-                  {amountLabel}
-                  {avail}
-                </div>
-              )}
-              <div className="otc-amount-row">
-                <input
-                  ref={inputRef}
-                  id="pd-amount"
-                  className="otc-input"
-                  inputMode="decimal"
-                  autoComplete="off"
-                  placeholder={labelStyle === "float" && !focused ? "" : "0"}
-                  aria-invalid={err ? true : undefined}
-                  aria-describedby={err ? "pd-amount-note" : undefined}
-                  disabled={!!g}
-                  value={amount}
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  onChange={(e) => setAmount(e.target.value.replace(/[^0-9.,]/g, ""))}
-                />
-                <span className="otc-unit">{unit}</span>
-                <span className="otc-vdiv" aria-hidden="true" />
-                <button
-                  type="button"
-                  className="otc-all"
-                  disabled={!!g || holdingLow}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => setAmount(String(+floorStep(rules.max, rules.step).toFixed(6)))}
-                >
-                  Max
-                </button>
-              </div>
-              {labelStyle === "float" && amountLabel}
-            </div>
-            {labelStyle === "float" && <div className="otc-amount-foot">{avail}</div>}
+              <img src={`${import.meta.env.BASE_URL}images/otc/swap.svg`} width="16" height="16" alt="" />
+            </button>
+            {receiveField}
             {err && (
               <p id="pd-amount-note" className="otc-note" aria-live="polite">
                 {err}

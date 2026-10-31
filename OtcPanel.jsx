@@ -2,9 +2,11 @@ import React, { useRef, useState } from "react";
 import "./OtcPanel.css";
 
 // OTC section of the Trade page (Figma: OTC Chat Trading, 9231:100184).
-// The From / To pickers and the amount field follow the prototype's input
-// style switch: "ifta" is the Figma card (label inside, top), "float" puts the
-// label on the border, "trad" puts it above the box.
+// A tall "You pay" field (amount + currency) over a short "You receive" field
+// (currency only: the amount comes with the dealer's quote); the swap button
+// on the seam flips the pair. Both follow the
+// prototype's input style switch: "ifta" puts the label inside at the top,
+// "float" on the border, "trad" above the box.
 const IMG = `${import.meta.env.BASE_URL}images/otc`;
 
 const CCY = {
@@ -37,27 +39,21 @@ const START_ORDERS = [
   { id: 396878, payCcy: "USD", pay: 50000, getCcy: "ETH", get: 14.6199, time: "2026-12-10 11:30:02" },
 ];
 
-const CcyPicker = ({ id, label, value, onChange }) => (
-  <div className="otc-pick">
-    <label className="otc-label" htmlFor={id}>
-      {label}
-    </label>
-    <div className="otc-pick-box">
-      <span className="otc-ccy">
-        <img src={`${IMG}/${CCY[value].icon}`} width="20" height="20" alt="" />
-        {value}
-      </span>
-      <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
-      {/* Native picker on top: the phone's own list opens on tap. */}
-      <select id={id} value={value} onChange={(e) => onChange(e.target.value)} aria-label={label}>
-        {Object.keys(CCY).map((c) => (
-          <option key={c} value={c}>
-            {c}
-          </option>
-        ))}
-      </select>
-    </div>
-  </div>
+// Currency chip inside an amount field; the native picker sits on top so the
+// phone's own list opens on tap.
+const CcyChip = ({ id, label, value, onChange }) => (
+  <span className="otc-chip">
+    <img src={`${IMG}/${CCY[value].icon}`} width="20" height="20" alt="" />
+    <b>{value}</b>
+    <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
+    <select id={id} value={value} onChange={(e) => onChange(e.target.value)} aria-label={label}>
+      {Object.keys(CCY).map((c) => (
+        <option key={c} value={c}>
+          {c}
+        </option>
+      ))}
+    </select>
+  </span>
 );
 
 const OtcPanel = ({ labelStyle = "float", say }) => {
@@ -65,7 +61,7 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
   const [to, setTo] = useState("BTC");
   const [mode, setMode] = useState("pay"); // which side the amount is entered in
   const [amount, setAmount] = useState("");
-  const [focused, setFocused] = useState(false);
+  const [focused, setFocused] = useState(null); // "pay" | "receive" | null
   const [bal] = useState(START_BAL);
   const [orders, setOrders] = useState(START_ORDERS);
   const [filled] = useState([]);
@@ -89,13 +85,6 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
   const pickFrom = (c) => (c === to ? setPair(to, from) : setPair(c, to));
   const pickTo = (c) => (c === from ? setPair(to, from) : setPair(from, c));
 
-  const fillAll = () => {
-    const max = mode === "pay" ? bal[from] : bal[from] / rate;
-    const f = 10 ** dp;
-    setAmount(String(Math.floor(max * f) / f));
-    inputRef.current?.focus();
-  };
-
   const getQuote = () => {
     if (!ready) return;
     const pay = mode === "pay" ? value : value * rate;
@@ -110,31 +99,81 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
     say?.("Quote requested — a dealer will reply in chat (prototype)");
   };
 
-  const up = focused || amount !== "";
-  const label = mode === "pay" ? "Pay amount" : "Receive amount";
+  // Like a swap form: a tall "You pay" field takes the amount, a short
+  // "You receive" field only picks the currency. OTC has no receive amount
+  // until the dealer quotes, so none is shown.
+  const isFocused = !!focused;
+  const fillAll = () => {
+    const f = 10 ** CCY[from].dp;
+    setAmount(String(Math.floor(bal[from] * f) / f));
+  };
+  const payLabel = (
+    <label className="otc-label" htmlFor="otc-pay">
+      You pay
+    </label>
+  );
+  const receiveLabel = (
+    <label className="otc-label" htmlFor="otc-to">
+      You receive
+    </label>
+  );
   const avail = (
     <span className="otc-avail">
       Avail.
       <b>
         {fmt(bal[from], CCY[from].dp)} {from}
       </b>
-      <button
-        type="button"
-        className="otc-shift"
-        aria-label={mode === "pay" ? "Enter the amount to receive instead" : "Enter the amount to pay instead"}
-        onClick={() => {
-          setMode((m) => (m === "pay" ? "receive" : "pay"));
-          setAmount("");
-        }}
-      >
-        <img src={`${IMG}/shift.svg`} width="16" height="16" alt="" />
+      <button type="button" className="otc-all" onMouseDown={(e) => e.preventDefault()} onClick={fillAll}>
+        Max
       </button>
     </span>
   );
-  const amountLabel = (
-    <label className="otc-label" htmlFor="otc-amount">
-      {label}
-    </label>
+  const payField = (
+    <div className={`otc-amount is-pay${isFocused ? " is-focused" : ""}${isFocused || amount !== "" ? " is-up" : ""}${error ? " is-error" : ""}`}>
+      {labelStyle === "trad" && <div className="otc-amount-head">{payLabel}</div>}
+      <div
+        className="otc-amount-box"
+        onMouseDown={(e) => {
+          if (e.target === inputRef.current || e.target.closest("button, select")) return;
+          e.preventDefault();
+          inputRef.current?.focus();
+        }}
+      >
+        {labelStyle === "ifta" && <div className="otc-amount-head">{payLabel}</div>}
+        <div className="otc-amount-row">
+          <input
+            ref={inputRef}
+            id="otc-pay"
+            className="otc-input"
+            inputMode="decimal"
+            autoComplete="off"
+            spellCheck={false}
+            placeholder={labelStyle === "float" && !isFocused ? "" : "0"}
+            value={isFocused ? amount : group(amount)}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? "otc-amount-note" : undefined}
+            onFocus={() => setFocused("pay")}
+            onBlur={() => setFocused(null)}
+            onChange={(e) => setAmount(clean(e.target.value, CCY[from].dp))}
+          />
+          <CcyChip id="otc-from" label="Pay with" value={from} onChange={pickFrom} />
+        </div>
+        <div className="otc-amount-foot">{avail}</div>
+        {labelStyle === "float" && payLabel}
+      </div>
+    </div>
+  );
+  const receiveField = (
+    <div className="otc-amount is-receive is-up">
+      {labelStyle === "trad" && <div className="otc-amount-head">{receiveLabel}</div>}
+      <div className="otc-amount-box">
+        <div className="otc-amount-row">
+          {labelStyle === "ifta" ? receiveLabel : <span className="otc-quote-hint">Amount set by the dealer’s quote</span>}
+          <CcyChip id="otc-to" label="Receive" value={to} onChange={pickTo} />
+        </div>
+        {labelStyle === "float" && receiveLabel}
+      </div>
+    </div>
   );
 
   const list = tab === "processing" ? orders : filled;
@@ -142,63 +181,15 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
   return (
     <div className={`otc otc-style-${labelStyle}`}>
       <div className="otc-controls">
-        <div className="otc-pair">
-          <CcyPicker id="otc-from" label="From" value={from} onChange={pickFrom} />
-          <button type="button" className="otc-swap" aria-label="Swap From and To" onClick={() => setPair(to, from)}>
+        <div className="otc-fields">
+          {payField}
+          <button type="button" className="otc-swap" aria-label="Swap pay and receive currencies" onClick={() => setPair(to, from)}>
             <img src={`${IMG}/swap.svg`} width="16" height="16" alt="" />
           </button>
-          <CcyPicker id="otc-to" label="To" value={to} onChange={pickTo} />
-        </div>
-
-        <div className={`otc-amount${focused ? " is-focused" : ""}${up ? " is-up" : ""}${error ? " is-error" : ""}`}>
-          {labelStyle === "trad" && (
-            <div className="otc-amount-head">
-              {amountLabel}
-              {avail}
-            </div>
-          )}
-          <div
-            className="otc-amount-box"
-            onMouseDown={(e) => {
-              if (e.target === inputRef.current || e.target.closest("button")) return;
-              e.preventDefault();
-              inputRef.current?.focus();
-            }}
-          >
-            {labelStyle === "ifta" && (
-              <div className="otc-amount-head">
-                {amountLabel}
-                {avail}
-              </div>
-            )}
-            <div className="otc-amount-row">
-              <input
-                ref={inputRef}
-                id="otc-amount"
-                className="otc-input"
-                inputMode="decimal"
-                autoComplete="off"
-                spellCheck={false}
-                placeholder={labelStyle === "float" && !focused ? "" : "0"}
-                value={focused ? amount : group(amount)}
-                aria-invalid={error ? true : undefined}
-                aria-describedby={error ? "otc-amount-note" : undefined}
-                onFocus={() => setFocused(true)}
-                onBlur={() => setFocused(false)}
-                onChange={(e) => setAmount(clean(e.target.value, dp))}
-              />
-              <span className="otc-unit">{ccy}</span>
-              <span className="otc-vdiv" aria-hidden="true" />
-              <button type="button" className="otc-all" onMouseDown={(e) => e.preventDefault()} onClick={fillAll}>
-                All
-              </button>
-            </div>
-            {labelStyle === "float" && amountLabel}
-          </div>
-          {labelStyle === "float" && <div className="otc-amount-foot">{avail}</div>}
+          {receiveField}
           {error && (
             <p id="otc-amount-note" className="otc-note" aria-live="polite">
-              {error}
+              {error} You can pay up to {fmt(bal[from], CCY[from].dp)} {from}.
             </p>
           )}
         </div>

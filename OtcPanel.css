@@ -499,25 +499,151 @@
   outline-offset: 2px;
 }
 
-/* From above To (2026-10-31): the pickers stack full width with the swap
-   button centred between them; its arrows turn to point up and down. */
-.otc:not(.pd-otc) .otc-pair {
+/* ---- Linked "You pay" / "You receive" fields (2026-10-31) ---- */
+.otc-fields {
+  position: relative;
+  display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
 }
-.otc:not(.pd-otc) .otc-pick {
-  flex: none;
+.otc-style-trad .otc-fields > .otc-amount + .otc-swap + .otc-amount {
+  margin-top: -4px;
 }
-.otc:not(.pd-otc) .otc-swap {
+/* The swap button sits on the seam between the two fields. */
+.otc-fields .otc-swap {
+  position: relative;
+  z-index: 2;
   align-self: center;
-  width: 32px;
-  height: 32px;
-  margin: 0;
+  width: 36px;
+  height: 36px;
+  margin: -10px 0;
+  border: 4px solid #fff;
+  border-radius: 12px;
+  background: #f2f2f2;
+  box-sizing: border-box;
 }
-.otc:not(.pd-otc) .otc-swap img {
+.otc-fields .otc-swap img {
   transform: rotate(90deg);
 }
-.otc-style-trad:not(.pd-otc) .otc-swap {
-  margin: 0 0 -8px;
+.otc-style-float .otc-fields .otc-swap {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 0 0 4px #fff;
+  margin: -6px 0;
+}
+.otc-style-float .otc-fields .otc-amount-foot + .otc-swap,
+.otc-style-float .otc-fields .otc-amount:first-child {
+  margin-bottom: 0;
+}
+/* Currency chip inside each field. */
+.otc-chip {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 10px 0 8px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+}
+.otc-style-float .otc-chip {
+  background: rgba(0, 0, 0, 0.04);
+  box-shadow: none;
+}
+.otc-chip img:first-child {
+  border-radius: 50%;
+}
+.otc-chip b {
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-primary);
+}
+.otc-chip select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 16px;
+}
+.otc-chip:focus-within {
+  box-shadow: 0 0 0 1.5px var(--text-primary);
+}
+.otc .otc-input.is-estimate {
+  color: var(--otc-muted);
+}
+.otc-avail .otc-all {
+  padding: 0;
+  font-size: 12px;
+  line-height: 18px;
+}
+.otc-avail.is-hint {
+  font-weight: 600;
+}
+.otc-fine {
+  margin: 8px 0 0;
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--text-tertiary);
+}
+.otc-fields .otc-note {
+  margin-top: 8px;
+}
+
+/* Pay is tall (label, amount, balance + Max), receive is short (currency only). */
+.otc-fields .otc-amount.is-pay .otc-amount-box {
+  height: auto;
+  gap: 8px;
+  padding: 12px 12px 10px;
+}
+.otc-fields .otc-amount.is-pay .otc-amount-foot {
+  justify-content: flex-end;
+  margin: 0;
+}
+.otc-fields .otc-amount.is-pay .otc-amount-foot .otc-avail {
+  flex: none;
+}
+.otc-style-float .otc-fields .otc-amount.is-pay .otc-amount-box {
+  padding-top: 16px;
+}
+.otc-style-float .otc-fields .otc-amount.is-pay .otc-amount-box .otc-label {
+  top: 28px;
+}
+.otc-style-float .otc-fields .otc-amount.is-pay.is-up .otc-amount-box .otc-label {
+  top: 0;
+}
+.otc-fields .otc-amount.is-receive .otc-amount-box {
+  height: 56px;
+  padding: 0 12px;
+  justify-content: center;
+  cursor: default;
+}
+.otc-fields .otc-amount.is-receive .otc-amount-row {
+  justify-content: space-between;
+}
+.otc-style-ifta .otc-fields .otc-amount.is-receive .otc-label {
+  font-size: 12px;
+  line-height: 18px;
+}
+.otc-style-float .otc-fields .otc-amount.is-receive .otc-amount-box .otc-label {
+  top: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.otc-quote-hint {
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--otc-muted);
+}
+.otc-fields .otc-swap {
+  border-radius: 50%;
+}
+.otc-style-trad .otc-fields > .otc-amount + .otc-swap + .otc-amount {
+  margin-top: -8px;
 }

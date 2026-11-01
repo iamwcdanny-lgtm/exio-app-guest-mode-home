@@ -691,3 +691,19 @@
   height: 64px;
   padding-top: 8px;
 }
+
+/* Balance + Max share the "You pay" label row (2026-11-02), so the pay field
+   goes back to even padding and the receive field to 56px. */
+.otc-fields .otc-amount.is-pay .otc-amount-box {
+  padding-bottom: 12px;
+}
+.otc-style-float .otc-fields .otc-amount.is-pay .otc-amount-box {
+  padding-bottom: 24px;
+}
+.otc-fields .otc-amount.is-receive .otc-amount-box {
+  height: 56px;
+  padding-top: 0;
+}
+.otc-fields .otc-amount.is-pay .otc-amount-head .otc-avail {
+  line-height: 18px;
+}

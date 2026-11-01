@@ -130,7 +130,12 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
   );
   const payField = (
     <div className={`otc-amount is-pay${isFocused ? " is-focused" : ""}${isFocused || amount !== "" ? " is-up" : ""}${error ? " is-error" : ""}`}>
-      {labelStyle === "trad" && <div className="otc-amount-head">{payLabel}</div>}
+      {labelStyle === "trad" && (
+        <div className="otc-amount-head">
+          {payLabel}
+          {avail}
+        </div>
+      )}
       <div
         className="otc-amount-box"
         onMouseDown={(e) => {
@@ -139,7 +144,12 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
           inputRef.current?.focus();
         }}
       >
-        {labelStyle === "ifta" && <div className="otc-amount-head">{payLabel}</div>}
+        {labelStyle === "ifta" && (
+          <div className="otc-amount-head">
+            {payLabel}
+            {avail}
+          </div>
+        )}
         <div className="otc-amount-row">
           <input
             ref={inputRef}
@@ -158,7 +168,7 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
           />
           <CcyChip id="otc-from" label="Pay with" value={from} onChange={pickFrom} />
         </div>
-        <div className="otc-amount-foot">{avail}</div>
+        {labelStyle === "float" && <div className="otc-amount-foot">{avail}</div>}
         {labelStyle === "float" && payLabel}
       </div>
     </div>

@@ -532,7 +532,12 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
   );
   const payField = (
     <div className={`otc-amount is-pay${focused ? " is-focused" : ""}${focused || amount !== "" ? " is-up" : ""}${err ? " is-error" : ""}`}>
-      {labelStyle === "trad" && <div className="otc-amount-head">{payLabel}</div>}
+      {labelStyle === "trad" && (
+        <div className="otc-amount-head">
+          {payLabel}
+          {avail}
+        </div>
+      )}
       <div
         className="otc-amount-box"
         onMouseDown={(e) => {
@@ -541,7 +546,12 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
           inputRef.current?.focus();
         }}
       >
-        {labelStyle === "ifta" && <div className="otc-amount-head">{payLabel}</div>}
+        {labelStyle === "ifta" && (
+          <div className="otc-amount-head">
+            {payLabel}
+            {avail}
+          </div>
+        )}
         <div className="otc-amount-row">
           <input
             ref={inputRef}
@@ -560,7 +570,7 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
           />
           <Chip s={from} id="pd-from" label="Pay with" />
         </div>
-        <div className="otc-amount-foot">{avail}</div>
+        {labelStyle === "float" && <div className="otc-amount-foot">{avail}</div>}
         {labelStyle === "float" && payLabel}
       </div>
     </div>

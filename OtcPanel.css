@@ -681,3 +681,13 @@
 .otc-style-trad .otc-fields > .otc-amount + .otc-swap + .otc-amount {
   margin-top: 0;
 }
+
+/* The swap button (and its 4px white ring) reaches 20px into the pay field;
+   keep the balance row clear of it (2026-11-02). */
+.otc-fields .otc-amount.is-pay .otc-amount-box {
+  padding-bottom: 24px;
+}
+.otc-fields .otc-amount.is-receive .otc-amount-box {
+  height: 64px;
+  padding-top: 8px;
+}

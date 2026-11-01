@@ -84,3 +84,11 @@ close clears), confirmation and the Order Received demo. DKA runs in-app (pass m
 attempts count down). Demo settings → **RWA account state** sets the account facts
 (`?pd=key.value~…`). Fees, limits, lot sizes, balances, NAVs and agreement text are
 placeholders; DKA applies to XAUm and EXCB25.
+
+### Input styles (2026-11-01)
+
+*IFTA* now uses the same white outlined box as *Floating*, with its label fixed inside
+at the top; *Traditional* keeps the grey box with the label above. Amount fields (order
+book Price / Quantity / Total, OTC, RWA Subscribe / Redeem) always use IFTA whatever the
+Input style setting, because a floating label competes with the unit, currency chip and
+Max, and a label above adds height to dense trading forms.

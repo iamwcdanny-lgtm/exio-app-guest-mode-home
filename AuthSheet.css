@@ -335,10 +335,14 @@
 }
 
 /* IFTA: grey field, small label fixed at the top inside it. */
+/* IFTA: white outlined box like Floating (2026-11-01), label fixed inside at the top. */
 .as-style-ifta .as-box {
   height: 56px;
   padding: 8px 12px;
-  background: rgba(0, 0, 0, 0.04);
+  background: #fff;
+}
+.as-style-ifta .as-field:not(.is-focused):not(.is-error) .as-box {
+  border-color: rgba(0, 0, 0, 0.12);
 }
 .as-ifta {
   flex: 1;
@@ -519,7 +523,8 @@
   caret-color: var(--success);
   transition: border-color 0.2s ease, background-color 0.2s ease;
 }
-.as-style-float .as-otp-box {
+.as-style-float .as-otp-box,
+.as-style-ifta .as-otp-box {
   background: #fff;
   border-color: rgba(0, 0, 0, 0.12);
 }

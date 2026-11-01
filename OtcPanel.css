@@ -647,3 +647,26 @@
 .otc-style-trad .otc-fields > .otc-amount + .otc-swap + .otc-amount {
   margin-top: -8px;
 }
+
+/* IFTA: white outlined boxes like Floating (2026-11-01). */
+.otc-style-ifta .otc-pick,
+.otc-style-ifta .otc-amount-box {
+  background: #fff;
+  border-color: rgba(0, 0, 0, 0.12);
+}
+.otc-style-ifta .otc-amount.is-focused .otc-amount-box {
+  border-color: var(--text-primary);
+}
+.otc-style-ifta .otc-amount.is-error .otc-amount-box {
+  border-color: var(--otc-down);
+}
+.otc-style-ifta .otc-chip {
+  background: rgba(0, 0, 0, 0.04);
+  box-shadow: none;
+}
+.otc-style-ifta .otc-fields .otc-swap {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 0 0 4px #fff;
+  margin: -6px 0;
+}

@@ -1020,3 +1020,11 @@
     transition: none;
   }
 }
+
+/* IFTA: white outlined box like Floating (2026-11-01). */
+.tp-style-ifta .tp-box {
+  background: #fff;
+}
+.tp-style-ifta .tp-field:not(.is-focused):not(.is-error) .tp-box {
+  border-color: rgba(0, 0, 0, 0.12);
+}

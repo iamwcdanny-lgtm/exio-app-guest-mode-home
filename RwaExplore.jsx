@@ -532,7 +532,7 @@ export default function RwaExplore({ labelStyle = "float" }) {
   }, []);
 
   const card = (p) => <ProductCard key={p.symbol} p={p} fav={favs.has(p.symbol)} onFav={() => toggleFav(p.symbol)} onOpen={() => setOpen(p.symbol)} />;
-  const fieldStyle = labelStyle === "float" ? "is-outlined" : "is-filled"; // as every other field: only Floating is outlined
+  const fieldStyle = labelStyle === "trad" ? "is-filled" : "is-outlined"; // as every other field: Traditional is grey, Floating and IFTA are outlined
   const c = CLASS[cls];
   const openP = ITEMS.find((p) => p.symbol === open);
 

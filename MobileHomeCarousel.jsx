@@ -998,7 +998,8 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
       <div ref={phoneRef} className={`mhc-phone as-platform-${platform}`}>
         <div ref={screenRef} className={`mhc-screen nav-${navStyle}`}>
           {tab === "trade" ? (
-            <TradePage labelStyle={labelStyle} />
+            // Amount fields (order book, OTC) always use IFTA: a floating label fights the unit, chip and Max, and a label above adds height.
+            <TradePage labelStyle="ifta" />
           ) : tab === "rwa" ? (
             rwaView === "asset" ? <RwaExplore labelStyle={labelStyle} /> : <RwaPage labelStyle={labelStyle} cardStyle={cardStyle} pdUser={pdUser} setPdUser={setPdUser} onImmersive={setImmersive} />
           ) : home === "member" ? (

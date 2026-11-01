@@ -670,3 +670,14 @@
   box-shadow: 0 0 0 4px #fff;
   margin: -6px 0;
 }
+
+/* 4px between the pay and receive fields (2026-11-01): the 36px swap button
+   overlaps both by 16px, so it sits on the seam. */
+.otc .otc-fields .otc-swap,
+.otc-style-float .otc-fields .otc-swap,
+.otc-style-ifta .otc-fields .otc-swap {
+  margin: -16px 0;
+}
+.otc-style-trad .otc-fields > .otc-amount + .otc-swap + .otc-amount {
+  margin-top: 0;
+}

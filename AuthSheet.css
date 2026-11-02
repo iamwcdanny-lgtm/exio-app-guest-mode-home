@@ -11,6 +11,11 @@
      phone draws its own): status bar and home indicator heights. */
   --dc-top: 0px;
   --dc-bottom: 0px;
+  /* Top of the mock home indicator, from the bottom of the screen. */
+  --dc-home: 0px;
+  /* Bottom CTAs sit 16px above the home indicator (2026-11-02). On a real
+     phone the OS safe area keeps them clear of its own indicator. */
+  --cta-bottom: max(16px, calc(var(--dc-home) + 16px), env(safe-area-inset-bottom, 0px));
   --as-top: calc(env(safe-area-inset-top, 0px) + var(--dc-top) + 10px);
   --as-ease: cubic-bezier(0.32, 0.72, 0, 1);
   --as-dur: 0.45s;
@@ -680,7 +685,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 8px 16px max(24px, env(safe-area-inset-bottom, 0px), var(--dc-bottom));
+  padding: 8px 16px var(--cta-bottom);
   border-radius: 16px 16px 0 0;
   background: #fff;
   transform: translateY(100%);
@@ -750,7 +755,7 @@
 .as-footer {
   position: relative;
   flex-shrink: 0;
-  padding: 12px 16px max(16px, env(safe-area-inset-bottom, 0px), var(--dc-bottom));
+  padding: 12px 16px var(--cta-bottom);
   background: #fff;
 }
 
@@ -853,7 +858,7 @@
   z-index: 35;
 }
 .as-promo .as-picker-sheet {
-  padding-bottom: max(16px, var(--dc-bottom, 0px));
+  padding-bottom: var(--cta-bottom);
 }
 .as-promo-img {
   display: block;
@@ -1520,10 +1525,12 @@
   .mhc-phone.as-platform-ios {
     --dc-top: 44px;
     --dc-bottom: 34px;
+    --dc-home: 13px; /* bottom 8 + height 5 */
   }
   .mhc-phone.as-platform-android {
     --dc-top: 28px;
     --dc-bottom: 24px;
+    --dc-home: 13px; /* bottom 9 + height 4 */
   }
   .dc {
     display: block;

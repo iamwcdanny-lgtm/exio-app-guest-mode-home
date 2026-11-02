@@ -86,12 +86,12 @@
 }
 .pd-foot {
   flex: none;
-  padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  padding: 16px 16px var(--cta-bottom, 16px);
   border-top: 1px solid #f2f2f2;
   background: #fff;
 }
 .mhc-screen.nav-glass .pd-foot {
-  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: var(--cta-bottom, 16px);
 }
 
 /* Buttons */
@@ -488,7 +488,7 @@
   max-height: 90%;
   display: flex;
   flex-direction: column;
-  padding: 0 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  padding: 0 16px var(--cta-bottom, 16px);
   background: #fff;
   border-radius: 20px 20px 0 0;
   transform: translateY(100%);

@@ -482,7 +482,7 @@
 .rw-sheet-foot {
   display: flex;
   gap: 8px;
-  padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  padding: 12px 16px var(--cta-bottom, 16px);
   border-top: 1px solid var(--rw-line);
 }
 .rw-options {
@@ -657,4 +657,9 @@
 }
 .rw-wrap.is-card-solid .rw-tabs {
   border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+/* Sheets without a footer keep their last CTA 16px above the home indicator. */
+.rw-sheet-body:last-child {
+  padding-bottom: var(--cta-bottom, 16px);
 }

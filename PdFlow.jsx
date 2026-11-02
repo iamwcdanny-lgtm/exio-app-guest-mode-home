@@ -929,21 +929,21 @@ const DetailSections = ({ d, scrollRef, say }) => {
         const r = refs.current[k]?.getBoundingClientRect();
         if (r && r.top <= top) cur = k;
       });
+      // At the very end the last sections can't reach the tabs: keep the tab
+      // whose section is on screen, otherwise light up the last one.
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 2) {
+        const view = el.getBoundingClientRect();
+        setActive((prev) => {
+          const r = refs.current[prev]?.getBoundingClientRect();
+          const onScreen = r && r.top >= view.top && r.top < view.bottom;
+          return onScreen && SECTIONS.findIndex(([k]) => k === prev) >= SECTIONS.findIndex(([k]) => k === cur) ? prev : SECTIONS[SECTIONS.length - 1][0];
+        });
+        return;
+      }
       setActive(cur);
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
-  }, [scrollRef]);
-  // Let the last section scroll up under the tabs, so every tab has a place to land.
-  const [tailPad, setTailPad] = useState(0);
-  useEffect(() => {
-    const el = scrollRef.current;
-    const last = refs.current.documents;
-    if (!el || !last) return;
-    const fit = () => setTailPad(Math.max(0, el.clientHeight - (tabsRef.current?.offsetHeight || 0) - last.offsetHeight + 49));
-    fit();
-    window.addEventListener("resize", fit);
-    return () => window.removeEventListener("resize", fit);
   }, [scrollRef]);
   const go = (k) => {
     const el = scrollRef.current;
@@ -976,7 +976,7 @@ const DetailSections = ({ d, scrollRef, say }) => {
         <h3 className="pd-h3">Performance</h3>
         <Bars data={d.performance} />
       </section>
-      <section className="pd-sec" ref={(n) => (refs.current.documents = n)} style={{ marginBottom: tailPad }}>
+      <section className="pd-sec" ref={(n) => (refs.current.documents = n)}>
         <h3 className="pd-h3">Documents</h3>
         <div className="pd-docs">
           {d.documents.map(([name, kind]) => (

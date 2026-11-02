@@ -1098,3 +1098,58 @@
   line-height: 18px;
   color: rgba(0, 0, 0, 0.6);
 }
+
+/* ---------- Chat as a page sheet (2026-11-02) ----------
+   Driven by --as-p on .mhc-phone, like the sign-up sheet (AuthSheet.css):
+   the app behind shrinks into a rounded card on black (iOS). */
+.oc-ps-scrim {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: calc(0.18 * var(--as-p));
+  transition: opacity var(--as-dur) var(--as-ease);
+}
+.oc-ps {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: calc(var(--as-top) + 10px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
+  background: #fff;
+  transform: translateY(calc((1 - var(--as-p)) * 100%));
+  transition: transform var(--as-dur) var(--as-ease);
+  will-change: transform;
+  touch-action: none;
+}
+.mhc-phone.as-dragging .oc-ps,
+.mhc-phone.as-dragging .oc-ps-scrim {
+  transition: none;
+}
+.as-platform-android .oc-ps {
+  top: 0;
+  border-radius: 0;
+  padding-top: calc(env(safe-area-inset-top, 0px) + var(--dc-top));
+}
+.oc-ps-grip {
+  flex: none;
+  display: flex;
+  justify-content: center;
+  cursor: grab;
+}
+.oc-ps-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.oc-ps .oc-chat {
+  touch-action: pan-y;
+}
+/* Inside the sheet the desk header no longer clears the status bar. */
+.oc-ps .oc-desk {
+  padding-top: 8px;
+}

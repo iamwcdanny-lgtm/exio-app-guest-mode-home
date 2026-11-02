@@ -69,6 +69,10 @@ toggle and reviewer tools (comment pins, metrics, Supabase) were not moved.
   with View transaction → Trade record).
 - **Free text**: "cancel"; "trade" starts a guided new trade with token
   pills; quote words request a new quote; anything else gets a greeting.
+- **Page sheet**: the chat opens as an iOS page sheet, like the sign-up sheet:
+  the app behind shrinks into a rounded card on black and the chat slides up
+  with a drag handle (Android: a full-screen page). Drag the handle or the
+  desk header down, or tap above the sheet, to minimise.
 - **Minimise** (icon top right, or Cancel while connecting): the chat becomes a
   floating bubble above the nav on every tab; it docks to the edge after 5s
   and shows a red dot on any update. 30s idle in the chat asks "Still there?".

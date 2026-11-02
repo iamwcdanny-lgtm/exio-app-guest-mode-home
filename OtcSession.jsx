@@ -1000,7 +1000,7 @@ const ChatScreen = () => {
     setText("");
   };
   return (
-    <div className="oc-screen" onClick={resetIdle}>
+    <div className="oc-ps-body" onClick={resetIdle}>
       <Desk
         status={
           <>
@@ -1039,7 +1039,7 @@ const ChatScreen = () => {
 const Connecting = () => {
   const { minimize } = useOtc();
   return (
-    <div className="oc-screen">
+    <div className="oc-ps-body">
       <Desk status={`Connecting... · Conversation ID ${CONV_ID}`} />
       <div className="oc-center">
         <span className="oc-spinner" />
@@ -1312,12 +1312,97 @@ const Bubble = () => {
   );
 };
 
+/* ---------- Chat as an iOS page sheet (2026-11-02) ----------
+   Same presentation as the sign-up sheet: the app behind shrinks into a
+   rounded card on black (.mhc-phone.as-open, --as-p 0→1) and the chat slides
+   up 10px below it. Android: a full-screen page sliding up. Dragging the
+   handle / header down more than 120px minimises the chat to the bubble. */
+const PageSheet = ({ open, children }) => {
+  const { minimize } = useOtc();
+  const [shown, setShown] = React.useState(open);
+  const [drag, setDrag] = React.useState(0);
+  const ref = useRef(null);
+  const start = useRef(null);
+  const phone = () => ref.current?.closest(".mhc-phone");
+  const setP = (p) => phone()?.style.setProperty("--as-p", String(p));
+  useEffect(() => {
+    if (open) setShown(true);
+  }, [open]);
+  useEffect(() => {
+    const ph = phone();
+    if (!ph) return undefined;
+    if (open) {
+      ph.classList.add("as-open");
+      setP(0);
+      const r = requestAnimationFrame(() => requestAnimationFrame(() => setP(1)));
+      return () => cancelAnimationFrame(r);
+    }
+    if (!shown) return undefined;
+    setP(0);
+    const t = setTimeout(() => {
+      ph.classList.remove("as-open");
+      ph.style.removeProperty("--as-p");
+      setShown(false);
+    }, 450);
+    return () => clearTimeout(t);
+  }, [open, shown]); // eslint-disable-line react-hooks/exhaustive-deps
+  const onDown = (e) => {
+    // Drag from the handle or the desk header (top 80px), not from buttons.
+    if (e.target.closest("button, input")) return;
+    const top = ref.current?.getBoundingClientRect().top ?? 0;
+    if (e.clientY - top > 80) return;
+    start.current = e.clientY;
+    phone()?.classList.add("as-dragging");
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  };
+  const onMove = (e) => {
+    if (start.current == null) return;
+    const dy = Math.max(0, e.clientY - start.current);
+    setDrag(dy);
+    const h = ref.current?.offsetHeight || 1;
+    setP(1 - Math.min(dy / h, 1));
+  };
+  const onUp = () => {
+    if (start.current == null) return;
+    start.current = null;
+    phone()?.classList.remove("as-dragging");
+    const far = drag > 120;
+    setDrag(0);
+    if (far) minimize();
+    else setP(1);
+  };
+  if (!shown) return null;
+  return (
+    <>
+      <div className="oc-ps-scrim" aria-hidden="true" onClick={minimize} />
+      <div
+        className="oc-ps"
+        ref={ref}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Chat with the EXIO Trading Desk"
+        onPointerDown={onDown}
+        onPointerMove={onMove}
+        onPointerUp={onUp}
+        onPointerCancel={onUp}
+      >
+        <div className="oc-ps-grip">
+          <span className="oc-grab" aria-hidden="true" />
+        </div>
+        {children}
+      </div>
+    </>
+  );
+};
+
 function OtcOverlay() {
   const { s } = useOtc();
   const chatOpen = s.active && !s.minimized;
+  const last = useRef(null);
+  if (chatOpen) last.current = s.view;
   return (
     <PhoneLayer className="oc-layer">
-      {chatOpen && (s.view === "req" ? <Connecting /> : <ChatScreen />)}
+      <PageSheet open={chatOpen}>{(chatOpen ? s.view : last.current) === "req" ? <Connecting /> : <ChatScreen />}</PageSheet>
       <Record />
       <Transfer />
       <Bubble />

@@ -185,12 +185,20 @@
 .rw-chips {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   padding: 0 16px 12px;
+}
+/* Chips scroll on their own; Clear all stays on the right. */
+.rw-chips-scroll {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
 }
-.rw-chips::-webkit-scrollbar {
+.rw-chips-scroll::-webkit-scrollbar {
   display: none;
 }
 .rw-fchip {

@@ -312,12 +312,14 @@ export default function RwaPage({ labelStyle = "float", cardStyle = "border", pd
 
           {chips.length > 0 && (
             <div className="rw-chips">
+              <div className="rw-chips-scroll">
               {chips.map((c) => (
                 <button key={`${c.k}-${c.v}`} type="button" className="rw-fchip" aria-label={`Remove filter ${c.label}`} onClick={() => removeChip(c)}>
                   {c.label}
                   <CloseIcon size={12} />
                 </button>
               ))}
+              </div>
               <button type="button" className="rw-clear-all" onClick={() => setFilters(EMPTY_FILTERS)}>
                 Clear all
               </button>

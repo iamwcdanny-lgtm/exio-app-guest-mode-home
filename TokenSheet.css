@@ -147,3 +147,21 @@ button.otc-chip {
   font-family: inherit;
   color: inherit;
 }
+.tks-row:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.tks-text b {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tks-tag {
+  padding: 0 4px;
+  border-radius: 4px;
+  background: #fff3e0;
+  font-size: 9px;
+  line-height: 14px;
+  font-weight: 700;
+  color: #f7a042;
+}

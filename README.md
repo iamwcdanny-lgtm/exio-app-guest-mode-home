@@ -47,6 +47,35 @@ Pick the variant from the demo settings drawer (the small tab on the right edge,
 - The bottom nav icons are the approved Lottie animations ([Figma](https://www.figma.com/design/66kn3r5FtdeMTKTvS0hYTg/Xirry-Workspace?node-id=2953-7272), files in `nav-icons/`, played with `lottie-web`'s SVG player in `NavIcon.jsx`). Frame 0 is the gray Regular state; selecting a tab jumps to frame 1 and plays once to the black / #00D690 Fill state (frame 24, Trade 42) and holds it; the tab being left jumps straight back to frame 0. First load and reduced motion show the end state without playing. The static SVGs (`nav-*-on/off.svg`) are the fallback.
 - **Bottom nav style** (panel, or `?nav=glass`): *Classic* is the current bar; *Liquid glass* (iOS 26 style, `GlassNav.jsx`) is a floating translucent capsule that pages scroll under. The selected tab sits on a soft pill; changing tab turns it into a clear glass bubble that springs across and magnifies what's under it, and you can press and drag along the bar to pick a tab.
 
+### OTC chat trading (2026-11-02)
+
+The app side of the standalone OTC chat trading demo
+(`iamwcdanny-lgtm/job-chatTradingDemo`) now lives here, in Trade › OTC
+(`OtcSession.jsx`, `OtcPanel.jsx`). Its web mode, guest landing page, EN/中
+toggle and reviewer tools (comment pins, metrics, Supabase) were not moved.
+
+- **Setup**: the new "You pay" / "You receive" fields; the currency sheet
+  lists USD, HKD, BTC, ETH, and USDT / USDC disabled with a PI tag. The
+  transfer icon by the balance (and "Transfer from another account →" when
+  the amount exceeds it) opens the **Transfer** page: asset, From / To
+  account (Custody, Trading, OTC), amount with Max, success banner.
+- **Get quote** → Terms and Information sheet (first time only, scroll to the
+  end) → "Connecting you to our trader…" → chat with the EXIO Trading Desk.
+- **Quote card**: rate, pay / receive legs, 20s countdown; **Accept** opens a
+  12s locked confirm sheet; **Reject** posts a rejected stamp. Expired and
+  rejected quotes are recorded under Expired / Rejected.
+- **After Confirm**: confirmation summary, post-trade Terms chip, the order
+  appears in Processing after 5s and is filled 30–60s later (execution card
+  with View transaction → Trade record).
+- **Free text**: "cancel"; "trade" starts a guided new trade with token
+  pills; quote words request a new quote; anything else gets a greeting.
+- **Minimise** (icon top right, or Cancel while connecting): the chat becomes a
+  floating bubble above the nav on every tab; it docks to the edge after 5s
+  and shows a red dot on any update. 30s idle in the chat asks "Still there?".
+- **Orders**: Processing / Filled / Expired·Rejected. Tap Processing to open
+  the chat, Filled for the trade record, Expired / Rejected to re-quote. The
+  ⓘ button opens About OTC Trade.
+
 ## Deployment
 
 `.github/workflows/pages.yml` builds and deploys to GitHub Pages on every push to `main` (or manually from the Actions tab). Vite's `base` is `./`, so the build works from the Pages subpath.

@@ -707,3 +707,62 @@
 .otc-fields .otc-amount.is-pay .otc-amount-head .otc-avail {
   line-height: 18px;
 }
+
+/* Chat trading (2026-11-02): transfer shortcut, order rows open the chat /
+   record / re-quote, About sheet. */
+.otc-xfer {
+  display: flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  opacity: 0.5;
+  cursor: pointer;
+}
+.otc-note-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 700;
+  color: var(--otc-info);
+  cursor: pointer;
+}
+.otc-tools {
+  display: flex;
+  gap: 4px;
+}
+button.otc-order {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--otc-line);
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.otc-qid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.otc-state {
+  font-style: normal;
+  font-weight: 600;
+}
+.otc-state.is-expired {
+  color: rgba(0, 0, 0, 0.3);
+}
+.otc-state.is-rejected {
+  color: #e23d7a;
+}
+.otc-about p {
+  margin: 0;
+  white-space: pre-line;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+}
+.otc-about section + section {
+  margin-top: 20px;
+}

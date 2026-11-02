@@ -1,5 +1,7 @@
 import React, { useRef, useState } from "react";
 import TokenSheet from "./TokenSheet";
+import { useOtc, CCY, TOKENS, IMG, fmtDp } from "./OtcSession";
+import PhoneLayer from "./PhoneLayer";
 import "./OtcPanel.css";
 
 // OTC section of the Trade page (Figma: OTC Chat Trading, 9231:100184).
@@ -8,15 +10,6 @@ import "./OtcPanel.css";
 // on the seam flips the pair. Both follow the
 // prototype's input style switch: "ifta" puts the label inside at the top,
 // "float" on the border, "trad" above the box.
-const IMG = `${import.meta.env.BASE_URL}images/otc`;
-
-const CCY = {
-  USD: { icon: "flag-usd.svg", dp: 2, usd: 1 },
-  BTC: { icon: "coin-btc.svg", dp: 6, usd: 127250 },
-  ETH: { icon: "coin-eth.svg", dp: 4, usd: 3420 },
-};
-const START_BAL = { USD: 20029.62, BTC: 0.532161, ETH: 3.1234 };
-
 const fmt = (n, dp) => n.toLocaleString("en-US", { minimumFractionDigits: dp, maximumFractionDigits: dp });
 const clean = (v, dp) => {
   let s = v.replace(/,/g, "").replace(/[^\d.]/g, "");
@@ -30,16 +23,6 @@ const group = (v) => {
   const [i, d] = v.split(".");
   return Number(i || 0).toLocaleString("en-US") + (d !== undefined ? `.${d}` : "");
 };
-const stamp = () => {
-  const d = new Date();
-  const p = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
-};
-
-const START_ORDERS = [
-  { id: 396878, payCcy: "USD", pay: 50000, getCcy: "ETH", get: 14.6199, time: "2026-12-10 11:30:02" },
-];
-
 // Currency chip inside an amount field; opens the currency sheet
 // (bottom sheet instead of the native dropdown, 2026-11-02).
 const CcyChip = ({ label, value, onOpen }) => (
@@ -49,7 +32,6 @@ const CcyChip = ({ label, value, onOpen }) => (
     <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
   </button>
 );
-const CCY_NAME = { USD: "US Dollar", BTC: "Bitcoin", ETH: "Ethereum" };
 
 const OtcPanel = ({ labelStyle = "float", say }) => {
   const [from, setFrom] = useState("USD");
@@ -57,10 +39,13 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
   const [mode, setMode] = useState("pay"); // which side the amount is entered in
   const [amount, setAmount] = useState("");
   const [focused, setFocused] = useState(null); // "pay" | "receive" | null
-  const [bal] = useState(START_BAL);
-  const [orders, setOrders] = useState(START_ORDERS);
-  const [filled] = useState([]);
-  const [tab, setTab] = useState("processing");
+  // Balances, orders and the chat session live in OtcSession (one session
+  // for the whole app: it survives leaving this tab as a floating bubble).
+  const otc = useOtc();
+  const bal = otc.s.bal.otc;
+  const orders = otc.s.orders;
+  const [tab, setTab] = useState("ongoing");
+  const [about, setAbout] = useState(false);
   const inputRef = useRef(null);
   const [picking, setPicking] = useState(null); // "from" | "to" | null
 
@@ -81,19 +66,14 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
   const pickFrom = (c) => (c === to ? setPair(to, from) : setPair(c, to));
   const pickTo = (c) => (c === from ? setPair(to, from) : setPair(from, c));
 
+  // Get quote → Terms (first time) → chat with the trading desk.
   const getQuote = () => {
     if (!ready) return;
-    const pay = mode === "pay" ? value : value * rate;
-    const get = mode === "pay" ? value / rate : value;
-    setOrders((o) => [
-      { id: 396879 + o.length, payCcy: from, pay, getCcy: to, get, time: stamp() },
-      ...o,
-    ]);
-    setTab("processing");
-    setAmount("");
     inputRef.current?.blur();
-    say?.("Quote requested — a dealer will reply in chat (prototype)");
+    otc.requestQuote({ buy: to, pay: from, amount: cost });
+    setAmount("");
   };
+  const openTransfer = () => otc.set({ transfer: { asset: from, from: null, to: "otc" } });
 
   // Like a swap form: a tall "You pay" field takes the amount, a short
   // "You receive" field only picks the currency. OTC has no receive amount
@@ -119,6 +99,9 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
       <b>
         {fmt(bal[from], CCY[from].dp)} {from}
       </b>
+      <button type="button" className="otc-xfer" aria-label="Transfer to the OTC account" onMouseDown={(e) => e.preventDefault()} onClick={openTransfer}>
+        <img src={`${IMG}/transfer.svg`} width="12" height="12" alt="" />
+      </button>
       <button type="button" className="otc-all" onMouseDown={(e) => e.preventDefault()} onClick={fillAll}>
         Max
       </button>
@@ -182,7 +165,12 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
     </div>
   );
 
-  const list = tab === "processing" ? orders : filled;
+  const TABS = [
+    ["ongoing", `Processing (${orders.filter((o) => o.state === "ongoing").length})`],
+    ["filled", "Filled"],
+    ["failed", "Expired / Rejected"],
+  ];
+  const list = orders.filter((o) => (tab === "failed" ? o.state === "expired" || o.state === "rejected" : o.state === tab));
 
   return (
     <div className={`otc otc-style-${labelStyle}`}>
@@ -192,11 +180,14 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
         value={picking === "to" ? to : from}
         onPick={(c) => (picking === "to" ? pickTo(c) : pickFrom(c))}
         onClose={() => setPicking(null)}
-        options={Object.keys(CCY).map((c) => ({
+        options={TOKENS.map((c) => ({
           value: c,
-          name: CCY_NAME[c],
+          name: CCY[c].name,
           icon: <img src={`${IMG}/${CCY[c].icon}`} alt="" />,
-          balance: fmt(bal[c], CCY[c].dp), // unit already shown on the left
+          balance: fmt(bal[c] || 0, CCY[c].dp), // unit already shown on the left
+          // USDT / USDC pairs are for Professional Investors only.
+          disabled: !!CCY[c].pi,
+          tag: CCY[c].pi ? "PI" : undefined,
         }))}
       />
       <div className="otc-controls">
@@ -208,7 +199,10 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
           {receiveField}
           {error && (
             <p id="otc-amount-note" className="otc-note" aria-live="polite">
-              {error} You can pay up to {fmt(bal[from], CCY[from].dp)} {from}.
+              {error} You can pay up to {fmt(bal[from], CCY[from].dp)} {from}.{" "}
+              <button type="button" className="otc-note-link" onClick={openTransfer}>
+                Transfer from another account →
+              </button>
             </p>
           )}
         </div>
@@ -221,10 +215,7 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
       <div className="otc-orders">
         <div className="otc-tabs">
           <div className="otc-tablist" role="tablist" aria-label="OTC orders">
-            {[
-              ["processing", `Processing (${orders.length})`],
-              ["filled", "Filled"],
-            ].map(([k, l]) => (
+            {TABS.map(([k, l]) => (
               <button
                 key={k}
                 type="button"
@@ -237,45 +228,84 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
               </button>
             ))}
           </div>
-          <button type="button" className="otc-history" aria-label="Order history" onClick={() => say?.("Order history isn’t in this prototype")}>
-            <img src={`${import.meta.env.BASE_URL}images/trade/history.svg`} width="14" height="14" alt="" />
-          </button>
+          <span className="otc-tools">
+            <button type="button" className="otc-history" aria-label="About OTC Trade" onClick={() => setAbout(true)}>
+              <svg width="16" height="16" viewBox="0 0 22 22" aria-hidden="true">
+                <circle cx="11" cy="11" r="10" fill="none" stroke="rgba(0,0,0,0.6)" strokeWidth="1.8" />
+                <path d="M11 10v6" stroke="rgba(0,0,0,0.6)" strokeWidth="2" strokeLinecap="round" />
+                <circle cx="11" cy="6.6" r="1.3" fill="rgba(0,0,0,0.6)" />
+              </svg>
+            </button>
+            <button type="button" className="otc-history" aria-label="Order history" onClick={() => say?.("Order history isn’t in this prototype")}>
+              <img src={`${import.meta.env.BASE_URL}images/trade/history.svg`} width="14" height="14" alt="" />
+            </button>
+          </span>
         </div>
 
         {list.length === 0 ? (
-          <p className="otc-empty">No filled quotes yet</p>
+          <p className="otc-empty">No orders</p>
         ) : (
           list.map((o) => {
-            const unitRate = o.pay / o.get;
+            const get = o.payAmt / o.rate;
+            const dpGet = CCY[o.buy]?.dp ?? 4;
+            const st = o.state === "ongoing" ? "Processing" : o.state === "filled" ? "Filled" : o.state === "expired" ? "Expired" : "Rejected";
             return (
-              <div key={o.id} className="otc-order">
-                <span className="otc-qid">Quote ID #{o.id}</span>
+              <button key={o.id} type="button" className="otc-order" onClick={() => otc.openOrder(o)}>
+                <span className="otc-qid">
+                  {o.id}
+                  {tab === "failed" && <em className={`otc-state is-${o.state}`}>{st}</em>}
+                </span>
                 <div className="otc-order-pair">
                   <span className="otc-leg">
-                    <img src={`${IMG}/${CCY[o.payCcy].icon}`} width="16" height="16" alt="" />
-                    <b className="is-out">-{fmt(o.pay, CCY[o.payCcy].dp)}</b>
-                    <i>{o.payCcy}</i>
+                    <img src={`${IMG}/${CCY[o.pay].icon}`} width="16" height="16" alt="" />
+                    <b className="is-out">-{fmt(o.payAmt, CCY[o.pay].dp)}</b>
+                    <i>{o.pay}</i>
                   </span>
                   <img src={`${IMG}/arrow-right.svg`} width="16" height="16" alt="" />
                   <span className="otc-leg is-end">
-                    <img src={`${IMG}/${CCY[o.getCcy].icon}`} width="16" height="16" alt="" />
-                    <b className="is-in">+{fmt(o.get, CCY[o.getCcy].dp)}</b>
-                    <i>{o.getCcy}</i>
+                    <img src={`${IMG}/${CCY[o.buy].icon}`} width="16" height="16" alt="" />
+                    <b className="is-in">+{fmtDp(get, dpGet)}</b>
+                    <i>{o.buy}</i>
                   </span>
                 </div>
                 <div className="otc-order-meta">
                   <span>
-                    <b>1</b> <i>{o.getCcy}</i> <b>=</b> <b>{fmt(unitRate, CCY[o.payCcy].dp)}</b> <i>{o.payCcy}</i>
+                    <b>1</b> <i>{o.buy}</i> <b>=</b> <b>{fmt(o.rate, CCY[o.pay].dp)}</b> <i>{o.pay}</i>
                   </span>
                   <span className="otc-time">{o.time}</span>
                 </div>
-              </div>
+              </button>
             );
           })
         )}
       </div>
+      <AboutSheet open={about} onClose={() => setAbout(false)} />
     </div>
   );
 };
+
+const ABOUT = [
+  ["What is OTC Trading?", "OTC (Over-the-Counter) trading allows you to buy or sell large amounts of cryptocurrency directly with a dedicated trader, without placing orders on the open market. This ensures better pricing and minimal market impact for large trades."],
+  ["How it works", "1. Select your trading pair and enter the amount.\n2. Request a quote from our trader.\n3. Review and accept or reject the quoted price.\n4. Confirm the trade to complete execution."],
+  ["Minimum trade size", "The minimum trade size for OTC is USD 10,000 or equivalent. For institutional enquiries, please contact your account manager."],
+  ["Settlement", "Trades are settled internally between your custody and OTC wallet. Funds are typically available within minutes of order execution."],
+];
+const AboutSheet = ({ open, onClose }) => (
+  <PhoneLayer className="oc-layer">
+    <div className={`oc-scrim${open ? " is-open" : ""}`} onClick={onClose} aria-hidden="true" />
+    <div className={`oc-sheet${open ? " is-open" : ""}`} role="dialog" aria-modal="true" aria-label="About OTC Trade" aria-hidden={!open}>
+      <span className="oc-grab" aria-hidden="true" />
+      <h2 className="oc-sheet-title">About OTC Trade</h2>
+      <div className="oc-terms otc-about">
+        {ABOUT.map(([h, p]) => (
+          <section key={h}>
+            <h3>{h}</h3>
+            <p>{p}</p>
+          </section>
+        ))}
+      </div>
+    </div>
+  </PhoneLayer>
+);
 
 export default OtcPanel;

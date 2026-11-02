@@ -4,7 +4,8 @@ import "./TokenSheet.css";
 
 // Bottom sheet for picking a currency / token in an amount field (PD order
 // form and OTC). Replaces the native dropdown, 2026-11-02.
-//   options: [{ value, icon (node), name, balance (string, optional) }]
+//   options: [{ value, icon (node), name, balance (string, optional),
+//              disabled (bool), tag (e.g. "PI") }]
 const Check = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
     <circle cx="9" cy="9" r="7.5" fill="#00D690" />
@@ -42,6 +43,7 @@ export default function TokenSheet({ open, title = "Select currency", options, v
               aria-checked={o.value === value}
               className={`tks-row${o.value === value ? " is-on" : ""}`}
               tabIndex={open ? 0 : -1}
+              disabled={o.disabled}
               onClick={() => {
                 onPick(o.value);
                 onClose();
@@ -49,7 +51,10 @@ export default function TokenSheet({ open, title = "Select currency", options, v
             >
               <span className="tks-icon">{o.icon}</span>
               <span className="tks-text">
-                <b>{o.value}</b>
+                <b>
+                  {o.value}
+                  {o.tag && <span className="tks-tag">{o.tag}</span>}
+                </b>
                 {o.name && <small>{o.name}</small>}
               </span>
               {o.balance !== undefined && (

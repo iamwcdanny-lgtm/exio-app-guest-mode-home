@@ -5,6 +5,7 @@ import NavIcon from "./NavIcon.jsx";
 import GlassNav from "./GlassNav.jsx";
 import AuthSheet, { PasskeyPromo, DevicePasskey } from "./AuthSheet";
 import TradePage from "./TradePage";
+import { OtcProvider } from "./OtcSession";
 import RwaPage from "./RwaPage";
 import RwaExplore from "./RwaExplore";
 import { PD_SETTINGS, PD_DEFAULT } from "./PdFlow";
@@ -950,6 +951,7 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
   };
 
   return (
+    <OtcProvider>
     <div className="mhc-stage">
       <ProtoControls
         home={home}
@@ -1162,6 +1164,7 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
         <DeviceChrome platform={platform} />
       </div>
     </div>
+    </OtcProvider>
   );
 };
 

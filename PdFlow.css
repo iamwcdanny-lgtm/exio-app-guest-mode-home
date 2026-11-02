@@ -69,8 +69,8 @@
   font-weight: 600;
   color: #019ff8 !important;
 }
+/* "Show all" uses the same blue text-button style as Contact us, Clear all and Max. */
 .pd-link.is-green {
-  color: #00bf80 !important;
   margin: 4px 0 20px;
 }
 .pd-scroll {

@@ -996,3 +996,185 @@
 .pd-layer .pd-otc .otc-all:not(:disabled) {
   color: #019ff8 !important;
 }
+
+/* ---------- Token detail sections (Figma 8517:601695) ---------- */
+.pd-k-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.pd-k-info svg {
+  width: 14px;
+  height: 14px;
+}
+.pd-divider {
+  margin: 24px 0 0;
+  border: 0;
+  border-top: 1px solid #f2f2f2;
+}
+.pd-dtabs {
+  position: sticky;
+  top: -16px; /* the scroll area has 16px top padding; stick flush to its edge */
+  z-index: 3;
+  display: flex;
+  gap: 16px;
+  margin: 0 -16px;
+  padding: 12px 16px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: #fff;
+  border-bottom: 1px solid #f2f2f2;
+}
+.pd-dtabs::-webkit-scrollbar {
+  display: none;
+}
+.pd-dtabs button {
+  position: relative;
+  flex: none;
+  padding: 6px 0 12px;
+  border: 0;
+  background: none;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: rgba(0, 0, 0, 0.3) !important;
+}
+.pd-dtabs button.is-on {
+  color: rgba(0, 0, 0, 0.9) !important;
+}
+.pd-dtabs button.is-on::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.9);
+}
+.pd-sec {
+  padding-top: 8px;
+  scroll-margin-top: 56px;
+}
+.pd-sec + .pd-sec {
+  margin-top: 8px;
+  border-top: 1px solid #f2f2f2;
+}
+.pd-table {
+  margin: 0;
+  border: 1px solid #e6e6e6;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.pd-table div {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+}
+.pd-table div + div {
+  border-top: 1px solid #e6e6e6;
+}
+.pd-table dt {
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.03);
+  border-right: 1px solid #e6e6e6;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+}
+.pd-table dd {
+  margin: 0;
+  padding: 16px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.9);
+  overflow-wrap: anywhere;
+}
+.pd-table dd.is-risk {
+  color: #e23d7a;
+}
+.pd-table dd.is-link {
+  color: #019ff8;
+}
+.pd-bars {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  height: 220px;
+  margin-bottom: 8px;
+}
+.pd-bars-y {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-bottom: 22px;
+  font-size: 10px;
+  line-height: 0;
+  color: rgba(0, 0, 0, 0.4);
+}
+.pd-bars-plot {
+  position: relative;
+  display: flex;
+  justify-content: space-around;
+  align-items: stretch;
+  padding-bottom: 22px;
+}
+.pd-bars-grid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.05);
+}
+.pd-bars-plot > .pd-bars-grid {
+  transform: translateY(0);
+}
+.pd-bars-col {
+  position: relative;
+  z-index: 1;
+  width: 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+}
+.pd-bar {
+  width: 100%;
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(180deg, #00dd95, #36cdca);
+}
+.pd-bars-x {
+  position: absolute;
+  bottom: -22px;
+  font-size: 10px;
+  line-height: 22px;
+  color: rgba(0, 0, 0, 0.4);
+}
+.pd-docs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.pd-doc-cell {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 72px;
+  padding: 0 16px;
+  border: 1px solid #e6e6e6;
+  border-radius: 16px;
+  background: #fff;
+  text-align: left;
+}
+.pd-doc-cell span {
+  flex: 1;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+.pd-doc-cell > svg:last-child {
+  flex: none;
+  color: rgba(0, 0, 0, 0.6);
+}

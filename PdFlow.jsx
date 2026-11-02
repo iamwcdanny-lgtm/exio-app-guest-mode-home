@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { LOGO, RISK, Star, CloseIcon } from "./RwaPage";
+import { LOGO, RISK, Star, CloseIcon, Info } from "./RwaPage";
+import { DETAIL } from "./RwaDetailData";
 import "./PdFlow.css";
 
 // RWA primary distribution (PD): product detail, then Subscribe / Redeem.
@@ -824,6 +825,157 @@ const RpqStub = ({ onDone }) => (
 );
 
 /* ---------- Product detail ---------- */
+/* ---------- Token detail sections (Figma 8517:601695; XAUm only for now) ---------- */
+const SECTIONS = [
+  ["elements", "Product Elements"],
+  ["dealing", "Dealing Rules"],
+  ["performance", "Performance"],
+  ["documents", "Documents"],
+];
+const Table = ({ rows }) => (
+  <dl className="pd-table">
+    {rows.map(([k, v, kind]) => (
+      <div key={k}>
+        <dt>{k}</dt>
+        <dd className={kind ? `is-${kind}` : ""}>{v}</dd>
+      </div>
+    ))}
+  </dl>
+);
+const Bars = ({ data }) => {
+  const max = 3;
+  const ticks = [0, 0.5, 1, 1.5, 2, 2.5, 3];
+  return (
+    <div className="pd-bars" role="img" aria-label={`Performance by quarter: ${data.map(([q, v]) => `${q} ${v}`).join(", ")}`}>
+      <div className="pd-bars-y" aria-hidden="true">
+        {ticks
+          .slice()
+          .reverse()
+          .map((t) => (
+            <span key={t}>{t.toFixed(1)}</span>
+          ))}
+      </div>
+      <div className="pd-bars-plot">
+        {ticks.map((t) => (
+          <i key={t} className="pd-bars-grid" style={{ bottom: `calc(22px + (100% - 22px) * ${t / max})` }} />
+        ))}
+        {data.map(([q, v]) => (
+          <div key={q} className="pd-bars-col">
+            <span className="pd-bar" style={{ height: `${(v / max) * 100}%` }} title={`${q}: ${v}`} />
+            <span className="pd-bars-x">{q}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+const DocIcon = ({ kind }) =>
+  kind === "pdf" ? (
+    <svg width="24" height="30" viewBox="0 0 24 30" aria-hidden="true">
+      <path d="M2 1h14l7 7v20a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1Z" fill="#fff" stroke="#f24b4b" />
+      <path d="M16 1v6a1 1 0 0 0 1 1h6" fill="none" stroke="#f24b4b" />
+      <path d="M7 14c2-5 3-6 3.5-4.5S9 15 6 18s5-2 8-1-4 1.5-6-3" fill="none" stroke="#f24b4b" strokeWidth=".9" />
+      <text x="12" y="25.5" textAnchor="middle" fontSize="5.5" fontWeight="700" fill="#f24b4b" fontFamily="inherit">PDF</text>
+    </svg>
+  ) : (
+    <svg width="24" height="30" viewBox="0 0 24 30" aria-hidden="true">
+      <path d="M2 1h14l7 7v20a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1Z" fill="#fff" stroke="rgba(0,0,0,.5)" />
+      <rect x="6" y="9" width="12" height="1" rx=".5" fill="rgba(0,0,0,.6)" />
+      <rect x="6" y="13" width="9" height="1" rx=".5" fill="rgba(0,0,0,.6)" />
+      <rect x="6" y="17" width="6" height="1" rx=".5" fill="rgba(0,0,0,.6)" />
+    </svg>
+  );
+const Download = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="M8 2.5v8M4.5 7.5 8 11l3.5-3.5M2.5 13.5h11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+// Tabs jump to each section and follow the scroll position.
+const DetailSections = ({ d, scrollRef, say }) => {
+  const [active, setActive] = useState("elements");
+  const refs = useRef({});
+  const tabsRef = useRef(null);
+  const lockUntil = useRef(0); // a tab tap wins over the scroll spy while the page moves
+  useEffect(() => {
+    const strip = tabsRef.current;
+    const btn = strip?.querySelector(".is-on");
+    if (strip && btn) strip.scrollTo({ left: Math.max(0, btn.offsetLeft - 16), behavior: "smooth" });
+  }, [active]);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return undefined;
+    const onScroll = () => {
+      if (Date.now() < lockUntil.current) return;
+      const top = el.getBoundingClientRect().top + (tabsRef.current?.offsetHeight || 0) + 24;
+      let cur = "elements";
+      SECTIONS.forEach(([k]) => {
+        const r = refs.current[k]?.getBoundingClientRect();
+        if (r && r.top <= top) cur = k;
+      });
+      setActive(cur);
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [scrollRef]);
+  // Let the last section scroll up under the tabs, so every tab has a place to land.
+  const [tailPad, setTailPad] = useState(0);
+  useEffect(() => {
+    const el = scrollRef.current;
+    const last = refs.current.documents;
+    if (!el || !last) return;
+    const fit = () => setTailPad(Math.max(0, el.clientHeight - (tabsRef.current?.offsetHeight || 0) - last.offsetHeight + 49));
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, [scrollRef]);
+  const go = (k) => {
+    const el = scrollRef.current;
+    const target = refs.current[k];
+    if (!el || !target) return;
+    const y = target.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop - (tabsRef.current?.offsetHeight || 0) + 8;
+    lockUntil.current = Date.now() + 1200;
+    el.scrollTo({ top: y, behavior: "smooth" });
+    setActive(k);
+  };
+  return (
+    <>
+      <hr className="pd-divider" />
+      <div className="pd-dtabs" role="tablist" aria-label="Product details" ref={tabsRef}>
+        {SECTIONS.map(([k, l]) => (
+          <button key={k} type="button" role="tab" aria-selected={active === k} className={active === k ? "is-on" : ""} onClick={() => go(k)}>
+            {l}
+          </button>
+        ))}
+      </div>
+      <section className="pd-sec" ref={(n) => (refs.current.elements = n)}>
+        <h3 className="pd-h3">Product Elements</h3>
+        <Table rows={d.elements} />
+      </section>
+      <section className="pd-sec" ref={(n) => (refs.current.dealing = n)}>
+        <h3 className="pd-h3">Dealing Rules</h3>
+        <Table rows={d.dealing} />
+      </section>
+      <section className="pd-sec" ref={(n) => (refs.current.performance = n)}>
+        <h3 className="pd-h3">Performance</h3>
+        <Bars data={d.performance} />
+      </section>
+      <section className="pd-sec" ref={(n) => (refs.current.documents = n)} style={{ marginBottom: tailPad }}>
+        <h3 className="pd-h3">Documents</h3>
+        <div className="pd-docs">
+          {d.documents.map(([name, kind]) => (
+            <button key={name} type="button" className="pd-doc-cell" onClick={() => say("Document download isn’t in this prototype")}>
+              <DocIcon kind={kind} />
+              <span>{name}</span>
+              <Download />
+            </button>
+          ))}
+        </div>
+      </section>
+    </>
+  );
+};
+
 const navOf = (p) => (p.symbol.startsWith("a") && p.symbol !== "aAAPL" ? 100 + (p.symbol.length * 37) % 400 : 1 + ((p.symbol.charCodeAt(0) * 7) % 90) / 10);
 
 export default function PdProduct({ p, u, setU, fav, onFav, onClose, say, labelStyle = "float" }) {
@@ -835,6 +987,8 @@ export default function PdProduct({ p, u, setU, fav, onFav, onClose, say, labelS
   const entryLocked = gSub?.shared;
   const a = attr(p);
   const tags = [RISK[p.risk], "Tokenised", ...p.meta.replace("Tokenised · ", "").split(" · "), ...p.currency, ...(p.extra ? [p.extra] : [])];
+  const d = DETAIL[p.symbol];
+  const scrollRef = useRef(null);
 
   const onBannerAction = (b) => {
     if (b.id === "dka" || b.id === "dkaWait") setSheet("dka");
@@ -855,7 +1009,7 @@ export default function PdProduct({ p, u, setU, fav, onFav, onClose, say, labelS
           }
         />
         <Banner g={gSub} onAction={onBannerAction} flush />
-        <div className="pd-scroll">
+        <div className="pd-scroll" ref={scrollRef}>
           <div className="pd-head">
             <img className="rw-logo" src={`${LOGO}/${p.symbol.toLowerCase()}.png`} width="48" height="48" alt="" />
             <div>
@@ -877,23 +1031,30 @@ export default function PdProduct({ p, u, setU, fav, onFav, onClose, say, labelS
             ))}
           </div>
           <div className="pd-nav">
-            <span className="pd-k">Net Asset Value</span>
+            <span className="pd-k pd-k-info">
+              Net Asset Value <Info />
+            </span>
             <b className="pd-nav-v">
-              {fmt(navOf(p), 4)} <small>{p.currency[0].replace(/USD[CT]/, "USD")}</small>
+              {d ? d.nav.value : fmt(navOf(p), 4)} <small>{d ? d.nav.unit : p.currency[0].replace(/USD[CT]/, "USD")}</small>
             </b>
-            <span className="pd-k is-sm">Last updated: 28-10-2026 · placeholder</span>
-            <span className="pd-k pd-nav-gap">Indicative Annualized Yield</span>
-            <b className="pd-nav-v">{p.yld}%</b>
+            <span className="pd-k is-sm">{d ? d.nav.updated : "Last updated: 28-10-2026 · placeholder"}</span>
+            <span className="pd-k pd-k-info pd-nav-gap">
+              Indicative Annualized Yield <Info />
+            </span>
+            <b className="pd-nav-v">{d ? d.yield : `${p.yld}%`}</b>
           </div>
           <h3 className="pd-h3">Product Overview</h3>
           <p className={`pd-overview${more ? " is-open" : ""}`}>
-            {p.name} is issued by {p.issuer} and distributed on EXIO as a tokenised product. Each token represents a unit of the underlying product and is held in
-            the PD wallet. Subscriptions and redemptions follow the issuer’s dealing rules: {p.meta.replace("Tokenised · ", "").toLowerCase()}. Product documents,
-            fees and dealing terms are available from the issuer. This summary is placeholder text for the prototype.
+            {d
+              ? d.overview
+              : `${p.name} is issued by ${p.issuer} and distributed on EXIO as a tokenised product. Each token represents a unit of the underlying product and is held in the PD wallet. Subscriptions and redemptions follow the issuer’s dealing rules: ${p.meta.replace("Tokenised · ", "").toLowerCase()}. Product documents, fees and dealing terms are available from the issuer. This summary is placeholder text for the prototype.`}
           </p>
           <button type="button" className="pd-link is-green" onClick={() => setMore(!more)}>
             {more ? "Show less" : "Show all"}
           </button>
+          {d ? (
+            <DetailSections d={d} scrollRef={scrollRef} say={say} />
+          ) : (
           <dl className="pd-rows is-facts">
             <div>
               <dt>Eligibility</dt>
@@ -908,6 +1069,7 @@ export default function PdProduct({ p, u, setU, fav, onFav, onClose, say, labelS
               <dd>{p.currency.join(", ")}</dd>
             </div>
           </dl>
+          )}
         </div>
         <div className="pd-foot">
           <button type="button" className="pd-btn is-primary" disabled={entryLocked} onClick={() => setOrder(true)}>

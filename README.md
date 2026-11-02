@@ -92,3 +92,11 @@ at the top; *Traditional* keeps the grey box with the label above. Amount fields
 book Price / Quantity / Total, OTC, RWA Subscribe / Redeem) always use IFTA whatever the
 Input style setting, because a floating label competes with the unit, currency chip and
 Max, and a label above adds height to dense trading forms.
+
+### RWA token detail (XAUm)
+
+Opening **XAUm** shows the full token detail from Figma (8517:601695): NAV and yield,
+overview, and sticky tabs that jump to Product Elements, Dealing Rules, Performance
+(quarterly bar chart) and Documents, following the scroll. The content lives in
+`RwaDetailData.js` and is copied from the Figma frame as-is. Other tokens keep the
+generic detail until their content is available.

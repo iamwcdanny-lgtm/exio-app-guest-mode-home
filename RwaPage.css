@@ -531,7 +531,9 @@
   color: var(--rw-t80) !important;
 }
 .rw-option.is-on {
+  /* Selected: grey fill, no border (Figma 8571:96977). */
   background: rgba(0, 0, 0, 0.05);
+  box-shadow: none;
 }
 .rw-option svg {
   flex: none;
@@ -572,6 +574,7 @@
 .rw-pill.is-on {
   padding-right: 10px;
   background: rgba(0, 0, 0, 0.05);
+  box-shadow: none; /* selected: grey fill, no border */
   color: var(--rw-t90) !important;
 }
 .rw-pill svg {

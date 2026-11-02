@@ -381,9 +381,8 @@ const Agreements = ({ onDone, onClose }) => {
           <span />
         )}
         <h2 className="pd-sheet-title">Product acknowledgement ({step + 1}/3)</h2>
-        <button type="button" className="pd-icon" aria-label="Close" onClick={onClose}>
-          <CloseIcon size={20} />
-        </button>
+        {/* No close button: sheets close by dragging down or tapping outside. */}
+        <span />
       </div>
       <div className="pd-doc-body is-scroll" ref={bodyRef} onScroll={check}>
         <h3>{d.title}</h3>

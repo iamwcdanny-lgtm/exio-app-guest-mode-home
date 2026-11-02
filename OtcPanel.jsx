@@ -99,11 +99,11 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
       <b>
         {fmt(bal[from], CCY[from].dp)} {from}
       </b>
-      <button type="button" className="otc-xfer" aria-label="Transfer to the OTC account" onMouseDown={(e) => e.preventDefault()} onClick={openTransfer}>
-        <img src={`${IMG}/transfer.svg`} width="12" height="12" alt="" />
-      </button>
       <button type="button" className="otc-all" onMouseDown={(e) => e.preventDefault()} onClick={fillAll}>
         Max
+      </button>
+      <button type="button" className="otc-xfer" aria-label="Transfer to the OTC account" onMouseDown={(e) => e.preventDefault()} onClick={openTransfer}>
+        <img src={`${IMG}/transfer.svg`} width="12" height="12" alt="" />
       </button>
     </span>
   );

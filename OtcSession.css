@@ -659,8 +659,26 @@
   height: 15px;
   border: 2px solid #fff;
   border-radius: 50%;
-  background: #e5484d;
+  background: #ff649b; /* Figma red-dot pink */
   box-sizing: border-box;
+}
+/* Nav tab / segment dot: 8px, as Figma 9813:8817 and 9820:9942. */
+.oc-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff649b;
+  pointer-events: none;
+}
+.oc-dot.is-nav {
+  top: 2px;
+  left: calc(50% + 8px);
+}
+.oc-dot.is-seg {
+  top: 50%;
+  margin-top: -4px;
+  left: calc(50% + 18px);
 }
 
 /* ---------- Sheets (generic: drag handle, no close) ---------- */

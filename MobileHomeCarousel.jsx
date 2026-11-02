@@ -5,7 +5,7 @@ import NavIcon from "./NavIcon.jsx";
 import GlassNav from "./GlassNav.jsx";
 import AuthSheet, { PasskeyPromo, DevicePasskey } from "./AuthSheet";
 import TradePage from "./TradePage";
-import { OtcProvider } from "./OtcSession";
+import { OtcProvider, OtcDot } from "./OtcSession";
 import RwaPage from "./RwaPage";
 import RwaExplore from "./RwaExplore";
 import { PD_SETTINGS, PD_DEFAULT } from "./PdFlow";
@@ -114,6 +114,7 @@ const BottomNav = ({ active, onChange }) => (
         >
           <NavIcon name={t.key} active={active === t.key} fallback={`${ICONS}/${t.icon.replace(".svg", active === t.key ? "-on.svg" : "-off.svg")}`} />
           {t.label}
+          {t.key === "trade" && active !== "trade" && <OtcDot className="is-nav" />}
         </button>
       ))}
     </div>

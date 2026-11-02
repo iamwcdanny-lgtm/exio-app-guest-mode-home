@@ -70,6 +70,7 @@ const START = () => ({
   view: null, // "req" | "chat"
   minimized: false,
   red: false,
+  onOtc: false, // the OTC page is on screen (Trade tab, OTC venue)
   ended: false,
   typing: false,
   msgs: [],
@@ -282,7 +283,8 @@ export function OtcProvider({ children }) {
     clearIdle();
     s.minimized = true;
     s.sheet = null;
-    if (s.msgs.some((m) => m.k === "quote" && m.status === "expired")) s.red = true;
+    // No dot for things already seen in the chat: the dot only means a new
+    // update arrived while minimised (setRed).
     bump();
     schedulePing();
   };
@@ -531,6 +533,11 @@ export function OtcProvider({ children }) {
     resetIdle,
     set: (patch) => {
       Object.assign(s, patch);
+      bump();
+    },
+    setOnOtc: (v) => {
+      if (s.onOtc === v) return;
+      s.onOtc = v;
       bump();
     },
   };
@@ -1285,11 +1292,24 @@ const CheckMark = () => (
   </svg>
 );
 
+/* ---------- Red dot (Figma OTC Chat Trading, "red-dot logic" 9820:10207) ----------
+   A minimised chat with an update (trader reply, quote expired…) shows one
+   red dot, on whichever entry point leads back to it from where the user is:
+   - another tab        → the Trade tab in the bottom nav
+   - Trade, Order book  → the "OTC" segment
+   - the OTC page       → the floating chat button (only shown there)
+   Opening the chat clears it. */
+export const useOtcUpdate = () => {
+  const { s } = useOtc();
+  return s.active && s.minimized && s.red;
+};
+export const OtcDot = ({ className = "" }) => (useOtcUpdate() ? <span className={`oc-dot ${className}`} aria-label="New chat update" /> : null);
+
 /* ---------- Floating bubble ---------- */
 const Bubble = () => {
   const { s, restore } = useOtc();
   const [docked, setDocked] = React.useState(false);
-  const show = s.active && s.minimized;
+  const show = s.active && s.minimized && s.onOtc;
   useEffect(() => {
     setDocked(false);
     if (!show || s.red) return undefined;

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from "react"
 import { RuleIcon } from "./AuthSheet";
 import "./TradePage.css";
 import OtcPanel from "./OtcPanel";
+import { useOtc, OtcDot } from "./OtcSession";
 
 // Order book trading (EXIO Mobile, Figma 19477:24818). The Price, Quantity
 // and Total fields follow the prototype's input style switch (floating label,
@@ -327,6 +328,12 @@ const OrderRow = ({ o, onEdit, onCancel }) => (
 const TradePage = ({ labelStyle = "float" }) => {
   const { last, dir, book } = useMarket();
   const [venue, setVenue] = useState("book"); // "otc" | "book"
+  const { setOnOtc } = useOtc();
+  // The chat bubble only lives on the OTC page; elsewhere a red dot points back to it.
+  useEffect(() => {
+    setOnOtc(venue === "otc");
+  }, [venue]);
+  useEffect(() => () => setOnOtc(false), []);
   const [side, setSide] = useState("buy");
   const [type, setType] = useState("Limit");
   const [price, setPrice] = useState(String(START_PRICE));
@@ -481,6 +488,7 @@ const TradePage = ({ labelStyle = "float" }) => {
           ].map(([k, l]) => (
             <button key={k} type="button" role="tab" aria-selected={venue === k} className={`tp-seg-item${venue === k ? " is-on" : ""}`} onClick={() => setVenue(k)}>
               {l}
+              {k === "otc" && venue !== "otc" && <OtcDot className="is-seg" />}
             </button>
           ))}
         </div>

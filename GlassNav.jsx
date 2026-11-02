@@ -1,5 +1,6 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
 import NavIcon from "./NavIcon.jsx";
+import { OtcDot } from "./OtcSession";
 import "./GlassNav.css";
 
 // "Liquid glass" bottom nav (iOS 26 style): a floating translucent capsule
@@ -146,6 +147,7 @@ const GlassNav = ({ tabs, active, onChange, iconSrc }) => {
           >
             <NavIcon name={t.key} active={active === t.key} fallback={iconSrc(t, active === t.key)} />
             <span className="gn-label">{t.label}</span>
+            {t.key === "trade" && active !== "trade" && <OtcDot className="is-nav" />}
           </button>
         ))}
       </div>

@@ -541,7 +541,7 @@ export default function RwaExplore({ labelStyle = "float" }) {
       <div className="rw" ref={scrollRef}>
         <header className="rw-head rx-head">
           <div className="rx-top">
-            <h1>RWA</h1>
+            <h1>RWA+</h1>
           </div>
           <div className="rw-toolbar rx-toolbar">
             <label className={`rw-search ${fieldStyle}${focused ? " is-focused" : ""}`}>

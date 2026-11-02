@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { LOGO, RISK, Star, CloseIcon, Info } from "./RwaPage";
 import { DETAIL } from "./RwaDetailData";
 import TokenSheet, { ChipCaret } from "./TokenSheet";
+import { useOtc, IMG as OTC_IMG } from "./OtcSession";
 import "./PdFlow.css";
 
 // RWA primary distribution (PD): product detail, then Subscribe / Redeem.
@@ -37,7 +38,8 @@ export const PD_DEFAULT = Object.fromEntries(PD_SETTINGS.map((s) => [s.key, s.ke
 
 /* ---------- Product PD config (placeholders) ---------- */
 const DERIVATIVE = new Set(["XAUm", "EXCB25"]);
-const BALANCE = { USD: 20029.62, HKD: 156400.0, USDC: 12500.0, USDT: 8000.0 };
+// Subscription balances live in the shared PD account (OtcSession s.bal.pd), so a
+// transfer from the Avail. row tops them up.
 const FIAT = new Set(["USD", "HKD"]);
 const FLAG = { USD: "🇺🇸", HKD: "🇭🇰", USDC: "◎", USDT: "₮" };
 const CCY_NAME = { USD: "US Dollar", HKD: "Hong Kong Dollar", USDC: "USD Coin", USDT: "Tether" };
@@ -424,7 +426,10 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
 
   const g = eligibility(u, p, instr);
   const hold = holdingQty(u);
+  const otc = useOtc();
+  const BALANCE = otc.s.bal.pd;
   const bal = sub ? BALANCE[quote] ?? 0 : hold;
+  const openTransfer = () => otc.set({ transfer: { asset: quote, from: null, to: "pd" } });
   const unit = sub ? quote : p.symbol;
   const d = sub ? 2 : 2;
 
@@ -534,6 +539,11 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
       >
         Max
       </button>
+      {sub && (
+        <button type="button" className="otc-xfer" aria-label="Transfer to the PD account" onMouseDown={(e) => e.preventDefault()} onClick={openTransfer}>
+          <img src={`${OTC_IMG}/transfer.svg`} width="12" height="12" alt="" />
+        </button>
+      )}
     </span>
   );
   const payField = (

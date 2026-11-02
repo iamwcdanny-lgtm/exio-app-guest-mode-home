@@ -81,7 +81,7 @@ const NAV_TABS = [
   { key: "home", label: "Home", icon: "nav-home.svg" },
   { key: "markets", label: "Markets", icon: "nav-markets.svg" },
   { key: "trade", label: "Trade", icon: "nav-trade.svg" },
-  { key: "rwa", label: "RWA", icon: "nav-rwa.svg" },
+  { key: "rwa", label: "RWA+", icon: "nav-rwa.svg" },
   { key: "assets", label: "Assets", icon: "nav-assets.svg" },
 ];
 

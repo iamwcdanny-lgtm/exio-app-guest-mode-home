@@ -58,6 +58,8 @@ const START = () => ({
     otc: { USD: 20029.62, HKD: 235000, BTC: 0.532161, ETH: 3.1234, USDT: 30000, USDC: 0 },
     custody: { USD: 60000, HKD: 620000, BTC: 1.2, ETH: 30, USDT: 80000, USDC: 5000 },
     trading: { USD: 9000, HKD: 95000, BTC: 0.25, ETH: 5, USDT: 12000, USDC: 0 },
+    // RWA+ subscriptions are paid from the PD account (PdFlow).
+    pd: { USD: 20029.62, HKD: 156400, BTC: 0, ETH: 0, USDT: 8000, USDC: 12500 },
   },
   orders: [
     { id: "OTC-25061-7720", state: "ongoing", buy: "ETH", pay: "USD", payAmt: 50000, rate: 3420, time: "07-07-2026 14:05" },
@@ -1130,6 +1132,7 @@ const ACCTS = [
   ["custody", "Custody account"],
   ["trading", "Trading account"],
   ["otc", "OTC account"],
+  ["pd", "PD account"],
 ];
 const acctName = (k) => ACCTS.find((a) => a[0] === k)?.[1];
 

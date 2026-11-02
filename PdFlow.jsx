@@ -966,7 +966,6 @@ const DetailSections = ({ d, scrollRef, say }) => {
       </div>
       <section className="pd-sec" ref={(n) => (refs.current.elements = n)}>
         <h3 className="pd-h3">Product Elements</h3>
-        {d.sample && <p className="pd-sample">Rows we don’t have for this product yet follow XAUm’s sample content.</p>}
         <Table rows={d.elements} />
       </section>
       <section className="pd-sec" ref={(n) => (refs.current.dealing = n)}>

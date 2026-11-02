@@ -102,5 +102,4 @@ overview, and sticky tabs that jump to Product Elements, Dealing Rules, Performa
 generic detail until their content is available.
 Every other token now uses the same detail layout: known fields (name, ticker, issuer,
 currencies, risk, eligibility, derivatives, dealing frequency and the order form's
-placeholder limits and fees) are filled in, and the rest follows XAUm's sample content,
-flagged on the page.
+placeholder limits and fees) are filled in, and the rest follows XAUm's sample content.

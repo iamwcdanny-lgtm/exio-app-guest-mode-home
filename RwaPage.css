@@ -210,7 +210,7 @@
   gap: 6px;
   padding: 4px 5px 4px 12px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 999px; /* pill */
   background: var(--rw-fill); /* same as .rw-icon-btn */
   color: var(--rw-t80) !important;
   font-size: 12px;

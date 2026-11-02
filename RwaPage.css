@@ -208,7 +208,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 5px 4px 12px;
+  padding: 4px 3px 4px 12px;
   border: 0;
   border-radius: 8px;
   background: var(--rw-fill); /* same as .rw-icon-btn */
@@ -220,14 +220,15 @@
   cursor: pointer;
 }
 .rw-fchip-x {
+  /* Same as the search field's clear button (.rw-search-clear). */
   flex: none;
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.6);
+  background: var(--rw-t20);
+  color: #fff;
 }
 .rw-clear-all,
 .rw-link {

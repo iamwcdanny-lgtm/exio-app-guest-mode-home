@@ -248,7 +248,7 @@ export default function RwaPage({ labelStyle = "float", cardStyle = "border", pd
     scrollRef.current && (scrollRef.current.scrollTop = 0);
   }, [tab, sort, filters]);
 
-  const fieldStyle = labelStyle === "trad" ? "is-filled" : "is-outlined"; // as every other field: Traditional is grey, Floating and IFTA are outlined
+  const fieldStyle = "is-outlined"; // search has no label: always the outlined box of the Floating label field
 
   return (
     <div className={`rw-wrap is-card-${cardStyle}`}>

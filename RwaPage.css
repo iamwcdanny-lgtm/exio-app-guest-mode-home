@@ -109,7 +109,7 @@
 }
 .rw-search.is-outlined {
   background: #fff;
-  box-shadow: inset 0 0 0 1px var(--rw-line-2);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12); /* same border as the Floating label field */
 }
 .rw-search.is-filled {
   background: rgba(0, 0, 0, 0.04); /* same grey as the app's Traditional / IFTA fields */

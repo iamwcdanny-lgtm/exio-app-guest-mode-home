@@ -584,7 +584,7 @@
 }
 
 /* Same buttons as the rest of the app (.pd-btn): 48px pill, green gradient
-   primary, grey secondary. */
+   primary, outline secondary. */
 .rw-btn {
   height: 48px;
   border: 0;
@@ -594,8 +594,10 @@
   font-weight: 700;
 }
 .rw-btn.is-secondary {
+  /* Secondary in sheets is the outline button, as Cancel in the PD sheets. */
   flex: 1;
-  background: rgba(0, 0, 0, 0.04);
+  background: #fff;
+  box-shadow: inset 0 0 0 1.5px rgba(0, 0, 0, 0.9);
 }
 .rw-btn.is-primary {
   flex: 1; /* Reset and Apply are the same width */

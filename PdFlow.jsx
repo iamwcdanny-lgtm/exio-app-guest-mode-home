@@ -180,12 +180,14 @@ const PdSheet = ({ open, onClose, children, full, label }) => {
   );
 };
 
-const Top = ({ title, onBack, right }) => (
+const Top = ({ title, onBack, right, titleHidden = false }) => (
   <header className="pd-top">
     <button type="button" className="pd-icon" aria-label="Back" onClick={onBack}>
       <Back />
     </button>
-    <h1>{title}</h1>
+    <h1 className={titleHidden ? "is-hidden" : ""} aria-hidden={titleHidden || undefined}>
+      {title}
+    </h1>
     <span className="pd-top-right">{right}</span>
   </header>
 );
@@ -1102,6 +1104,18 @@ export default function PdProduct({ p, u, setU, fav, onFav, onClose, say, labelS
   const tags = [RISK[p.risk], "Tokenised", ...p.meta.replace("Tokenised · ", "").split(" · "), ...p.currency, ...(p.extra ? [p.extra] : [])];
   const d = detailFor(p);
   const scrollRef = useRef(null);
+  // The bar shows the token name only once the symbol + full name have
+  // scrolled out of view under it.
+  const nameRef = useRef(null);
+  const [nameGone, setNameGone] = useState(false);
+  useEffect(() => {
+    const el = nameRef.current;
+    const root = scrollRef.current;
+    if (!el || !root) return undefined;
+    const io = new IntersectionObserver(([e]) => setNameGone(!e.isIntersecting && e.boundingClientRect.top < (e.rootBounds?.top ?? 0) + 1), { root, threshold: 0 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [p.symbol]);
 
   const onBannerAction = (b) => {
     if (b.id === "dka" || b.id === "dkaWait") setSheet("dka");
@@ -1114,6 +1128,7 @@ export default function PdProduct({ p, u, setU, fav, onFav, onClose, say, labelS
       <div className="pd-page">
         <Top
           title={p.symbol}
+          titleHidden={!nameGone}
           onBack={onClose}
           right={
             <button type="button" className="pd-link" onClick={() => say("Opens Contact us")}>
@@ -1125,7 +1140,7 @@ export default function PdProduct({ p, u, setU, fav, onFav, onClose, say, labelS
         <div className="pd-scroll" ref={scrollRef}>
           <div className="pd-head">
             <img className="rw-logo" src={`${LOGO}/${p.symbol.toLowerCase()}.png`} width="48" height="48" alt="" />
-            <div>
+            <div ref={nameRef}>
               <div className="pd-head-row">
                 <h2>{p.symbol}</h2>
                 <span className={`rw-badge is-${p.badge.toLowerCase()}`}>{p.badge}</span>

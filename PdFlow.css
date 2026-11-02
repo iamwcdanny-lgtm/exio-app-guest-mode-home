@@ -47,6 +47,11 @@
   font-size: 16px;
   line-height: 24px;
   font-weight: 600;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.pd-top h1.is-hidden {
+  opacity: 0;
+  transform: translateY(6px);
 }
 .pd-top-right {
   justify-self: end;

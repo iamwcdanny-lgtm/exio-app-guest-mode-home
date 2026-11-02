@@ -472,10 +472,19 @@
   visibility: visible;
   transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+/* Sheet top, as the RWA sort sheet (Figma 8571:96976): drag handle, then the
+   title; no close button (tap outside or drag down). */
+.rw-grab {
+  flex: none;
+  width: 32px;
+  height: 4px;
+  margin: 8px auto 0;
+  border-radius: 2px;
+  background: rgba(113, 113, 122, 0.1);
+}
 .rw-sheet-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 20px 16px 8px;
 }
 .rw-sheet-head h2 {
@@ -483,16 +492,6 @@
   font-size: 18px;
   line-height: 26px;
   font-weight: 700;
-}
-.rw-sheet-close {
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 50%;
-  background: var(--rw-fill);
-  padding: 0;
 }
 .rw-sheet-body {
   flex: 1;
@@ -512,26 +511,28 @@
   padding-bottom: 16px;
 }
 .rw-option {
+  /* Row as in the RWA sort sheet: 52px, 16px inner padding; the selected row
+     is a grey rounded block with a filled green tick. */
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   height: 52px;
-  padding: 0;
+  padding: 0 16px;
   border: 0;
-  border-bottom: 1px solid var(--rw-line);
+  border-radius: 8px;
   background: none;
   text-align: left;
   font-size: 14px;
   line-height: 20px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--rw-t80) !important;
 }
 .rw-option.is-on {
-  font-weight: 700;
-  color: var(--rw-t90) !important;
+  background: rgba(0, 0, 0, 0.05);
 }
 .rw-option svg {
-  color: var(--rw-brand);
+  flex: none;
 }
 .rw-group {
   margin: 0;

@@ -6,13 +6,9 @@ import "./TokenSheet.css";
 // form and OTC). Replaces the native dropdown, 2026-11-02.
 //   options: [{ value, icon (node), name, balance (string, optional) }]
 const Check = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-    <path d="M4.5 10.5l3.5 3.5 7.5-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-const Close = () => (
-  <svg width="20" height="20" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-    <path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+    <circle cx="9" cy="9" r="7.5" fill="#00D690" />
+    <path d="M5.75 9.25l2.25 2.25 4.25-4.5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
@@ -33,11 +29,9 @@ export default function TokenSheet({ open, title = "Select currency", options, v
     <PhoneLayer className="tks-layer">
       <div className={`tks-scrim${open ? " is-open" : ""}`} onClick={onClose} aria-hidden="true" />
       <div className={`tks-sheet${open ? " is-open" : ""}`} role="dialog" aria-modal="true" aria-label={title} aria-hidden={!open}>
+        <span className="tks-grab" aria-hidden="true" />
         <div className="tks-head">
           <h2>{title}</h2>
-          <button type="button" className="tks-close" aria-label="Close" onClick={onClose} tabIndex={open ? 0 : -1}>
-            <Close />
-          </button>
         </div>
         <div className="tks-list" role="radiogroup" aria-label={title}>
           {options.map((o) => (

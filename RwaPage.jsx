@@ -106,6 +106,14 @@ export const Info = () => (
     <circle cx="6" cy="3.75" r=".6" fill="currentColor" />
   </svg>
 );
+// Selected mark in sheet lists (Sort, currency): filled green circle with a
+// white tick, as in the RWA sort sheet (Figma 8571:96976).
+export const CheckCircle = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+    <circle cx="9" cy="9" r="7.5" fill="#00D690" />
+    <path d="M5.75 9.25l2.25 2.25 4.25-4.5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
 export const Check = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
     <path d="M5 10.5l3.5 3.5L15 7" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
@@ -153,11 +161,9 @@ export const Sheet = ({ open, title, onClose, children, footer, tall }) => {
     <PhoneLayer className="rw-wrap rw-layer">
       <div className={`rw-scrim${open ? " is-open" : ""}`} onClick={onClose} aria-hidden="true" />
       <div className={`rw-sheet${open ? " is-open" : ""}${tall ? " is-tall" : ""}`} role="dialog" aria-modal="true" aria-label={title} aria-hidden={!open}>
+        <span className="rw-grab" aria-hidden="true" />
         <div className="rw-sheet-head">
           <h2>{title}</h2>
-          <button type="button" className="rw-sheet-close" aria-label="Close" onClick={onClose} tabIndex={open ? 0 : -1}>
-            <CloseIcon size={20} />
-          </button>
         </div>
         <div className="rw-sheet-body">{children}</div>
         {footer && <div className="rw-sheet-foot">{footer}</div>}
@@ -398,7 +404,7 @@ export default function RwaPage({ labelStyle = "float", cardStyle = "border", pd
               }}
             >
               {s.label}
-              {sort === s.key && <Check />}
+              {sort === s.key && <CheckCircle />}
             </button>
           ))}
         </div>

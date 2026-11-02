@@ -253,19 +253,28 @@ export function OtcProvider({ children }) {
   };
 
   /* ---------- Public: from the OTC panel ---------- */
-  const requestQuote = (deal) => {
-    s.deal = { ...deal };
-    s.msgs = [];
-    if (s.termsAccepted) startSession();
-    else {
-      s.sheet = "terms";
-      bump();
-    }
+  // Every way into the chat (Get quote, an order row, a re-quote) shows the
+  // Terms sheet first until it has been accepted once.
+  const afterTerms = useRef(null);
+  const withTerms = (fn) => {
+    if (s.termsAccepted) return fn();
+    afterTerms.current = fn;
+    s.sheet = "terms";
+    bump();
   };
+  const requestQuote = (deal) =>
+    withTerms(() => {
+      s.deal = { ...deal };
+      s.msgs = [];
+      startSession();
+    });
   const acceptTerms = () => {
     s.termsAccepted = true;
     s.sheet = null;
-    startSession();
+    const fn = afterTerms.current;
+    afterTerms.current = null;
+    if (fn) fn();
+    else bump();
   };
 
   /* ---------- Minimise / restore ---------- */
@@ -476,6 +485,7 @@ export function OtcProvider({ children }) {
 
   /* ---------- Orders ---------- */
   const openOrder = (o) => {
+    if (o.state !== "filled" && !s.termsAccepted) return withTerms(() => openOrder(o));
     if (o.state === "ongoing") {
       clearT();
       s.active = true;

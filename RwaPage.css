@@ -685,3 +685,15 @@
 .rw-sheet-body:last-child {
   padding-bottom: var(--cta-bottom, 16px);
 }
+
+/* Sheets are portalled into the phone screen so they cover the bottom nav. */
+.rw-wrap.rw-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: block;
+  pointer-events: none;
+}
+.rw-layer .rw-sheet {
+  pointer-events: auto;
+}

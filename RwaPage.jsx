@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import "./RwaPage.css";
 import PdProduct, { PD_DEFAULT } from "./PdFlow";
+import PhoneLayer from "./PhoneLayer";
 
 // RWA product list (EXIO Mobile RWA file, "after" layout with the Before
 // content). Search matches code, full name and issuer; the search field follows
@@ -149,7 +150,7 @@ export const Sheet = ({ open, title, onClose, children, footer, tall }) => {
     return () => window.removeEventListener("keydown", k);
   }, [open, onClose]);
   return (
-    <>
+    <PhoneLayer className="rw-wrap rw-layer">
       <div className={`rw-scrim${open ? " is-open" : ""}`} onClick={onClose} aria-hidden="true" />
       <div className={`rw-sheet${open ? " is-open" : ""}${tall ? " is-tall" : ""}`} role="dialog" aria-modal="true" aria-label={title} aria-hidden={!open}>
         <div className="rw-sheet-head">
@@ -161,7 +162,7 @@ export const Sheet = ({ open, title, onClose, children, footer, tall }) => {
         <div className="rw-sheet-body">{children}</div>
         {footer && <div className="rw-sheet-foot">{footer}</div>}
       </div>
-    </>
+    </PhoneLayer>
   );
 };
 

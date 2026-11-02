@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import TokenSheet from "./TokenSheet";
 import "./OtcPanel.css";
 
 // OTC section of the Trade page (Figma: OTC Chat Trading, 9231:100184).
@@ -39,22 +40,16 @@ const START_ORDERS = [
   { id: 396878, payCcy: "USD", pay: 50000, getCcy: "ETH", get: 14.6199, time: "2026-12-10 11:30:02" },
 ];
 
-// Currency chip inside an amount field; the native picker sits on top so the
-// phone's own list opens on tap.
-const CcyChip = ({ id, label, value, onChange }) => (
-  <span className="otc-chip">
+// Currency chip inside an amount field; opens the currency sheet
+// (bottom sheet instead of the native dropdown, 2026-11-02).
+const CcyChip = ({ label, value, onOpen }) => (
+  <button type="button" className="otc-chip" aria-label={`${label}: ${value}`} aria-haspopup="dialog" onClick={onOpen}>
     <img src={`${IMG}/${CCY[value].icon}`} width="20" height="20" alt="" />
     <b>{value}</b>
     <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
-    <select id={id} value={value} onChange={(e) => onChange(e.target.value)} aria-label={label}>
-      {Object.keys(CCY).map((c) => (
-        <option key={c} value={c}>
-          {c}
-        </option>
-      ))}
-    </select>
-  </span>
+  </button>
 );
+const CCY_NAME = { USD: "US Dollar", BTC: "Bitcoin", ETH: "Ethereum" };
 
 const OtcPanel = ({ labelStyle = "float", say }) => {
   const [from, setFrom] = useState("USD");
@@ -67,6 +62,7 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
   const [filled] = useState([]);
   const [tab, setTab] = useState("processing");
   const inputRef = useRef(null);
+  const [picking, setPicking] = useState(null); // "from" | "to" | null
 
   const ccy = mode === "pay" ? from : to;
   const dp = CCY[ccy].dp;
@@ -166,7 +162,7 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
             onBlur={() => setFocused(null)}
             onChange={(e) => setAmount(clean(e.target.value, CCY[from].dp))}
           />
-          <CcyChip id="otc-from" label="Pay with" value={from} onChange={pickFrom} />
+          <CcyChip label="Pay with" value={from} onOpen={() => setPicking("from")} />
         </div>
         {labelStyle === "float" && <div className="otc-amount-foot">{avail}</div>}
         {labelStyle === "float" && payLabel}
@@ -179,7 +175,7 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
       <div className="otc-amount-box">
         <div className="otc-amount-row">
           {labelStyle === "ifta" ? receiveLabel : <span className="otc-quote-hint">Amount set by the dealer’s quote</span>}
-          <CcyChip id="otc-to" label="Receive" value={to} onChange={pickTo} />
+          <CcyChip label="Receive" value={to} onOpen={() => setPicking("to")} />
         </div>
         {labelStyle === "float" && receiveLabel}
       </div>
@@ -190,6 +186,19 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
 
   return (
     <div className={`otc otc-style-${labelStyle}`}>
+      <TokenSheet
+        open={!!picking}
+        title={picking === "to" ? "Receive" : "Pay with"}
+        value={picking === "to" ? to : from}
+        onPick={(c) => (picking === "to" ? pickTo(c) : pickFrom(c))}
+        onClose={() => setPicking(null)}
+        options={Object.keys(CCY).map((c) => ({
+          value: c,
+          name: CCY_NAME[c],
+          icon: <img src={`${IMG}/${CCY[c].icon}`} alt="" />,
+          balance: `${fmt(bal[c], CCY[c].dp)} ${c}`,
+        }))}
+      />
       <div className="otc-controls">
         <div className="otc-fields">
           {payField}

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { LOGO, RISK, Star, CloseIcon, Info } from "./RwaPage";
 import { DETAIL } from "./RwaDetailData";
+import TokenSheet, { ChipCaret } from "./TokenSheet";
 import "./PdFlow.css";
 
 // RWA primary distribution (PD): product detail, then Subscribe / Redeem.
@@ -39,6 +40,7 @@ const DERIVATIVE = new Set(["XAUm", "EXCB25"]);
 const BALANCE = { USD: 20029.62, HKD: 156400.0, USDC: 12500.0, USDT: 8000.0 };
 const FIAT = new Set(["USD", "HKD"]);
 const FLAG = { USD: "🇺🇸", HKD: "🇭🇰", USDC: "◎", USDT: "₮" };
+const CCY_NAME = { USD: "US Dollar", HKD: "Hong Kong Dollar", USDC: "USD Coin", USDT: "Tether" };
 const RISK_CODE = ["", "VL", "L", "M", "H", "VH"];
 const MIN_RATING = { VL: 4, L: 4, M: 4, H: 4, VH: 5 }; // api §5.4
 const RATING_NAME = { 3: "Growth", 4: "Aggressive", 5: "Very aggressive" };
@@ -494,27 +496,22 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
   // receive asset only (the amount is confirmed after dealing). The button on
   // the seam flips Subscribe and Redeem.
   const [focused, setFocused] = useState(false);
-  const Chip = ({ s, id, label }) => {
+  const [picking, setPicking] = useState(false); // currency sheet (replaces the native dropdown)
+  const Chip = ({ s, label }) => {
     const pick = s !== p.symbol && p.currency.length > 1;
-    return (
-      <span className={`otc-chip${pick ? "" : " is-fixed"}`}>
+    const inner = (
+      <>
         {s === p.symbol ? <img src={`${LOGO}/${p.symbol.toLowerCase()}.png`} width="20" height="20" alt="" /> : <span className="pd-flag">{FLAG[s]}</span>}
         <b>{s}</b>
-        {pick && (
-          <>
-            <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-              <path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-            <select id={id} value={quote} onChange={(e) => setQuote(e.target.value)} aria-label={label}>
-              {p.currency.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </>
-        )}
-      </span>
+        {pick && <ChipCaret />}
+      </>
+    );
+    return pick ? (
+      <button type="button" className="otc-chip" aria-label={`${label}: ${s}`} aria-haspopup="dialog" disabled={!!g} onClick={() => setPicking(true)}>
+        {inner}
+      </button>
+    ) : (
+      <span className="otc-chip is-fixed">{inner}</span>
     );
   };
   const payLabel = (
@@ -578,7 +575,7 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
             onBlur={() => setFocused(false)}
             onChange={(e) => setAmount(e.target.value.replace(/[^0-9.,]/g, ""))}
           />
-          <Chip s={from} id="pd-from" label="Pay with" />
+          <Chip s={from} label="Pay with" />
         </div>
         {labelStyle === "float" && <div className="otc-amount-foot">{avail}</div>}
         {labelStyle === "float" && payLabel}
@@ -591,7 +588,7 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
       <div className="otc-amount-box">
         <div className="otc-amount-row">
           {labelStyle === "ifta" ? receiveLabel : <span className="otc-quote-hint">{sub ? "Units confirmed after dealing" : "Amount confirmed after dealing"}</span>}
-          <Chip s={to} id="pd-to" label="Receive in" />
+          <Chip s={to} label="Receive in" />
         </div>
         {labelStyle === "float" && receiveLabel}
       </div>
@@ -601,6 +598,20 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
   return (
     <div className="pd-page">
       <Top title="Subscription / Redeem" onBack={onBack} />
+      <TokenSheet
+        open={picking}
+        title={sub ? "Pay with" : "Receive in"}
+        value={quote}
+        onPick={setQuote}
+        onClose={() => setPicking(false)}
+        balanceLabel="Avail."
+        options={p.currency.map((c) => ({
+          value: c,
+          name: CCY_NAME[c],
+          icon: <span className="pd-flag">{FLAG[c]}</span>,
+          balance: sub ? `${fmt(BALANCE[c] ?? 0)} ${c}` : undefined, // redeem: picking the receive currency, balance not relevant
+        }))}
+      />
       {top && <Banner g={g} onAction={onBannerAction} flush />}
       <div className="pd-scroll">
         <div className="pd-seg" role="tablist" aria-label="Instruction">

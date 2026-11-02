@@ -228,17 +228,6 @@ export default function RwaPage({ labelStyle = "float", cardStyle = "border", pd
     ...filters.badge.map((v) => ({ k: "badge", v, label: `${v} only` })),
   ];
 
-  const draftCount = useMemo(
-    () =>
-      PRODUCTS.filter(
-        (p) =>
-          (!draft.currency.length || p.currency.some((c) => draft.currency.includes(c))) &&
-          (!draft.risk.length || draft.risk.includes(p.risk)) &&
-          (!draft.badge.length || draft.badge.includes(p.badge)),
-      ).length,
-    [draft],
-  );
-
   const openFilters = () => {
     setDraft(filters);
     setSheet("filter");
@@ -422,14 +411,13 @@ export default function RwaPage({ labelStyle = "float", cardStyle = "border", pd
             <button
               type="button"
               className="rw-btn is-primary"
-              disabled={draftCount === 0}
               tabIndex={sheet === "filter" ? 0 : -1}
               onClick={() => {
                 setFilters(draft);
                 setSheet(null);
               }}
             >
-              {draftCount === 0 ? "No products" : `Show ${draftCount} products`}
+              Apply
             </button>
           </>
         }
@@ -454,6 +442,7 @@ export default function RwaPage({ labelStyle = "float", cardStyle = "border", pd
                     onClick={() => setDraft((d) => ({ ...d, [key]: toggle(d[key], o.v) }))}
                   >
                     {o.label}
+                    {on && <CheckCircle />}
                   </button>
                 );
               })}

@@ -609,7 +609,7 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
           value: c,
           name: CCY_NAME[c],
           icon: <span className="pd-flag">{FLAG[c]}</span>,
-          balance: sub ? `${fmt(BALANCE[c] ?? 0)} ${c}` : undefined, // redeem: picking the receive currency, balance not relevant
+          balance: sub ? fmt(BALANCE[c] ?? 0) : undefined, // unit already shown on the left // redeem: picking the receive currency, balance not relevant
         }))}
       />
       {top && <Banner g={g} onAction={onBannerAction} flush />}

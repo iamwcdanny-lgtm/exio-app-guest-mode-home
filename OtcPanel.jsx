@@ -196,7 +196,7 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
           value: c,
           name: CCY_NAME[c],
           icon: <img src={`${IMG}/${CCY[c].icon}`} alt="" />,
-          balance: `${fmt(bal[c], CCY[c].dp)} ${c}`,
+          balance: fmt(bal[c], CCY[c].dp), // unit already shown on the left
         }))}
       />
       <div className="otc-controls">

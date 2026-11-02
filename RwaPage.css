@@ -202,20 +202,31 @@
   display: none;
 }
 .rw-fchip {
+  /* Spec: Level 3 tab, selected (New design specifications 9027:5656) + a close button. */
   flex: none;
-  height: 28px;
+  height: 26px;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 0 8px 0 10px;
+  gap: 6px;
+  padding: 4px 5px 4px 12px;
   border: 0;
   border-radius: 8px;
-  background: var(--rw-t90);
+  background: rgba(0, 0, 0, 0.8);
   color: #fff !important;
   font-size: 12px;
   line-height: 18px;
-  font-weight: 600;
+  font-weight: 700;
   white-space: nowrap;
+  cursor: pointer;
+}
+.rw-fchip-x {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
 }
 .rw-clear-all,
 .rw-link {

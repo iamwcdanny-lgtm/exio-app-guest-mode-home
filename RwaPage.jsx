@@ -296,7 +296,7 @@ export default function RwaPage({ labelStyle = "float", cardStyle = "border", pd
                     inputRef.current?.focus();
                   }}
                 >
-                  <CloseIcon size={12} />
+                  <CloseIcon size={10} />
                 </button>
               )}
             </label>
@@ -316,7 +316,7 @@ export default function RwaPage({ labelStyle = "float", cardStyle = "border", pd
               {chips.map((c) => (
                 <button key={`${c.k}-${c.v}`} type="button" className="rw-fchip" aria-label={`Remove filter ${c.label}`} onClick={() => removeChip(c)}>
                   {c.label}
-                  <span className="rw-fchip-x"><CloseIcon size={12} /></span>
+                  <span className="rw-fchip-x"><CloseIcon size={10} /></span>
                 </button>
               ))}
               </div>

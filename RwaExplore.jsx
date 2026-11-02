@@ -559,7 +559,7 @@ export default function RwaExplore({ labelStyle = "float" }) {
               />
               {query && (
                 <button type="button" className="rw-search-clear" aria-label="Clear search" onMouseDown={(e) => e.preventDefault()} onClick={() => setQuery("")}>
-                  <CloseIcon size={12} />
+                  <CloseIcon size={10} />
                 </button>
               )}
             </label>

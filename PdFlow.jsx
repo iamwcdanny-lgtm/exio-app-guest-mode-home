@@ -55,7 +55,7 @@ const attr = (p) => ({
   redeemMaxQty: 2000,
   redeemLotSize: 0.1,
   redeemPlatformFeePct: 0.02,
-  redeemHandlingFeeQty: 0.1,
+  redeemHandlingFeeQty: 0.01, // in product units: redemption fees are charged in the asset being paid
   hasDerivatives: DERIVATIVE.has(p.symbol),
   settlementPeriod: settlementText(p),
 });
@@ -427,23 +427,33 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
   const unit = sub ? quote : p.symbol;
   const d = sub ? 2 : 2;
 
+  // Fees are charged on top of the amount, in the asset being paid (like gas):
+  // Subscribe pays amount + fees in the settlement currency, Redeem pays
+  // amount + fees in product units. Both must fit in the available balance.
+  const fee = sub ? { pct: a.subscribeFeePct, qty: a.subscribeHandlingFeeQty } : { pct: a.redeemPlatformFeePct, qty: a.redeemHandlingFeeQty };
+  const feesOf = (x) => x * fee.pct + fee.qty;
+  const affordable = Math.max(0, (bal - fee.qty) / (1 + fee.pct)); // largest amount whose total still fits the balance
+
   // Amount rules (api §5.5)
+  const limit = sub ? a.subscribeMaxNotional : a.redeemMaxQty;
   const rules = sub
     ? {
         min: hold > 0 ? a.subscribeMinNotional : Math.max(a.subscribeInitialNotional, a.subscribeMinNotional),
         initial: hold === 0,
-        max: Math.min(bal, a.subscribeMaxNotional),
-        maxBy: bal < a.subscribeMaxNotional ? "balance" : "limit",
+        max: Math.min(affordable, limit),
         step: FIAT.has(quote) ? a.subscribeLotSize : a.subscribeLotSize,
       }
-    : { min: a.redeemMinQty, max: Math.min(hold, a.redeemMaxQty), maxBy: hold < a.redeemMaxQty ? "balance" : "limit", step: a.redeemLotSize };
+    : { min: a.redeemMinQty, max: Math.min(affordable, limit), step: a.redeemLotSize };
+  rules.max = floorStep(rules.max, rules.step);
   const holdingLow = !sub && hold < a.redeemMinHoldingQty;
   const v = num(amount);
+  const total = v > 0 ? v + feesOf(v) : 0;
   let err = "";
   if (amount !== "" && !holdingLow) {
     if (!(v > 0)) err = "Enter an amount greater than 0.";
-    else if (v > rules.max + 1e-9)
-      err = `${rules.maxBy === "balance" ? (sub ? "Exceeds your available balance. " : "Exceeds your available holding. ") : ""}You can ${sub ? "subscribe" : "redeem"} up to ${fmt(rules.max, d)} ${unit}.`;
+    else if (v > limit + 1e-9) err = `You can ${sub ? "subscribe" : "redeem"} up to ${fmt(limit, d)} ${unit} per order.`;
+    else if (total > bal + 1e-9)
+      err = `Not enough ${unit} to cover the amount plus fees (${fmt(total)} ${unit} in total). You can ${sub ? "subscribe" : "redeem"} up to ${fmt(rules.max, d)} ${unit}.`;
     else if (v < rules.min - 1e-9)
       err = sub ? `Minimum ${rules.initial ? "initial " : ""}subscription is ${fmt(rules.min)} ${unit}.` : `Minimum redemption is ${fmt(rules.min)} ${unit}.`;
     else if (!isStep(v, rules.step)) err = `Enter the amount in steps of ${rules.step} ${unit}.`;
@@ -463,7 +473,7 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
     if (sub && rating < MIN_RATING[RISK_CODE[p.risk]]) q.push("risk");
     if (sub && u.conc === "reached" && !exempt) q.push("conc");
     q.push("terms", "confirm");
-    setSnap({ instr, quote, v, unit });
+    setSnap({ instr, quote, v, unit, feeAmt: v * fee.pct, total });
     setGates(q);
   };
   const nextGate = () => setGates((q) => q.slice(1));
@@ -476,7 +486,6 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
     else say(b.id === "pi" ? "PI application isn’t in this prototype" : b.id === "verify" ? "Verification isn’t in this prototype" : "Opens Contact us");
   };
   const top = g && (g.shared || g.id === "rpq" || g.id === "rpqWait" || g.id === "corpExpired");
-  const fee = sub ? { pct: a.subscribeFeePct, qty: a.subscribeHandlingFeeQty } : { pct: a.redeemPlatformFeePct, qty: a.redeemHandlingFeeQty };
   const from = sub ? quote : p.symbol;
   const to = sub ? p.symbol : quote;
   // Same layout as the OTC form (OtcPanel's field classes), following the
@@ -525,7 +534,7 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
         className="otc-all"
         disabled={!!g || holdingLow}
         onMouseDown={(e) => e.preventDefault()}
-        onClick={() => setAmount(String(+floorStep(rules.max, rules.step).toFixed(6)))}
+        onClick={() => setAmount(String(+rules.max.toFixed(6)))}
       >
         Max
       </button>
@@ -634,13 +643,19 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
         <dl className="pd-rows">
           <div>
             <dt>{sub ? "Subscription fee" : "Redemption fee"}</dt>
-            <dd>{fee.pct * 100}% of {sub ? "subscription" : "redemption"} amount</dd>
+            <dd>
+              {fee.pct * 100}%{v > 0 && <> · {fmt(v * fee.pct)} <small>{unit}</small></>}
+            </dd>
           </div>
           <div>
             <dt>Handling fee</dt>
             <dd>
-              {fmt(fee.qty)} <small>{quote}</small>
+              {fmt(fee.qty)} <small>{unit}</small>
             </dd>
+          </div>
+          <div className="pd-row-total">
+            <dt>{sub ? "Total subscription amount (including fees)" : "Total redemption amount (including fees)"}</dt>
+            <dd>{v > 0 ? <>{fmt(total)} <small>{unit}</small></> : "--"}</dd>
           </div>
           {sub ? (
             <>
@@ -737,17 +752,21 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
               </div>
               <div>
                 <dt>{snap.instr === "subscribe" ? "Subscription fee" : "Redemption fee"}</dt>
-                <dd>{fee.pct * 100}% of amount</dd>
+                <dd>
+                  {fee.pct * 100}% · {fmt(snap.feeAmt)} <small>{snap.unit}</small>
+                </dd>
               </div>
               <div>
                 <dt>Handling fee</dt>
                 <dd>
-                  {fmt(fee.qty)} <small>{snap.quote}</small>
+                  {fmt(fee.qty)} <small>{snap.unit}</small>
                 </dd>
               </div>
-              <div>
-                <dt>{snap.instr === "subscribe" ? "Actual subscription amount" : "Actual redemption amount"}</dt>
-                <dd title="Final net settlement isn’t provided yet">--</dd>
+              <div className="pd-row-total">
+                <dt>{snap.instr === "subscribe" ? "Total subscription amount (including fees)" : "Total redemption amount (including fees)"}</dt>
+                <dd>
+                  {fmt(snap.total)} <small>{snap.unit}</small>
+                </dd>
               </div>
             </dl>
             <div className="pd-settle">

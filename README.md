@@ -103,3 +103,11 @@ generic detail until their content is available.
 Every other token now uses the same detail layout: known fields (name, ticker, issuer,
 currencies, risk, eligibility, derivatives, dealing frequency and the order form's
 placeholder limits and fees) are filled in, and the rest follows XAUm's sample content.
+
+### PD fees on top (2026-11-02)
+
+Subscription and redemption fees are added on top of the entered amount and paid in the
+same asset, like gas: Subscribe pays amount + fee % + handling fee in the settlement
+currency, Redeem pays them in product units. If the balance can't cover the total, the
+order is blocked and the message gives the largest amount that fits; Max uses the same
+figure. The form and the confirmation show the fee amounts and the total including fees.

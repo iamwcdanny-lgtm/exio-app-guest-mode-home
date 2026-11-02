@@ -1204,3 +1204,11 @@
   font-weight: 500;
   color: #c27a1e;
 }
+
+/* Total including fees: fees are added on top of the amount (2026-11-02). */
+.pd-rows .pd-row-total dt {
+  color: rgba(0, 0, 0, 0.6);
+}
+.pd-rows .pd-row-total dd {
+  font-weight: 700;
+}

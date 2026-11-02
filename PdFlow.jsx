@@ -613,7 +613,7 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
       />
       {top && <Banner g={g} onAction={onBannerAction} flush />}
       <div className="pd-scroll">
-        <div className="pd-seg" role="tablist" aria-label="Instruction">
+        <div className="pd-seg" role="tablist" aria-label="Instruction" style={{ "--seg-i": instr === "subscribe" ? 0 : 1, "--seg-n": 2 }}>
           {["subscribe", "redeem"].map((k) => (
             <button key={k} type="button" role="tab" aria-selected={instr === k} className={instr === k ? "is-on" : ""} onClick={() => setInstr(k)}>
               {k === "subscribe" ? "Subscribe" : "Redeem"}

@@ -65,6 +65,7 @@
 }
 
 .tp-seg {
+  position: relative;
   display: flex;
   height: 32px;
   margin: 8px 16px;
@@ -82,12 +83,25 @@
   font-size: 12px;
   line-height: 18px;
   color: var(--tp-muted);
-  transition: background 0.2s ease, color 0.2s ease;
+  z-index: 1;
+  transition: color 0.25s ease;
 }
 .tp-seg-item.is-on {
-  background: #fff;
   color: var(--text-primary);
+}
+/* Sliding thumb (the white pill) moves under the selected segment. */
+.tp-seg::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc((100% - 4px) / var(--seg-n, 2));
+  border-radius: 999px;
+  background: #fff;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transform: translateX(calc(100% * var(--seg-i, 0)));
+  transition: transform 0.3s cubic-bezier(0.3, 0.7, 0.2, 1);
 }
 
 .tp-pair {

@@ -481,7 +481,7 @@ const TradePage = ({ labelStyle = "float" }) => {
     <div className="tp-wrap">
     <div className="tp" ref={scrollRef}>
       <header className="tp-head">
-        <div className="tp-seg" role="tablist" aria-label="Trading venue">
+        <div className="tp-seg" role="tablist" aria-label="Trading venue" style={{ "--seg-i": venue === "otc" ? 0 : 1, "--seg-n": 2 }}>
           {[
             ["otc", "OTC"],
             ["book", "Order book"],

@@ -258,6 +258,7 @@
 
 /* Order form */
 .pd-seg {
+  position: relative;
   display: flex;
   padding: 4px;
   margin-bottom: 16px;
@@ -273,11 +274,25 @@
   font-size: 14px;
   font-weight: 600;
   color: rgba(0, 0, 0, 0.3) !important;
+  position: relative;
+  z-index: 1;
+  transition: color 0.25s ease;
 }
 .pd-seg button.is-on {
-  background: #fff;
   color: rgba(0, 0, 0, 0.9) !important;
+}
+.pd-seg::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / var(--seg-n, 2));
+  border-radius: 20px;
+  background: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transform: translateX(calc(100% * var(--seg-i, 0)));
+  transition: transform 0.3s cubic-bezier(0.3, 0.7, 0.2, 1);
 }
 .pd-pair {
   display: grid;

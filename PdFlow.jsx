@@ -842,9 +842,21 @@ const Table = ({ rows }) => (
     ))}
   </dl>
 );
+const niceStep = (span) => {
+  const raw = span / 6;
+  const mag = 10 ** Math.floor(Math.log10(raw || 1));
+  return [1, 2, 2.5, 5, 10].map((m) => m * mag).find((m) => m >= raw) || mag * 10;
+};
 const Bars = ({ data }) => {
-  const max = 3;
-  const ticks = [0, 0.5, 1, 1.5, 2, 2.5, 3];
+  const vals = data.map(([, v]) => v);
+  const step = niceStep(Math.max(...vals, 0) - Math.min(...vals, 0) || 1);
+  const bottom = Math.floor(Math.min(...vals, 0) / step) * step;
+  const top = Math.ceil(Math.max(...vals, 0) / step) * step || (bottom < 0 ? 0 : step);
+  const span = top - bottom;
+  const ticks = [];
+  for (let t = bottom; t <= top + 1e-9; t += step) ticks.push(+t.toFixed(4));
+  const dp = step < 1 ? (step < 0.1 ? 2 : 1) : 0;
+  const pos = (v) => (v - bottom) / span; // 0..1 from the bottom of the plot
   return (
     <div className="pd-bars" role="img" aria-label={`Performance by quarter: ${data.map(([q, v]) => `${q} ${v}`).join(", ")}`}>
       <div className="pd-bars-y" aria-hidden="true">
@@ -852,16 +864,20 @@ const Bars = ({ data }) => {
           .slice()
           .reverse()
           .map((t) => (
-            <span key={t}>{t.toFixed(1)}</span>
+            <span key={t}>{t.toFixed(dp)}</span>
           ))}
       </div>
       <div className="pd-bars-plot">
         {ticks.map((t) => (
-          <i key={t} className="pd-bars-grid" style={{ bottom: `calc(22px + (100% - 22px) * ${t / max})` }} />
+          <i key={t} className={`pd-bars-grid${t === 0 ? " is-zero" : ""}`} style={{ bottom: `calc(22px + (100% - 22px) * ${pos(t)})` }} />
         ))}
         {data.map(([q, v]) => (
           <div key={q} className="pd-bars-col">
-            <span className="pd-bar" style={{ height: `${(v / max) * 100}%` }} title={`${q}: ${v}`} />
+            <span
+              className={`pd-bar${v < 0 ? " is-neg" : ""}`}
+              style={{ bottom: `${pos(Math.min(v, 0)) * 100}%`, height: `${(Math.abs(v) / span) * 100}%` }}
+              title={`${q}: ${v}`}
+            />
             <span className="pd-bars-x">{q}</span>
           </div>
         ))}
@@ -950,6 +966,7 @@ const DetailSections = ({ d, scrollRef, say }) => {
       </div>
       <section className="pd-sec" ref={(n) => (refs.current.elements = n)}>
         <h3 className="pd-h3">Product Elements</h3>
+        {d.sample && <p className="pd-sample">Rows we don’t have for this product yet follow XAUm’s sample content.</p>}
         <Table rows={d.elements} />
       </section>
       <section className="pd-sec" ref={(n) => (refs.current.dealing = n)}>
@@ -976,6 +993,64 @@ const DetailSections = ({ d, scrollRef, say }) => {
   );
 };
 
+// Every token gets the XAUm table layout. Fields we know for the product
+// (name, ticker, issuer, currencies, risk, eligibility, derivatives, dealing
+// frequency and the PD placeholders used by the order form) are filled in;
+// everything else follows XAUm's sample content.
+const RISK_WORD = ["", "Very Low", "Low", "Medium", "High", "Very High"];
+const hashNum = (s) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+function detailFor(p) {
+  if (DETAIL[p.symbol]) return { ...DETAIL[p.symbol], sample: false };
+  const x = DETAIL.XAUm;
+  const a = attr(p);
+  const base = p.currency[0].replace(/USD[CT]/, "USD");
+  const dealing = p.meta.replace("Tokenised · ", "");
+  const t = (dealing.match(/T\+\d/) || [])[0];
+  const freq = dealing.split(" · ").filter((s) => !/T\+\d/.test(s)).join(", ") || "Daily";
+  const set = (rows, map) => rows.map(([k, v, kind]) => (k in map ? [k, map[k], kind] : [k, v, kind]));
+  const elements = set(x.elements, {
+    "Product Name": p.name,
+    "Ticker Symbol": p.symbol,
+    "Risk Rating": RISK_WORD[p.risk],
+    "Retail Eligible": p.badge === "RI" ? "Yes" : "No (Professional Investors only)",
+    "Issuing Entity": p.issuer,
+    "Derivative Exposure": a.hasDerivatives ? "Yes" : "No",
+    ...(p.extra ? { Regulator: p.extra === "SFC-authorised" ? "Securities and Futures Commission (SFC)" : x.elements.find((r) => r[0] === "Regulator")[1] } : {}),
+  }).map((r) => (r[0] === "Risk Rating" ? [r[0], r[1], p.risk >= 4 ? "risk" : undefined] : r));
+  const dealingRows = set(x.dealing, {
+    "Base Currency": base,
+    "Settlement Currency": p.currency.join(", "),
+    "Subscription Day": `${freq} dealing. Cut-off times follow the issuer’s dealing rules.`,
+    "Redemption Day": `${freq} dealing. Cut-off times follow the issuer’s dealing rules.`,
+    "Settlement Period": t ? `Subscription: ${t}. Redemption: ${t}.` : a.settlementPeriod,
+    "Minimum Initial Subscription": `${fmt(a.subscribeInitialNotional)} ${base}`,
+    "Minimum Subsequent Subscription": `${fmt(a.subscribeMinNotional)} ${base}`,
+    "Minimum Holding": `${fmt(a.redeemMinHoldingQty)} ${p.symbol}`,
+    "Minimum Redemption": `${fmt(a.redeemMinQty)} ${p.symbol}`,
+    "Valuation Frequency": /Real-time/.test(dealing) ? "Real-time" : freq.split(", ")[0],
+    "Subscription Fee": `${a.subscribeFeePct * 100}%`,
+    "Redemption Fee": `${a.redeemPlatformFeePct * 100}%`,
+  });
+  // Quarterly figures around a quarter of the reference yield (illustrative).
+  const h = hashNum(p.symbol);
+  const q = p.yld / 4;
+  const performance = ["Q1", "Q2", "Q3", "Q4"].map((k, i) => [k, +(q * (0.8 + (((h >> (i * 3)) % 9) / 20))).toFixed(2)]);
+  return {
+    sample: true,
+    nav: { value: fmt(navOf(p), 4), unit: base, updated: "Last updated: 28-10-2026" },
+    yield: `${p.yld}%`,
+    overview: `${p.name} (${p.symbol}) is a tokenised product issued by ${p.issuer} and distributed on EXIO. Each token represents a unit of the underlying product, held in the PD wallet. Subscriptions and redemptions follow the issuer’s dealing rules (${dealing.toLowerCase()}), and the product is settled in ${p.currency.join(" / ")}. This overview is placeholder text for the prototype.`,
+    elements,
+    dealing: dealingRows,
+    performance,
+    documents: [
+      [`${p.name} Offering Document`, "pdf"],
+      [`${p.symbol} logo pack`, "doc"],
+      ["Fact Sheet (August 2026)", "pdf"],
+    ],
+  };
+}
+
 const navOf = (p) => (p.symbol.startsWith("a") && p.symbol !== "aAAPL" ? 100 + (p.symbol.length * 37) % 400 : 1 + ((p.symbol.charCodeAt(0) * 7) % 90) / 10);
 
 export default function PdProduct({ p, u, setU, fav, onFav, onClose, say, labelStyle = "float" }) {
@@ -987,7 +1062,7 @@ export default function PdProduct({ p, u, setU, fav, onFav, onClose, say, labelS
   const entryLocked = gSub?.shared;
   const a = attr(p);
   const tags = [RISK[p.risk], "Tokenised", ...p.meta.replace("Tokenised · ", "").split(" · "), ...p.currency, ...(p.extra ? [p.extra] : [])];
-  const d = DETAIL[p.symbol];
+  const d = detailFor(p);
   const scrollRef = useRef(null);
 
   const onBannerAction = (b) => {

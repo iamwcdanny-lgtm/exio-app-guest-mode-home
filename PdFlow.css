@@ -1178,3 +1178,29 @@
   flex: none;
   color: rgba(0, 0, 0, 0.6);
 }
+
+.pd-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+.pd-bars-col {
+  position: relative;
+}
+.pd-bar.is-neg {
+  border-radius: 0 0 2px 2px;
+  background: linear-gradient(0deg, #ff7789, #f3518b);
+}
+.pd-bars-grid.is-zero {
+  background: rgba(0, 0, 0, 0.15);
+}
+.pd-sample {
+  margin: -4px 0 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #fff7ee;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: #c27a1e;
+}

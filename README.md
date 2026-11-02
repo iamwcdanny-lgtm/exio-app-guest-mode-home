@@ -100,3 +100,7 @@ overview, and sticky tabs that jump to Product Elements, Dealing Rules, Performa
 (quarterly bar chart) and Documents, following the scroll. The content lives in
 `RwaDetailData.js` and is copied from the Figma frame as-is. Other tokens keep the
 generic detail until their content is available.
+Every other token now uses the same detail layout: known fields (name, ticker, issuer,
+currencies, risk, eligibility, derivatives, dealing frequency and the order form's
+placeholder limits and fees) are filled in, and the rest follows XAUm's sample content,
+flagged on the page.

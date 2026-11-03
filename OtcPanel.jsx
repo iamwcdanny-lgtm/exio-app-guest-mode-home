@@ -227,7 +227,7 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
           </div>
           <span className="otc-tools">
             <button type="button" className="otc-history" aria-label="Order history" onClick={() => say?.("Order history isn’t in this prototype")}>
-              <img src={`${import.meta.env.BASE_URL}images/trade/history.svg`} width="24" height="24" alt="" />
+              <img src={`${import.meta.env.BASE_URL}images/trade/history.svg`} width="20" height="20" alt="" />
             </button>
           </span>
         </div>

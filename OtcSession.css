@@ -40,6 +40,16 @@
     transform: translateX(100%);
   }
 }
+/* Back (<): slide back out to the right (backOut.js). */
+.oc-page.is-leaving {
+  pointer-events: none;
+  animation: oc-slide-out 0.24s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+@keyframes oc-slide-out {
+  to {
+    transform: translateX(100%);
+  }
+}
 
 .oc-desk {
   flex: none;

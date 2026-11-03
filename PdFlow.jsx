@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { LOGO, RISK, Star, CloseIcon, Info } from "./RwaPage";
 import { DETAIL } from "./RwaDetailData";
 import TokenSheet, { ChipCaret } from "./TokenSheet";
+import { slideBack } from "./backOut";
 import { useOtc, IMG as OTC_IMG } from "./OtcSession";
 import "./PdFlow.css";
 
@@ -182,7 +183,7 @@ const PdSheet = ({ open, onClose, children, full, label }) => {
 
 const Top = ({ title, onBack, right, titleHidden = false }) => (
   <header className="pd-top">
-    <button type="button" className="pd-icon" aria-label="Back" onClick={onBack}>
+    <button type="button" className="pd-icon" aria-label="Back" onClick={(e) => slideBack(e, onBack)}>
       <Back />
     </button>
     <h1 className={titleHidden ? "is-hidden" : ""} aria-hidden={titleHidden || undefined}>
@@ -360,7 +361,12 @@ const DOCS = [
 ];
 
 const Agreements = ({ onDone, onClose }) => {
-  const [step, setStep] = useState(0);
+  const [step, setStepRaw] = useState(0);
+  const [dir, setDir] = useState("fwd");
+  const setStep = (n) => {
+    setDir(n < step ? "back" : "fwd");
+    setStepRaw(n);
+  };
   const [read, setRead] = useState([false, false, false]);
   const [ok, setOk] = useState([false, false, false]);
   const bodyRef = useRef(null);
@@ -388,7 +394,7 @@ const Agreements = ({ onDone, onClose }) => {
         {/* No close button: sheets close by dragging down or tapping outside. */}
         <span />
       </div>
-      <div className="pd-doc-body is-scroll" ref={bodyRef} onScroll={check}>
+      <div key={step} className={`pd-doc-body is-scroll is-${dir}`} ref={bodyRef} onScroll={check}>
         <h3>{d.title}</h3>
         {d.sub && <p className="pd-doc-sub">{d.sub}</p>}
         {d.body}

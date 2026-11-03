@@ -20,6 +20,36 @@
     opacity: 0;
   }
 }
+/* Back (<): the reverse of pd-in (backOut.js). */
+.pd-layer.is-leaving {
+  pointer-events: none;
+  animation: pd-out 0.24s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+@keyframes pd-out {
+  to {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+/* Agreement steps: Next slides the document in from the right, Back from the left. */
+.pd-doc-body.is-fwd {
+  animation: pd-step-fwd 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.pd-doc-body.is-back {
+  animation: pd-step-back 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes pd-step-fwd {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+@keyframes pd-step-back {
+  from {
+    transform: translateX(-24px);
+    opacity: 0;
+  }
+}
 .pd-layer button {
   font-family: inherit;
   cursor: pointer;

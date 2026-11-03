@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useReducer, useRef } from "react";
+import { slideBack } from "./backOut";
 import PhoneLayer from "./PhoneLayer";
 import "./OtcSession.css";
 
@@ -1072,7 +1073,7 @@ const Record = () => {
   return (
     <div className="oc-screen oc-page">
       <header className="oc-appbar">
-        <button type="button" className="oc-back" aria-label="Back" onClick={() => set({ record: null })}>
+        <button type="button" className="oc-back" aria-label="Back" onClick={(e) => slideBack(e, () => set({ record: null }))}>
           <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M15 5l-7 7 7 7" fill="none" stroke="rgba(0,0,0,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -1160,7 +1161,7 @@ const Transfer = () => {
   return (
     <div className="oc-screen oc-page is-xfer">
       <header className="oc-appbar">
-        <button type="button" className="oc-back" aria-label="Back" onClick={() => set({ transfer: null })}>
+        <button type="button" className="oc-back" aria-label="Back" onClick={(e) => slideBack(e, () => set({ transfer: null }))}>
           <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M15 5l-7 7 7 7" fill="none" stroke="rgba(0,0,0,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>

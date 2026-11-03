@@ -106,7 +106,7 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
     </span>
   );
   const payField = (
-    <div className={`otc-amount is-pay${isFocused ? " is-focused" : ""}${isFocused || amount !== "" ? " is-up" : ""}${error ? " is-error" : ""}`}>
+    <div className={`otc-amount is-pay${isFocused || picking === "from" ? " is-focused" : ""}${isFocused || amount !== "" ? " is-up" : ""}${error ? " is-error" : ""}`}>
       {labelStyle === "trad" && (
         <div className="otc-amount-head">
           {payLabel}
@@ -151,7 +151,7 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
     </div>
   );
   const receiveField = (
-    <div className="otc-amount is-receive is-up">
+    <div className={`otc-amount is-receive is-up${picking === "to" ? " is-focused" : ""}`}>
       {labelStyle === "trad" && <div className="otc-amount-head">{receiveLabel}</div>}
       <div className="otc-amount-box">
         <div className="otc-amount-row">

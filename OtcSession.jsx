@@ -1213,7 +1213,7 @@ const Transfer = () => {
           ))}
         </div>
         <div className="otc-fields oc-xamt-wrap">
-          <div className={`otc-amount is-pay is-up${focused ? " is-focused" : ""}${over ? " is-error" : ""}${t.from ? "" : " is-dim"}`}>
+          <div className={`otc-amount is-pay is-up${focused || pick === "asset" ? " is-focused" : ""}${over ? " is-error" : ""}${t.from ? "" : " is-dim"}`}>
             <div className="otc-amount-box" onMouseDown={(e) => {
               if (e.target === amtRef.current || e.target.closest("button")) return;
               e.preventDefault();

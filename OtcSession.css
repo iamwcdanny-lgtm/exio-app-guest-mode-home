@@ -1003,6 +1003,18 @@
   text-align: left;
   cursor: pointer;
 }
+/* Selected while its sheet is open: the focus stroke of the other fields
+   (1px border + 0.5px inner shadow), label turns dark. */
+.oc-xpick {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.oc-xpick.is-open {
+  border-color: var(--text-primary, rgba(0, 0, 0, 0.9));
+  box-shadow: inset 0 0 0 0.5px var(--text-primary, rgba(0, 0, 0, 0.9));
+}
+.oc-xpick.is-open .otc-label {
+  color: var(--text-primary, rgba(0, 0, 0, 0.9));
+}
 .oc-xpick-row {
   display: flex;
   align-items: center;

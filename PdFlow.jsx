@@ -555,7 +555,7 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
     </span>
   );
   const payField = (
-    <div className={`otc-amount is-pay${focused ? " is-focused" : ""}${focused || amount !== "" ? " is-up" : ""}${err ? " is-error" : ""}`}>
+    <div className={`otc-amount is-pay${focused || (picking && from !== p.symbol) ? " is-focused" : ""}${focused || amount !== "" ? " is-up" : ""}${err ? " is-error" : ""}`}>
       {labelStyle === "trad" && (
         <div className="otc-amount-head">
           {payLabel}
@@ -600,7 +600,7 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
     </div>
   );
   const receiveField = (
-    <div className="otc-amount is-receive is-up">
+    <div className={`otc-amount is-receive is-up${picking && to !== p.symbol ? " is-focused" : ""}`}>
       {labelStyle === "trad" && <div className="otc-amount-head">{receiveLabel}</div>}
       <div className="otc-amount-box">
         <div className="otc-amount-row">

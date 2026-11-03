@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useReducer, useRef } from "react";
 import { slideBack } from "./backOut";
 import PhoneLayer from "./PhoneLayer";
+import TokenSheet from "./TokenSheet";
 import "./OtcSession.css";
 
 // OTC chat trading, ported from the standalone app demo
@@ -1266,33 +1267,29 @@ const Transfer = () => {
           Transfer
         </button>
       </div>
-      <Sheet open={!!pick} onClose={() => setPick(null)}>
-        <h2 className="oc-sheet-title">{pick === "asset" ? "Asset" : "Select account"}</h2>
+      {/* Asset: the shared currency sheet, with the From account's balances. */}
+      <TokenSheet
+        open={pick === "asset"}
+        title="Asset"
+        value={t.asset}
+        onPick={(c) => {
+          upd({ asset: c });
+          setAmt("");
+        }}
+        onClose={() => setPick(null)}
+        options={TOKENS.map((c) => ({
+          value: c,
+          name: CCY[c].name,
+          icon: <img src={`${IMG}/${CCY[c].icon}`} alt="" />,
+          balance: t.from ? fmtCcy(s.bal[t.from][c] || 0, c) : "-",
+          disabled: !!CCY[c].pi,
+          tag: CCY[c].pi ? "PI" : undefined,
+        }))}
+      />
+      <Sheet open={pick === "from" || pick === "to"} onClose={() => setPick(null)}>
+        <h2 className="oc-sheet-title">Select account</h2>
         <div className="oc-opts">
-          {pick === "asset"
-            ? TOKENS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  className={`oc-opt${c === t.asset ? " is-on" : ""}`}
-                  disabled={CCY[c].pi}
-                  onClick={() => {
-                    upd({ asset: c });
-                    setAmt("");
-                    setPick(null);
-                  }}
-                >
-                  <Tk c={c} size={32} />
-                  <span className="oc-opt-text">
-                    <b>
-                      {c} {CCY[c].pi && <span className="oc-pi">PI</span>}
-                    </b>
-                    <small>{CCY[c].name}</small>
-                  </span>
-                  {c === t.asset && <CheckMark />}
-                </button>
-              ))
-            : ACCTS.map(([k, name]) => {
+          {ACCTS.map(([k, name]) => {
                 const cur = pick === "from" ? t.from : t.to;
                 const other = pick === "from" ? t.to : t.from;
                 return (

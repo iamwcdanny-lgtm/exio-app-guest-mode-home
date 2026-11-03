@@ -16,7 +16,7 @@ const Check = () => (
 );
 
 export const ChipCaret = () => (
-  <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+  <svg className="sel-caret" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
     <path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 );

@@ -519,7 +519,7 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
       </>
     );
     return pick ? (
-      <button type="button" className="otc-chip" aria-label={`${label}: ${s}`} aria-haspopup="dialog" disabled={!!g} onClick={() => setPicking(true)}>
+      <button type="button" className={`otc-chip${picking ? " is-open" : ""}`} aria-label={`${label}: ${s}`} aria-haspopup="dialog" aria-expanded={!!picking} disabled={!!g} onClick={() => setPicking(true)}>
         {inner}
       </button>
     ) : (

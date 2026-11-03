@@ -170,3 +170,13 @@ button.otc-chip {
   font-weight: 700;
   color: #f7a042;
 }
+
+/* Selector caret (2026-11-03): points up while its bottom sheet is open. */
+.sel-caret {
+  flex: none;
+  transition: transform 0.25s ease;
+}
+.is-open > .sel-caret,
+.is-open .sel-caret {
+  transform: rotate(180deg);
+}

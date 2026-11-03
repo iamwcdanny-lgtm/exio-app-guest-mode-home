@@ -24,11 +24,11 @@ const group = (v) => {
 };
 // Currency chip inside an amount field; opens the currency sheet
 // (bottom sheet instead of the native dropdown, 2026-11-02).
-const CcyChip = ({ label, value, onOpen }) => (
-  <button type="button" className="otc-chip" aria-label={`${label}: ${value}`} aria-haspopup="dialog" onClick={onOpen}>
+const CcyChip = ({ label, value, onOpen, open = false }) => (
+  <button type="button" className={`otc-chip${open ? " is-open" : ""}`} aria-label={`${label}: ${value}`} aria-haspopup="dialog" aria-expanded={open} onClick={onOpen}>
     <img src={`${IMG}/${CCY[value].icon}`} width="20" height="20" alt="" />
     <b>{value}</b>
-    <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
+    <img className="sel-caret" src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
   </button>
 );
 
@@ -143,7 +143,7 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
             onBlur={() => setFocused(null)}
             onChange={(e) => setAmount(clean(e.target.value, CCY[from].dp))}
           />
-          <CcyChip label="Pay with" value={from} onOpen={() => setPicking("from")} />
+          <CcyChip label="Pay with" value={from} open={picking === "from"} onOpen={() => setPicking("from")} />
         </div>
         {labelStyle === "float" && <div className="otc-amount-foot">{avail}</div>}
         {labelStyle === "float" && payLabel}
@@ -156,7 +156,7 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
       <div className="otc-amount-box">
         <div className="otc-amount-row">
           {labelStyle === "ifta" ? receiveLabel : <span className="otc-quote-hint">Amount set by the dealer’s quote</span>}
-          <CcyChip label="Receive" value={to} onOpen={() => setPicking("to")} />
+          <CcyChip label="Receive" value={to} open={picking === "to"} onOpen={() => setPicking("to")} />
         </div>
         {labelStyle === "float" && receiveLabel}
       </div>

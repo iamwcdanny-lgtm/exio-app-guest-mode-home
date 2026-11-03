@@ -1202,11 +1202,11 @@ const Transfer = () => {
                   <img src={`${import.meta.env.BASE_URL}images/trade/up-down.svg`} width="16" height="16" alt="" />
                 </button>
               )}
-              <button type="button" className="oc-xpick" aria-haspopup="dialog" onClick={() => setPick(k)}>
+              <button type="button" className={`oc-xpick${pick === k ? " is-open" : ""}`} aria-haspopup="dialog" aria-expanded={pick === k} onClick={() => setPick(k)}>
                 <span className="otc-label">{l}</span>
                 <span className="oc-xpick-row">
                   <b className={t[k] ? "" : "is-placeholder"}>{t[k] ? acctName(t[k]) : "Choose account"}</b>
-                  <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
+                  <img className="sel-caret" src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
                 </span>
               </button>
             </React.Fragment>
@@ -1248,10 +1248,10 @@ const Transfer = () => {
                   onBlur={() => setFocused(false)}
                   onChange={(e) => setAmt(e.target.value.replace(/[^\d.]/g, ""))}
                 />
-                <button type="button" className="otc-chip" aria-label={`Asset: ${t.asset}`} aria-haspopup="dialog" onClick={() => setPick("asset")}>
+                <button type="button" className={`otc-chip${pick === "asset" ? " is-open" : ""}`} aria-label={`Asset: ${t.asset}`} aria-haspopup="dialog" aria-expanded={pick === "asset"} onClick={() => setPick("asset")}>
                   <img src={`${IMG}/${CCY[t.asset].icon}`} width="20" height="20" alt="" />
                   <b>{t.asset}</b>
-                  <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
+                  <img className="sel-caret" src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
                 </button>
               </div>
             </div>

@@ -1300,6 +1300,7 @@ const Transfer = () => {
           value: k,
           label: name,
           balance: fmtCcy(s.bal[k][t.asset] || 0, t.asset),
+          unit: t.asset,
           disabled: k === (pick === "to" ? t.from : t.to),
         }))}
       />

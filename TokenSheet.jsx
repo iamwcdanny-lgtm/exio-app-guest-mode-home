@@ -5,7 +5,8 @@ import "./TokenSheet.css";
 // Bottom sheet for picking a currency / token in an amount field (PD order
 // form and OTC). Replaces the native dropdown, 2026-11-02.
 //   options: [{ value, label (defaults to value), icon (node, optional), name,
-//              balance (string, optional), disabled (bool), tag (e.g. "PI") }]
+//              balance (string, optional), unit (shown after the balance, optional),
+//              disabled (bool), tag (e.g. "PI") }]
 // Also used for picking an account on the Transfer page (no icon).
 const Check = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
@@ -60,7 +61,10 @@ export default function TokenSheet({ open, title = "Select currency", options, v
               </span>
               {o.balance !== undefined && (
                 <span className="tks-bal">
-                  <b>{o.balance}</b>
+                  <b>
+                    {o.balance}
+                    {o.unit && <i className="tks-unit"> {o.unit}</i>}
+                  </b>
                   <small>{balanceLabel}</small>
                 </span>
               )}

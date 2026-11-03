@@ -147,6 +147,11 @@ button.otc-chip {
   font-family: inherit;
   color: inherit;
 }
+.tks-unit {
+  font-style: normal;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+}
 .tks-row:disabled {
   opacity: 0.4;
   cursor: default;

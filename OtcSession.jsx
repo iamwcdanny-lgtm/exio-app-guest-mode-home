@@ -1286,36 +1286,23 @@ const Transfer = () => {
           tag: CCY[c].pi ? "PI" : undefined,
         }))}
       />
-      <Sheet open={pick === "from" || pick === "to"} onClose={() => setPick(null)}>
-        <h2 className="oc-sheet-title">Select account</h2>
-        <div className="oc-opts">
-          {ACCTS.map(([k, name]) => {
-                const cur = pick === "from" ? t.from : t.to;
-                const other = pick === "from" ? t.to : t.from;
-                return (
-                  <button
-                    key={k}
-                    type="button"
-                    className={`oc-opt${k === cur ? " is-on" : ""}`}
-                    disabled={k === other}
-                    onClick={() => {
-                      upd(pick === "from" ? { from: k } : { to: k });
-                      setAmt("");
-                      setPick(null);
-                    }}
-                  >
-                    <span className="oc-opt-text">
-                      <b>{name}</b>
-                      <small>
-                        Available: {fmtCcy(s.bal[k][t.asset] || 0, t.asset)} {t.asset}
-                      </small>
-                    </span>
-                    {k === cur && <CheckMark />}
-                  </button>
-                );
-              })}
-        </div>
-      </Sheet>
+      {/* Accounts: same cell as the currency sheet, the asset's balance on the right. */}
+      <TokenSheet
+        open={pick === "from" || pick === "to"}
+        title="Select account"
+        value={pick === "to" ? t.to : t.from}
+        onPick={(k) => {
+          upd(pick === "from" ? { from: k } : { to: k });
+          setAmt("");
+        }}
+        onClose={() => setPick(null)}
+        options={ACCTS.map(([k, name]) => ({
+          value: k,
+          label: name,
+          balance: fmtCcy(s.bal[k][t.asset] || 0, t.asset),
+          disabled: k === (pick === "to" ? t.from : t.to),
+        }))}
+      />
     </div>
   );
 };

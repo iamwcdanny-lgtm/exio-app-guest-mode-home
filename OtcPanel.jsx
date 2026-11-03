@@ -167,8 +167,7 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
 
   const TABS = [
     ["ongoing", `Processing (${orders.filter((o) => o.state === "ongoing").length})`],
-    ["filled", "Filled"],
-    ["failed", "Expired / Rejected"],
+    ["failed", "Fail"],
   ];
   const list = orders.filter((o) => (tab === "failed" ? o.state === "expired" || o.state === "rejected" : o.state === tab));
 
@@ -237,7 +236,7 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
               </svg>
             </button>
             <button type="button" className="otc-history" aria-label="Order history" onClick={() => say?.("Order history isn’t in this prototype")}>
-              <img src={`${import.meta.env.BASE_URL}images/trade/history.svg`} width="14" height="14" alt="" />
+              <img src={`${import.meta.env.BASE_URL}images/trade/history.svg`} width="16" height="16" alt="" />
             </button>
           </span>
         </div>

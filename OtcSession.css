@@ -678,7 +678,7 @@
 .oc-dot.is-seg {
   top: 50%;
   margin-top: -4px;
-  left: calc(50% + 18px);
+  left: calc(50% + 22px);
 }
 
 /* ---------- Sheets (generic: drag handle, no close) ---------- */

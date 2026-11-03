@@ -327,7 +327,7 @@ const OrderRow = ({ o, onEdit, onCancel }) => (
 /* ---------- Page ---------- */
 const TradePage = ({ labelStyle = "float" }) => {
   const { last, dir, book } = useMarket();
-  const [venue, setVenue] = useState("book"); // "otc" | "book"
+  const [venue, setVenue] = useState("otc"); // "otc" | "book" — OTC is the default section
   const { setOnOtc } = useOtc();
   // The chat bubble only lives on the OTC page; elsewhere a red dot points back to it.
   useEffect(() => {

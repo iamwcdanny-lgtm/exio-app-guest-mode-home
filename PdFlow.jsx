@@ -39,8 +39,8 @@ export const PD_DEFAULT = Object.fromEntries(PD_SETTINGS.map((s) => [s.key, s.ke
 
 /* ---------- Product PD config (placeholders) ---------- */
 const DERIVATIVE = new Set(["XAUm", "EXCB25"]);
-// Subscription balances live in the shared PD account (OtcSession s.bal.pd), so a
-// transfer from the Avail. row tops them up.
+// RWA+ subscriptions are paid from the Custody account (OtcSession s.bal.custody;
+// there is no separate PD account), so a transfer from the Avail. row tops it up.
 const FIAT = new Set(["USD", "HKD"]);
 const FLAG = { USD: "🇺🇸", HKD: "🇭🇰", USDC: "◎", USDT: "₮" };
 const CCY_NAME = { USD: "US Dollar", HKD: "Hong Kong Dollar", USDC: "USD Coin", USDT: "Tether" };
@@ -435,9 +435,9 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
   const g = eligibility(u, p, instr);
   const hold = holdingQty(u);
   const otc = useOtc();
-  const BALANCE = otc.s.bal.pd;
+  const BALANCE = otc.s.bal.custody;
   const bal = sub ? BALANCE[quote] ?? 0 : hold;
-  const openTransfer = () => otc.set({ transfer: { asset: quote, from: "custody", to: "pd" } });
+  const openTransfer = () => otc.set({ transfer: { asset: quote, from: "trading", to: "custody" } });
   const unit = sub ? quote : p.symbol;
   const d = sub ? 2 : 2;
 
@@ -548,7 +548,7 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
         Max
       </button>
       {sub && (
-        <button type="button" className="otc-xfer" aria-label="Transfer to the PD account" onMouseDown={(e) => e.preventDefault()} onClick={openTransfer}>
+        <button type="button" className="otc-xfer" aria-label="Transfer to the Custody account" onMouseDown={(e) => e.preventDefault()} onClick={openTransfer}>
           <img src={`${OTC_IMG}/transfer.svg`} width="12" height="12" alt="" />
         </button>
       )}

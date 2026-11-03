@@ -971,165 +971,76 @@
   font-size: 18px;
   color: rgba(0, 0, 0, 0.4);
 }
-/* Transfer page — Figma OTC Chat Trading 7312:13933: grey filled boxes
-   (3% black, r8), 12px grey labels, Account block first. */
+/* Transfer page — Figma OTC Chat Trading 7312:13933, with fields in the
+   OTC / RWA+ style (white outlined, label inside; OtcPanel.css classes). */
 .is-xfer .oc-appbar h1 {
   font-weight: 600;
   color: rgba(0, 0, 0, 0.8);
 }
-.oc-xfer {
-  padding-top: 16px;
+.oc-page-body.oc-xfer {
+  gap: 16px;
+  padding: 16px 16px 16px;
 }
-.oc-xlabel {
-  display: block;
-  margin: 0 0 8px;
-  font-size: 12px;
-  line-height: 18px;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.4);
-}
-.oc-xaccts + .oc-xlabel,
-.oc-xbox + .oc-xamt .oc-xlabel {
-  margin-top: 24px;
-}
-.oc-xbox {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  height: 48px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.03);
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.oc-xbox b {
-  flex: 1;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.9);
-}
-.oc-xbox.is-input {
-  cursor: text;
-}
-.oc-xbox.is-input input {
-  flex: 1;
-  min-width: 0;
-  border: 0;
-  outline: none;
-  background: none;
-  font: inherit;
-  font-size: 16px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.9);
-}
-.oc-xbox i {
-  font-style: normal;
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.3);
-}
-.oc-max {
-  align-self: center;
-  height: 24px;
-  padding: 0 0 0 12px;
-  border: 0;
-  border-left: 1px solid rgba(0, 0, 0, 0.1);
-  background: none;
-  font-family: inherit;
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 600;
-  color: #019ff8;
-  cursor: pointer;
-}
-.oc-xaccts {
+.oc-xpair {
   display: flex;
   flex-direction: column;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.03);
-}
-.oc-xacct {
-  display: flex;
   align-items: center;
-  height: 48px;
-  padding: 0 12px;
-  border: 0;
-  background: none;
+  gap: 4px;
+}
+.oc-xpick {
+  align-self: stretch;
+  box-sizing: border-box;
+  height: 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  background: #fff;
   font-family: inherit;
   text-align: left;
   cursor: pointer;
 }
-.oc-xacct span {
-  width: 44px;
-  font-size: 12px;
-  line-height: 18px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.4);
+.oc-xpick-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-.oc-xacct b {
+.oc-xpick b {
   flex: 1;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.8);
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 700;
+  color: var(--text-primary, rgba(0, 0, 0, 0.9));
 }
-.oc-xacct b.is-placeholder {
+.oc-xpick b.is-placeholder {
   font-weight: 500;
   color: rgba(0, 0, 0, 0.3);
 }
-/* Divider between From and To, broken by the swap button near the right. */
-.oc-xdiv {
+/* The 36px swap sits on the 4px seam, as between You pay / You receive. */
+.oc-xpair .oc-xswap {
   position: relative;
-  height: 1px;
-  margin-right: 82px;
-  background: #d9d9d9;
-}
-.oc-xdiv::after {
-  content: "";
-  position: absolute;
-  left: calc(100% + 32px);
-  right: -82px;
-  top: 0;
-  height: 1px;
-  background: #d9d9d9;
-}
-.oc-xswap {
-  position: absolute;
-  left: 100%;
-  top: -16px;
   z-index: 1;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
+  margin: -16px 0;
   padding: 0;
   display: grid;
   place-items: center;
-  border: 0;
-  background: none;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 4px #fff;
   cursor: pointer;
 }
-.oc-xswap img {
-  filter: brightness(0) opacity(0.8);
-}
-.oc-xamt.is-dim {
+.oc-xamt-wrap .otc-amount.is-dim {
   opacity: 0.4;
 }
-.oc-xavail {
-  display: flex;
-  justify-content: space-between;
-  margin: 8px 0 0;
-  font-size: 12px;
-  line-height: 18px;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.4);
-}
-.oc-xavail b {
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.8);
+.oc-xamt-wrap .otc-all:disabled {
+  color: rgba(0, 0, 0, 0.3);
+  cursor: default;
 }
 .oc-opts {
   display: flex;

@@ -1143,6 +1143,8 @@ const Transfer = () => {
   const [amt, setAmt] = React.useState("");
   const [pick, setPick] = React.useState(null); // "asset" | "from" | "to"
   const [done, setDone] = React.useState(false);
+  const [focused, setFocused] = React.useState(false);
+  const amtRef = useRef(null);
   useEffect(() => {
     setAmt("");
     setDone(false);
@@ -1151,7 +1153,8 @@ const Transfer = () => {
   const upd = (p) => set({ transfer: { ...t, ...p } });
   const avail = t.from ? s.bal[t.from][t.asset] || 0 : 0;
   const v = parseFloat(amt.replace(/,/g, "")) || 0;
-  const can = t.from && t.to && t.from !== t.to && v > 0 && v <= avail + 1e-9;
+  const over = !!t.from && v > avail + 1e-9;
+  const can = t.from && t.to && t.from !== t.to && v > 0 && !over;
   const submit = () => {
     if (!can) return;
     transfer(t.from, t.to, t.asset, v);
@@ -1186,49 +1189,76 @@ const Transfer = () => {
           </button>
         </div>
       )}
-      {/* Figma OTC Chat Trading 7312:13933: Account, Asset, Transfer amount, Available. */}
-      <div className="oc-page-body oc-xfer">
-        <span className="oc-xlabel">Account</span>
-        <div className="oc-xaccts">
-          <button type="button" className="oc-xacct" onClick={() => setPick("from")}>
-            <span>From</span>
-            <b className={t.from ? "" : "is-placeholder"}>{t.from ? acctName(t.from) : "Choose account"}</b>
-            <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
-          </button>
-          <div className="oc-xdiv">
-            <button type="button" className="oc-xswap" aria-label="Swap accounts" onClick={() => upd({ from: t.to, to: t.from })}>
-              <img src={`${import.meta.env.BASE_URL}images/trade/up-down.svg`} width="24" height="24" alt="" />
-            </button>
-          </div>
-          <button type="button" className="oc-xacct" onClick={() => setPick("to")}>
-            <span>To</span>
-            <b className={t.to ? "" : "is-placeholder"}>{t.to ? acctName(t.to) : "Choose account"}</b>
-            <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
-          </button>
+      {/* Figma OTC Chat Trading 7312:13933, fields in the OTC / RWA+ style
+          (2026-11-03): From / To pickers with the swap on the seam, then an
+          amount field whose chip picks the asset, Avail. + Max in its head. */}
+      <div className="oc-page-body oc-xfer otc otc-style-ifta">
+        <div className="oc-xpair">
+          {[
+            ["from", "From"],
+            ["to", "To"],
+          ].map(([k, l], i) => (
+            <React.Fragment key={k}>
+              {i === 1 && (
+                <button type="button" className="otc-swap oc-xswap" aria-label="Swap accounts" onClick={() => upd({ from: t.to, to: t.from })}>
+                  <img src={`${import.meta.env.BASE_URL}images/trade/up-down.svg`} width="16" height="16" alt="" />
+                </button>
+              )}
+              <button type="button" className="oc-xpick" aria-haspopup="dialog" onClick={() => setPick(k)}>
+                <span className="otc-label">{l}</span>
+                <span className="oc-xpick-row">
+                  <b className={t[k] ? "" : "is-placeholder"}>{t[k] ? acctName(t[k]) : "Choose account"}</b>
+                  <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
+                </span>
+              </button>
+            </React.Fragment>
+          ))}
         </div>
-        <span className="oc-xlabel">Asset</span>
-        <button type="button" className="oc-xbox" onClick={() => setPick("asset")}>
-          <Tk c={t.asset} size={24} />
-          <b>{t.asset}</b>
-          <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
-        </button>
-        <div className={`oc-xamt${t.from ? "" : " is-dim"}`}>
-          <label className="oc-xlabel" htmlFor="oc-xamt">
-            Transfer amount
-          </label>
-          <div className="oc-xbox is-input">
-            <input id="oc-xamt" inputMode="decimal" value={amt} disabled={!t.from} placeholder="" onChange={(e) => setAmt(e.target.value.replace(/[^\d.,]/g, ""))} />
-            <i>{t.asset}</i>
-            <button type="button" className="oc-max" disabled={!t.from} onClick={() => setAmt(avail > 0 ? fmtCcy(avail, t.asset) : "")}>
-              Max
-            </button>
+        <div className="otc-fields oc-xamt-wrap">
+          <div className={`otc-amount is-pay is-up${focused ? " is-focused" : ""}${over ? " is-error" : ""}${t.from ? "" : " is-dim"}`}>
+            <div className="otc-amount-box" onMouseDown={(e) => {
+              if (e.target === amtRef.current || e.target.closest("button")) return;
+              e.preventDefault();
+              amtRef.current?.focus();
+            }}>
+              <div className="otc-amount-head">
+                <label className="otc-label" htmlFor="oc-xamt">
+                  Transfer amount
+                </label>
+                <span className="otc-avail">
+                  Avail.
+                  <b>
+                    {t.from ? fmtCcy(avail, t.asset) : "-"} {t.asset}
+                  </b>
+                  <button type="button" className="otc-all" disabled={!t.from} onMouseDown={(e) => e.preventDefault()} onClick={() => setAmt(avail > 0 ? String(+avail.toFixed(CCY[t.asset].dp)) : "")}>
+                    Max
+                  </button>
+                </span>
+              </div>
+              <div className="otc-amount-row">
+                <input
+                  ref={amtRef}
+                  id="oc-xamt"
+                  className="otc-input"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  placeholder="0"
+                  value={amt}
+                  disabled={!t.from}
+                  aria-invalid={over || undefined}
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setFocused(false)}
+                  onChange={(e) => setAmt(e.target.value.replace(/[^\d.]/g, ""))}
+                />
+                <button type="button" className="otc-chip" aria-label={`Asset: ${t.asset}`} aria-haspopup="dialog" onClick={() => setPick("asset")}>
+                  <img src={`${IMG}/${CCY[t.asset].icon}`} width="20" height="20" alt="" />
+                  <b>{t.asset}</b>
+                  <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
+                </button>
+              </div>
+            </div>
           </div>
-          <p className="oc-xavail">
-            <span>Available</span>
-            <span>
-              <b>{t.from ? fmtCcy(avail, t.asset) : "-"}</b> {t.asset}
-            </span>
-          </p>
+          {over && <p className="otc-note">Exceeds your available balance.</p>}
         </div>
       </div>
       <div className="oc-foot">

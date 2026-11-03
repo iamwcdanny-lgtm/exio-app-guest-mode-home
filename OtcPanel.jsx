@@ -71,7 +71,7 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
     otc.requestQuote({ buy: to, pay: from, amount: cost });
     setAmount("");
   };
-  const openTransfer = () => otc.set({ transfer: { asset: from, from: null, to: "otc" } });
+  const openTransfer = () => otc.set({ transfer: { asset: from, from: "custody", to: "otc" } });
 
   // Like a swap form: a tall "You pay" field takes the amount, a short
   // "You receive" field only picks the currency. OTC has no receive amount

@@ -961,27 +961,49 @@
   font-size: 18px;
   color: rgba(0, 0, 0, 0.4);
 }
-.oc-xlabel {
-  margin: 16px 0 8px;
-  font-size: 14px;
-  line-height: 20px;
+/* Transfer page — Figma OTC Chat Trading 7312:13933: grey filled boxes
+   (3% black, r8), 12px grey labels, Account block first. */
+.is-xfer .oc-appbar h1 {
   font-weight: 600;
   color: rgba(0, 0, 0, 0.8);
+}
+.oc-xfer {
+  padding-top: 16px;
+}
+.oc-xlabel {
+  display: block;
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+}
+.oc-xaccts + .oc-xlabel,
+.oc-xbox + .oc-xamt .oc-xlabel {
+  margin-top: 24px;
 }
 .oc-xbox {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   height: 48px;
   padding: 0 12px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border: 0;
   border-radius: 8px;
-  background: #fff;
+  background: rgba(0, 0, 0, 0.03);
+  font-family: inherit;
   text-align: left;
+  cursor: pointer;
 }
 .oc-xbox b {
   flex: 1;
   font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.9);
+}
+.oc-xbox.is-input {
+  cursor: text;
 }
 .oc-xbox.is-input input {
   flex: 1;
@@ -991,72 +1013,97 @@
   background: none;
   font: inherit;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.9);
 }
 .oc-xbox i {
   font-style: normal;
   font-size: 14px;
-  font-weight: 700;
-  color: rgba(0, 0, 0, 0.6);
+  line-height: 20px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.3);
 }
 .oc-max {
-  padding: 0 0 0 10px;
+  align-self: center;
+  height: 24px;
+  padding: 0 0 0 12px;
   border: 0;
-  border-left: 1px solid rgba(0, 0, 0, 0.12);
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
   background: none;
+  font-family: inherit;
   font-size: 14px;
-  font-weight: 700;
+  line-height: 20px;
+  font-weight: 600;
   color: #019ff8;
+  cursor: pointer;
 }
 .oc-xaccts {
-  position: relative;
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 8px;
+  background: rgba(0, 0, 0, 0.03);
 }
 .oc-xacct {
   display: flex;
   align-items: center;
-  gap: 12px;
-  height: 52px;
+  height: 48px;
   padding: 0 12px;
   border: 0;
   background: none;
+  font-family: inherit;
   text-align: left;
-}
-.oc-xacct + .oc-xswap + .oc-xacct,
-.oc-xswap + .oc-xacct {
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  cursor: pointer;
 }
 .oc-xacct span {
-  width: 40px;
-  font-size: 14px;
+  width: 44px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
   color: rgba(0, 0, 0, 0.4);
 }
 .oc-xacct b {
   flex: 1;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.8);
 }
 .oc-xacct b.is-placeholder {
   font-weight: 500;
   color: rgba(0, 0, 0, 0.3);
 }
+/* Divider between From and To, broken by the swap button near the right. */
+.oc-xdiv {
+  position: relative;
+  height: 1px;
+  margin-right: 82px;
+  background: #d9d9d9;
+}
+.oc-xdiv::after {
+  content: "";
+  position: absolute;
+  left: calc(100% + 32px);
+  right: -82px;
+  top: 0;
+  height: 1px;
+  background: #d9d9d9;
+}
 .oc-xswap {
   position: absolute;
-  right: 40px;
-  top: 50%;
+  left: 100%;
+  top: -16px;
   z-index: 1;
-  width: 28px;
-  height: 28px;
-  margin-top: -14px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 50%;
-  background: #fff;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.oc-xswap img {
+  filter: brightness(0) opacity(0.8);
 }
 .oc-xamt.is-dim {
   opacity: 0.4;
@@ -1067,9 +1114,11 @@
   margin: 8px 0 0;
   font-size: 12px;
   line-height: 18px;
+  font-weight: 500;
   color: rgba(0, 0, 0, 0.4);
 }
 .oc-xavail b {
+  font-weight: 600;
   color: rgba(0, 0, 0, 0.8);
 }
 .oc-opts {

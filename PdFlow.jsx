@@ -431,7 +431,7 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
   const otc = useOtc();
   const BALANCE = otc.s.bal.pd;
   const bal = sub ? BALANCE[quote] ?? 0 : hold;
-  const openTransfer = () => otc.set({ transfer: { asset: quote, from: null, to: "pd" } });
+  const openTransfer = () => otc.set({ transfer: { asset: quote, from: "custody", to: "pd" } });
   const unit = sub ? quote : p.symbol;
   const d = sub ? 2 : 2;
 

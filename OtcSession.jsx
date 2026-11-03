@@ -1156,10 +1156,9 @@ const Transfer = () => {
     transfer(t.from, t.to, t.asset, v);
     setAmt("");
     setDone(true);
-    upd({ from: null });
   };
   return (
-    <div className="oc-screen oc-page">
+    <div className="oc-screen oc-page is-xfer">
       <header className="oc-appbar">
         <button type="button" className="oc-back" aria-label="Back" onClick={() => set({ transfer: null })}>
           <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
@@ -1167,7 +1166,9 @@ const Transfer = () => {
           </svg>
         </button>
         <h1>Transfer</h1>
-        <span />
+        <button type="button" className="oc-back" aria-label="Transfer history">
+          <img src={`${import.meta.env.BASE_URL}images/trade/history.svg`} width="24" height="24" alt="" />
+        </button>
       </header>
       {done && (
         <div className="oc-success" role="status">
@@ -1184,35 +1185,38 @@ const Transfer = () => {
           </button>
         </div>
       )}
-      <div className="oc-page-body">
-        <label className="oc-xlabel">Asset</label>
-        <button type="button" className="oc-xbox" onClick={() => setPick("asset")}>
-          <Tk c={t.asset} size={24} />
-          <b>{t.asset}</b>
-          <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
-        </button>
-        <label className="oc-xlabel">Account</label>
+      {/* Figma OTC Chat Trading 7312:13933: Account, Asset, Transfer amount, Available. */}
+      <div className="oc-page-body oc-xfer">
+        <span className="oc-xlabel">Account</span>
         <div className="oc-xaccts">
           <button type="button" className="oc-xacct" onClick={() => setPick("from")}>
             <span>From</span>
             <b className={t.from ? "" : "is-placeholder"}>{t.from ? acctName(t.from) : "Choose account"}</b>
             <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
           </button>
-          <button type="button" className="oc-xswap" aria-label="Swap accounts" onClick={() => upd({ from: t.to, to: t.from })}>
-            <img src={`${IMG}/transfer.svg`} width="14" height="14" alt="" />
-          </button>
+          <div className="oc-xdiv">
+            <button type="button" className="oc-xswap" aria-label="Swap accounts" onClick={() => upd({ from: t.to, to: t.from })}>
+              <img src={`${import.meta.env.BASE_URL}images/trade/up-down.svg`} width="24" height="24" alt="" />
+            </button>
+          </div>
           <button type="button" className="oc-xacct" onClick={() => setPick("to")}>
             <span>To</span>
             <b className={t.to ? "" : "is-placeholder"}>{t.to ? acctName(t.to) : "Choose account"}</b>
             <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
           </button>
         </div>
+        <span className="oc-xlabel">Asset</span>
+        <button type="button" className="oc-xbox" onClick={() => setPick("asset")}>
+          <Tk c={t.asset} size={24} />
+          <b>{t.asset}</b>
+          <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
+        </button>
         <div className={`oc-xamt${t.from ? "" : " is-dim"}`}>
           <label className="oc-xlabel" htmlFor="oc-xamt">
             Transfer amount
           </label>
           <div className="oc-xbox is-input">
-            <input id="oc-xamt" inputMode="decimal" value={amt} disabled={!t.from} placeholder="0" onChange={(e) => setAmt(e.target.value.replace(/[^\d.,]/g, ""))} />
+            <input id="oc-xamt" inputMode="decimal" value={amt} disabled={!t.from} placeholder="" onChange={(e) => setAmt(e.target.value.replace(/[^\d.,]/g, ""))} />
             <i>{t.asset}</i>
             <button type="button" className="oc-max" disabled={!t.from} onClick={() => setAmt(avail > 0 ? fmtCcy(avail, t.asset) : "")}>
               Max
@@ -1220,9 +1224,9 @@ const Transfer = () => {
           </div>
           <p className="oc-xavail">
             <span>Available</span>
-            <b>
-              {t.from ? fmtCcy(avail, t.asset) : "-"} {t.asset}
-            </b>
+            <span>
+              <b>{t.from ? fmtCcy(avail, t.asset) : "-"}</b> {t.asset}
+            </span>
           </p>
         </div>
       </div>
@@ -1242,7 +1246,7 @@ const Transfer = () => {
                   className={`oc-opt${c === t.asset ? " is-on" : ""}`}
                   disabled={CCY[c].pi}
                   onClick={() => {
-                    upd({ asset: c, from: null });
+                    upd({ asset: c });
                     setAmt("");
                     setPick(null);
                   }}

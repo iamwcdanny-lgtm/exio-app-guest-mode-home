@@ -1,7 +1,6 @@
 import React, { useRef, useState } from "react";
 import TokenSheet from "./TokenSheet";
 import { useOtc, CCY, TOKENS, IMG, fmtDp } from "./OtcSession";
-import PhoneLayer from "./PhoneLayer";
 import "./OtcPanel.css";
 
 // OTC section of the Trade page (Figma: OTC Chat Trading, 9231:100184).
@@ -45,7 +44,6 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
   const bal = otc.s.bal.otc;
   const orders = otc.s.orders;
   const [tab, setTab] = useState("ongoing");
-  const [about, setAbout] = useState(false);
   const inputRef = useRef(null);
   const [picking, setPicking] = useState(null); // "from" | "to" | null
 
@@ -228,15 +226,8 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
             ))}
           </div>
           <span className="otc-tools">
-            <button type="button" className="otc-history" aria-label="About OTC Trade" onClick={() => setAbout(true)}>
-              <svg width="16" height="16" viewBox="0 0 22 22" aria-hidden="true">
-                <circle cx="11" cy="11" r="10" fill="none" stroke="rgba(0,0,0,0.6)" strokeWidth="1.8" />
-                <path d="M11 10v6" stroke="rgba(0,0,0,0.6)" strokeWidth="2" strokeLinecap="round" />
-                <circle cx="11" cy="6.6" r="1.3" fill="rgba(0,0,0,0.6)" />
-              </svg>
-            </button>
             <button type="button" className="otc-history" aria-label="Order history" onClick={() => say?.("Order history isn’t in this prototype")}>
-              <img src={`${import.meta.env.BASE_URL}images/trade/history.svg`} width="16" height="16" alt="" />
+              <img src={`${import.meta.env.BASE_URL}images/trade/history.svg`} width="24" height="24" alt="" />
             </button>
           </span>
         </div>
@@ -278,33 +269,8 @@ const OtcPanel = ({ labelStyle = "float", say }) => {
           })
         )}
       </div>
-      <AboutSheet open={about} onClose={() => setAbout(false)} />
     </div>
   );
 };
-
-const ABOUT = [
-  ["What is OTC Trading?", "OTC (Over-the-Counter) trading allows you to buy or sell large amounts of cryptocurrency directly with a dedicated trader, without placing orders on the open market. This ensures better pricing and minimal market impact for large trades."],
-  ["How it works", "1. Select your trading pair and enter the amount.\n2. Request a quote from our trader.\n3. Review and accept or reject the quoted price.\n4. Confirm the trade to complete execution."],
-  ["Minimum trade size", "The minimum trade size for OTC is USD 10,000 or equivalent. For institutional enquiries, please contact your account manager."],
-  ["Settlement", "Trades are settled internally between your custody and OTC wallet. Funds are typically available within minutes of order execution."],
-];
-const AboutSheet = ({ open, onClose }) => (
-  <PhoneLayer className="oc-layer">
-    <div className={`oc-scrim${open ? " is-open" : ""}`} onClick={onClose} aria-hidden="true" />
-    <div className={`oc-sheet${open ? " is-open" : ""}`} role="dialog" aria-modal="true" aria-label="About OTC Trade" aria-hidden={!open}>
-      <span className="oc-grab" aria-hidden="true" />
-      <h2 className="oc-sheet-title">About OTC Trade</h2>
-      <div className="oc-terms otc-about">
-        {ABOUT.map(([h, p]) => (
-          <section key={h}>
-            <h3>{h}</h3>
-            <p>{p}</p>
-          </section>
-        ))}
-      </div>
-    </div>
-  </PhoneLayer>
-);
 
 export default OtcPanel;

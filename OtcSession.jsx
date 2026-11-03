@@ -1286,7 +1286,7 @@ const Transfer = () => {
           tag: CCY[c].pi ? "PI" : undefined,
         }))}
       />
-      {/* Accounts: same cell as the currency sheet, the asset's balance on the right. */}
+      {/* Accounts: same cell as the currency sheet; the asset's balance sits under the name. */}
       <TokenSheet
         open={pick === "from" || pick === "to"}
         title="Select account"
@@ -1299,8 +1299,7 @@ const Transfer = () => {
         options={ACCTS.map(([k, name]) => ({
           value: k,
           label: name,
-          balance: fmtCcy(s.bal[k][t.asset] || 0, t.asset),
-          unit: t.asset,
+          name: `Avail. ${fmtCcy(s.bal[k][t.asset] || 0, t.asset)} ${t.asset}`,
           disabled: k === (pick === "to" ? t.from : t.to),
         }))}
       />

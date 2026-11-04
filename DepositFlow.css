@@ -326,3 +326,43 @@
   white-space: nowrap;
   pointer-events: none;
 }
+
+/* Token / network selectors on the amount page */
+.dp-picks {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 8px;
+}
+.dp-picks.is-one {
+  grid-template-columns: 1fr;
+}
+.dp-pick .oc-xpick-row {
+  min-width: 0;
+}
+.dp-pick .oc-xpick-row b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dp-pick .oc-xpick-row img:first-child {
+  flex: none;
+  border-radius: 50%;
+}
+
+/* Leave? */
+.dp-leave-text {
+  margin: 0 0 24px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+}
+.dp-leave-btns {
+  display: flex;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+.dp-leave-btns .oc-btn {
+  flex: 1;
+}

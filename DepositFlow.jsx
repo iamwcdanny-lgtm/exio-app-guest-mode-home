@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import PhoneLayer from "./PhoneLayer";
 import TokenSheet from "./TokenSheet";
-import { CCY, IMG, fmtDp } from "./OtcSession";
+import { CCY, IMG, fmtDp, fmtCcy, useOtc } from "./OtcSession";
 import { slideBack } from "./backOut";
 import "./DepositFlow.css";
 
@@ -428,6 +428,8 @@ const DetailPage = ({ d, onDone, say }) => {
 /* ---------- Token selection (page) ---------- */
 const TokenPage = ({ value, onBack, onPick }) => {
   const [q, setQ] = useState("");
+  // Deposits land in the Custody account, so each cell shows that balance.
+  const bal = useOtc().s.bal.custody;
   const term = q.trim().toLowerCase();
   const sections = Object.entries(KINDS)
     .map(([k, v]) => [k, v, v.assets.filter((c) => (c + CCY[c].name).toLowerCase().includes(term))])
@@ -458,6 +460,10 @@ const TokenPage = ({ value, onBack, onPick }) => {
                   <span className="tks-text">
                     <b>{c}</b>
                     <small>{CCY[c].name}</small>
+                  </span>
+                  <span className="tks-bal">
+                    <b>{fmtCcy(bal[c] || 0, c)}</b>
+                    <small>Balance</small>
                   </span>
                   <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-chev" />
                 </button>

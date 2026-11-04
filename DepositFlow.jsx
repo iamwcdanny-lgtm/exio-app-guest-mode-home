@@ -463,7 +463,7 @@ const TokenPage = ({ value, onBack, onPick }) => {
                   </span>
                   <span className="tks-bal">
                     <b>{fmtCcy(bal[c] || 0, c)}</b>
-                    <small>Balance</small>
+                    <small>≈ {fmtDp((bal[c] || 0) * (CCY[c].usd || 0), 2)} USD</small>
                   </span>
                   <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-chev" />
                 </button>

@@ -458,7 +458,10 @@ const TokenPage = ({ value, onBack, onPick }) => {
                     <Icon c={c} />
                   </span>
                   <span className="tks-text">
-                    <b>{c}</b>
+                    <b>
+                      {c}
+                      {CCY[c].pi && <span className="tks-tag">PI</span>}
+                    </b>
                     <small>{CCY[c].name}</small>
                   </span>
                   <span className="tks-bal">

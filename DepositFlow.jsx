@@ -510,6 +510,7 @@ export default function DepositFlow({ open, onClose }) {
   const [stack, setStack] = useState([]); // pages over the token page: "list", "amount"
   const [detail, setDetail] = useState(null);
   const [leaving, setLeaving] = useState(false);
+  const picked = useRef(false); // the New / Existing sheet closed by a choice, not a dismiss
   const [toast, setToast] = useState("");
   const tt = useRef(null);
   const say = (t) => {
@@ -562,6 +563,7 @@ export default function DepositFlow({ open, onClose }) {
             value={d.asset}
             onBack={() => setTokenPage(false)}
             onPick={(k, c) => {
+              picked.current = false;
               setD({ kind: k, asset: c });
               setSheet("source");
             }}
@@ -590,10 +592,16 @@ export default function DepositFlow({ open, onClose }) {
         title="Deposit from"
         value={null}
         onPick={(k) => {
+          picked.current = true;
           if (k === "new") toAmount();
           else setStack(["list"]);
         }}
-        onClose={closeSheet("source")}
+        onClose={() => {
+          // Dismissed without choosing: the token goes back to unselected.
+          if (!picked.current) setD((x) => ({ kind: x.kind }));
+          picked.current = false;
+          setSheet((s) => (s === "source" ? null : s));
+        }}
         options={[
           {
             value: "new",

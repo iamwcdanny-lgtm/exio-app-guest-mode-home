@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import DepositFlow from "./DepositFlow";
 import "./LoggedInHome.css";
 
 // Logged-in Home, empty custody wallet (Figma: Home Custody NoAssets, 19497:35542).
@@ -25,6 +26,7 @@ const LoggedInHome = ({ welcome = "" }) => {
   const [tab, setTab] = useState("custody");
   const [hideSmall, setHideSmall] = useState(true);
   const [toast, setToast] = useState("");
+  const [depositing, setDepositing] = useState(false);
   const toastTimer = useRef(null);
 
   const say = (text) => {
@@ -81,7 +83,7 @@ const LoggedInHome = ({ welcome = "" }) => {
 
           <div className="lh-actions">
             {ACTIONS.map((a) => (
-              <button key={a.key} type="button" className="lh-action" onClick={() => notHere(a.label)}>
+              <button key={a.key} type="button" className="lh-action" onClick={() => (a.key === "deposit" ? setDepositing(true) : notHere(a.label))}>
                 <span className={`lh-action-icon${a.primary ? " is-primary" : ""}`}>
                   <img src={`${IMG}/${a.key}.svg`} width="20" height="20" alt="" />
                 </span>
@@ -142,7 +144,7 @@ const LoggedInHome = ({ welcome = "" }) => {
                 Hide assets &lt;1 USD
               </button>
               <span className="lh-vdivider" aria-hidden="true" />
-              <button type="button" className="lh-outline-btn" onClick={() => notHere("Deposit")}>
+              <button type="button" className="lh-outline-btn" onClick={() => setDepositing(true)}>
                 Deposit
               </button>
             </div>
@@ -167,7 +169,7 @@ const LoggedInHome = ({ welcome = "" }) => {
               <div className="lh-empty-box">
                 <img src={`${IMG}/no-file.svg`} width="24" height="24" alt="" />
                 <p>
-                  <button type="button" className="lh-inline-link" onClick={() => notHere("Deposit")}>
+                  <button type="button" className="lh-inline-link" onClick={() => setDepositing(true)}>
                     Deposit
                   </button>{" "}
                   your account to get started
@@ -190,6 +192,7 @@ const LoggedInHome = ({ welcome = "" }) => {
       <div className={`lh-toast${toast ? " is-shown" : ""}`} role="status">
         {toast}
       </div>
+      <DepositFlow open={depositing} onClose={() => setDepositing(false)} />
     </div>
   );
 };

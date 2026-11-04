@@ -1,0 +1,328 @@
+/* Deposit flow (DepositFlow.jsx). Pages reuse the OTC page shell
+   (.oc-screen / .oc-appbar / .oc-foot / .oc-btn) and the OTC amount field. */
+.dp-layer {
+  color: rgba(0, 0, 0, 0.9);
+}
+.oc-page-body.dp-body {
+  gap: 16px;
+  padding: 16px;
+}
+
+/* Where the deposit comes from, above the amount. */
+.dp-route {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+}
+.dp-route b {
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.8);
+}
+.dp-route em {
+  margin-left: auto;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.05);
+  font-style: normal;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* Amount locked after Confirm amount: read-only, greyed until Modify. */
+.otc-amount.is-locked .otc-amount-box {
+  background: rgba(0, 0, 0, 0.03);
+  cursor: default;
+}
+.otc-amount.is-locked .otc-input {
+  color: rgba(0, 0, 0, 0.6);
+}
+.otc-chip.is-static {
+  cursor: default;
+}
+.dp-amt-btn {
+  margin-top: -4px;
+}
+
+/* Verification amount + total */
+.dp-verify,
+.dp-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.03);
+  animation: dp-rise 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes dp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.dp-card h2 {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+}
+.dp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 20px;
+}
+.dp-row > span {
+  flex: none;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+}
+.dp-row > b {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-weight: 700;
+  text-align: right;
+  overflow-wrap: anywhere;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+.dp-row > b.is-accent {
+  color: #00a874;
+}
+.dp-row.is-total {
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+.dp-row.is-total > b {
+  font-size: 16px;
+  line-height: 24px;
+}
+.dp-hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+/* Slide to confirm */
+.dp-slide {
+  position: relative;
+  height: 56px;
+  border-radius: 28px;
+  background: rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  user-select: none;
+  touch-action: none;
+}
+.dp-slide-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 28px;
+  background: linear-gradient(90deg, #36cdca, #00dd95);
+  transition: width 0.25s ease;
+}
+.dp-slide.is-drag .dp-slide-fill,
+.dp-slide.is-drag .dp-slide-knob {
+  transition: none;
+}
+.dp-slide-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding-left: 40px;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+.dp-slide.is-done .dp-slide-label {
+  padding-left: 0;
+  color: #fff;
+}
+.dp-slide-knob {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #36cdca, #00dd95);
+  box-shadow: 0 2px 6px rgba(0, 150, 110, 0.35);
+  cursor: grab;
+  touch-action: none;
+  transition: transform 0.25s ease;
+}
+.dp-slide.is-drag .dp-slide-knob {
+  cursor: grabbing;
+}
+.dp-slide.is-done .dp-slide-knob {
+  box-shadow: none;
+}
+
+/* Whitelisted list (same cell as the currency sheet) */
+.dp-lead {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+}
+.dp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dp-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  font-family: inherit;
+  text-align: left;
+}
+.dp-cell:active {
+  background: rgba(0, 0, 0, 0.05);
+}
+.dp-cell-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.dp-cell-text b {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+}
+.dp-cell-text small {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+.dp-chev {
+  flex: none;
+  transform: rotate(-90deg);
+  opacity: 0.6;
+}
+.dp-tag {
+  padding: 0 4px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.05);
+  font-size: 10px;
+  line-height: 16px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.6);
+}
+.dp-tag.is-lg {
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 18px;
+}
+.dp-empty {
+  margin: 0;
+  padding: 24px 0;
+  text-align: center;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+/* Details */
+.dp-note {
+  padding: 12px;
+  border-radius: 8px;
+  background: #fff7e6;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: #b26b00;
+}
+.dp-note b {
+  font-weight: 700;
+}
+.dp-card.is-qr {
+  align-items: center;
+  gap: 12px;
+  background: none;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.dp-qr {
+  width: 176px;
+  height: 176px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+.dp-qr svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.dp-addr {
+  margin: 0;
+  max-width: 280px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  word-break: break-all;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+.dp-copy-btn {
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.dp-copy {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.dp-toast {
+  position: absolute;
+  left: 50%;
+  bottom: calc(96px + var(--dc-bottom, 0px));
+  z-index: 5;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+}

@@ -366,3 +366,37 @@
 .dp-leave-btns .oc-btn {
   flex: 1;
 }
+
+/* Token page search */
+.dp-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+.dp-search:focus-within {
+  box-shadow: inset 0 0 0 1.5px rgba(0, 0, 0, 0.9);
+}
+.dp-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.9);
+}
+.dp-tokens {
+  overflow: visible;
+}
+.dp-pick b.is-placeholder {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.3);
+}
+.otc-amount.is-dim {
+  opacity: 0.4;
+}

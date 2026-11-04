@@ -7,11 +7,12 @@ import { slideBack } from "./backOut";
 import "./DepositFlow.css";
 
 // Deposit flow (2026-11-04), started from Home's Deposit buttons.
-//   1 Deposit → 2 Fiat / Crypto → 3 asset → 4 New or whitelisted address
-//   New:      5 network (crypto) → 6 intended amount, Confirm ⇄ Modify →
-//             7 verification amount + total, slide to confirm → 9 details + QR
-//   Existing: 10 whitelisted list (+ Add whitelist address → New) →
-//             11 pick one → 12 details + QR
+//   Deposit → Fiat / Crypto (sheet) → token (page) → New / Existing (sheet)
+//   New:      network + intended amount (page), Confirm ⇄ Modify →
+//             verification amount + total, slide to confirm → details + QR
+//   Existing: select wallet (page, + Add new wallet → New) → details + QR
+// Pages stack: back from a page returns to the one under it; back from the
+// amount page asks first once something has been entered.
 // Fiat follows the same steps with bank accounts instead of addresses and no
 // network; its details show EXIO's bank account instead of a QR code.
 // Addresses, bank details and amounts are placeholders.
@@ -175,7 +176,7 @@ const Picker = ({ label, open, onOpen, children }) => (
   </button>
 );
 
-const AmountPage = ({ d, sheet, onPickAsset, onPickNet, onBack, onConfirmed }) => {
+const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed }) => {
   const c = d.asset;
   const fiat = d.kind === "fiat";
   const [amt, setAmt] = useState("");
@@ -193,6 +194,7 @@ const AmountPage = ({ d, sheet, onPickAsset, onPickNet, onBack, onConfirmed }) =
     setLocked(false);
     setAmt((a) => clean(a, dpOf(c)));
   }, [c, d.net]);
+  const noNet = !fiat && !d.net;
   const v = parseFloat(amt) || 0;
   const tdp = Math.max(dpOf(c), verDp(c));
   const total = v + ver;
@@ -204,26 +206,19 @@ const AmountPage = ({ d, sheet, onPickAsset, onPickNet, onBack, onConfirmed }) =
   };
   return (
     <div className="oc-screen oc-page dp-page is-amount">
-      <AppBar title={`Deposit ${c}`} onBack={onBack} slide={false} />
+      <AppBar title={`Deposit ${c}`} onBack={(e) => onBack(amt !== "" || locked)} slide={false} />
       <div className="oc-page-body dp-body otc otc-style-ifta">
-        {/* What was picked on the way in, still editable here. */}
-        <div className={`dp-picks${fiat ? " is-one" : ""}`}>
-          <Picker label={fiat ? "Currency" : "Token"} open={sheet === "asset"} onOpen={onPickAsset}>
-            <Icon c={c} size={20} />
-            <b>{c}</b>
+        {!fiat && (
+          <Picker label="Network" open={sheet === "network"} onOpen={onPickNet}>
+            <b className={noNet ? "is-placeholder" : ""}>{noNet ? "Select network" : NET[d.net].name}</b>
           </Picker>
-          {!fiat && (
-            <Picker label="Network" open={sheet === "network"} onOpen={onPickNet}>
-              <b>{NET[d.net].name}</b>
-            </Picker>
-          )}
-        </div>
+        )}
         <div className="dp-route">
           <span>From</span>
           <b>{fiat ? "A new bank account" : "A new address"}</b>
         </div>
         <div className="otc-fields">
-          <div className={`otc-amount is-pay is-up${focused ? " is-focused" : ""}${locked ? " is-locked" : ""}`}>
+          <div className={`otc-amount is-pay is-up${focused ? " is-focused" : ""}${locked ? " is-locked" : ""}${noNet ? " is-dim" : ""}`}>
             <div
               className="otc-amount-box"
               onMouseDown={(e) => {
@@ -246,6 +241,7 @@ const AmountPage = ({ d, sheet, onPickAsset, onPickNet, onBack, onConfirmed }) =
                   autoComplete="off"
                   placeholder="0"
                   readOnly={locked}
+                  disabled={noNet}
                   value={focused ? amt : group(amt)}
                   onFocus={() => setFocused(true)}
                   onBlur={() => setFocused(false)}
@@ -265,7 +261,7 @@ const AmountPage = ({ d, sheet, onPickAsset, onPickNet, onBack, onConfirmed }) =
             Modify
           </button>
         ) : (
-          <button type="button" className="oc-btn is-primary dp-amt-btn" disabled={!v} onClick={confirm}>
+          <button type="button" className="oc-btn is-primary dp-amt-btn" disabled={!v || noNet} onClick={confirm}>
             Confirm amount
           </button>
         )}
@@ -309,8 +305,8 @@ const ListPage = ({ d, onBack, onPick, onAdd }) => {
   const fiat = d.kind === "fiat";
   const list = WHITELIST[d.asset] || [];
   return (
-    <div className="oc-screen oc-page dp-page">
-      <AppBar title={fiat ? "Whitelisted bank accounts" : "Whitelisted addresses"} onBack={onBack} />
+    <div className="oc-screen oc-page dp-page is-list">
+      <AppBar title={fiat ? "Select bank account" : "Select wallet"} onBack={onBack} />
       <div className="oc-page-body dp-body">
         <p className="dp-lead">Choose where you’ll send {d.asset} from.</p>
         <div className="dp-list">
@@ -331,7 +327,7 @@ const ListPage = ({ d, onBack, onPick, onAdd }) => {
       </div>
       <div className="oc-foot dp-foot">
         <button type="button" className="oc-btn is-outline" onClick={onAdd}>
-          {fiat ? "Add whitelisted bank account" : "Add whitelist address"}
+          {fiat ? "Add new bank account" : "Add new wallet"}
         </button>
       </div>
     </div>
@@ -377,7 +373,7 @@ const DetailPage = ({ d, onDone, say }) => {
   );
   const amountStr = d.total != null ? `${fmtDp(d.total, d.tdp)} ${c}` : null;
   return (
-    <div className="oc-screen oc-page dp-page">
+    <div className="oc-screen oc-page dp-page is-detail">
       <AppBar title={`Deposit ${c}`} onBack={onDone} />
       <div className="oc-page-body dp-body">
         <div className="dp-note">
@@ -429,6 +425,41 @@ const DetailPage = ({ d, onDone, say }) => {
   );
 };
 
+/* ---------- Token selection (page) ---------- */
+const TokenPage = ({ kind, value, onBack, onPick }) => {
+  const [q, setQ] = useState("");
+  const list = KINDS[kind].assets.filter((c) => (c + CCY[c].name).toLowerCase().includes(q.trim().toLowerCase()));
+  return (
+    <div className="oc-screen oc-page dp-page is-token">
+      <AppBar title={kind === "fiat" ? "Deposit fiat" : "Deposit crypto"} onBack={onBack} />
+      <div className="oc-page-body dp-body">
+        <label className="dp-search">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <circle cx="7" cy="7" r="5" stroke="rgba(0,0,0,0.4)" strokeWidth="1.5" />
+            <path d="M11 11l3 3" stroke="rgba(0,0,0,0.4)" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={kind === "fiat" ? "Search currency" : "Search token"} aria-label="Search" />
+        </label>
+        <div className="tks-list dp-tokens">
+          {list.map((c) => (
+            <button key={c} type="button" className={`tks-row${c === value ? " is-on" : ""}`} onClick={() => onPick(c)}>
+              <span className="tks-icon">
+                <Icon c={c} />
+              </span>
+              <span className="tks-text">
+                <b>{c}</b>
+                <small>{CCY[c].name}</small>
+              </span>
+              <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-chev" />
+            </button>
+          ))}
+          {!list.length && <p className="dp-empty">No match for “{q}”.</p>}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /* ---------- Leave? ---------- */
 const LeaveSheet = ({ open, onStay, onLeave }) => (
   <PhoneLayer className="tks-layer">
@@ -436,12 +467,12 @@ const LeaveSheet = ({ open, onStay, onLeave }) => (
     <div className={`tks-sheet dp-leave${open ? " is-open" : ""}`} role="alertdialog" aria-modal="true" aria-labelledby="dp-leave-t" aria-hidden={!open}>
       <span className="tks-grab" aria-hidden="true" />
       <div className="tks-head">
-        <h2 id="dp-leave-t">Leave this deposit?</h2>
+        <h2 id="dp-leave-t">Go back?</h2>
       </div>
-      <p className="dp-leave-text">The token, network and amount you’ve set won’t be kept.</p>
+      <p className="dp-leave-text">The network and amount you’ve set won’t be kept.</p>
       <div className="dp-leave-btns">
         <button type="button" className="oc-btn is-outline" tabIndex={open ? 0 : -1} onClick={onLeave}>
-          Leave
+          Go back
         </button>
         <button type="button" className="oc-btn is-primary" tabIndex={open ? 0 : -1} onClick={onStay}>
           Stay
@@ -453,9 +484,10 @@ const LeaveSheet = ({ open, onStay, onLeave }) => (
 
 /* ---------- The flow ---------- */
 export default function DepositFlow({ open, onClose }) {
-  const [sheet, setSheet] = useState(null); // kind | asset | source | network
+  const [sheet, setSheet] = useState(null); // kind | source | network
   const [d, setD] = useState({});
-  const [page, setPage] = useState(null); // amount | list
+  const [tokenPage, setTokenPage] = useState(false);
+  const [stack, setStack] = useState([]); // pages over the token page: "list", "amount"
   const [detail, setDetail] = useState(null);
   const [leaving, setLeaving] = useState(false);
   const [toast, setToast] = useState("");
@@ -468,53 +500,63 @@ export default function DepositFlow({ open, onClose }) {
   useEffect(() => {
     if (open) {
       setD({});
-      setPage(null);
+      setTokenPage(false);
+      setStack([]);
       setDetail(null);
       setLeaving(false);
       setSheet("kind");
     }
   }, [open]);
   const closeSheet = (name) => () => setSheet((s) => (s === name ? null : s));
-  // Closing every sheet without reaching a page ends the flow.
+  // Nothing left on screen ends the flow.
   useEffect(() => {
-    if (open && !sheet && !page && !detail) {
+    if (open && !sheet && !tokenPage && !stack.length && !detail) {
       const t = setTimeout(onClose, 320);
       return () => clearTimeout(t);
     }
     return undefined;
-  }, [open, sheet, page, detail]);
+  }, [open, sheet, tokenPage, stack, detail]);
   const finish = () => {
     setDetail(null);
-    setPage(null);
+    setStack([]);
+    setTokenPage(false);
   };
-  const toNew = (dd) => {
-    if (dd.kind === "fiat") {
-      setD({ ...dd, net: "bank" });
-      setPage("amount");
-    } else setSheet("network");
+  const fiat = d.kind === "fiat";
+  // The New-address page: network preset when the token has only one.
+  const toAmount = () => {
+    const nets = NETWORKS[d.asset] || [];
+    setD((x) => ({ ...x, net: fiat ? "bank" : nets.length === 1 ? nets[0][0] : null }));
+    setStack((s) => [...s.filter((x) => x !== "amount"), "amount"]);
+  };
+  const pop = () => setStack((s) => s.slice(0, -1));
+  const slideOut = (sel, then) => {
+    document.querySelector(sel)?.classList.add("is-leaving");
+    setTimeout(then, 240);
   };
   if (!open) return null;
-  const assets = d.kind ? KINDS[d.kind].assets : [];
-  const fiat = d.kind === "fiat";
   return (
     <>
       <PhoneLayer className="oc-layer dp-layer">
-        {page === "amount" && (
-          <AmountPage
-            d={d}
-            sheet={sheet}
-            onPickAsset={() => setSheet("asset")}
-            onPickNet={() => setSheet("network")}
-            onBack={() => setLeaving(true)}
-            onConfirmed={(r) => setDetail({ ...d, ...r, from: null })}
+        {tokenPage && d.kind && (
+          <TokenPage
+            kind={d.kind}
+            value={d.asset}
+            onBack={() => setTokenPage(false)}
+            onPick={(c) => {
+              setD((x) => ({ kind: x.kind, asset: c }));
+              setSheet("source");
+            }}
           />
         )}
-        {page === "list" && (
-          <ListPage
+        {stack.includes("list") && <ListPage d={d} onBack={pop} onPick={(w) => setDetail({ ...d, from: w })} onAdd={toAmount} />}
+        {stack.includes("amount") && (
+          <AmountPage
+            key={d.asset}
             d={d}
-            onBack={() => setPage(null)}
-            onPick={(w) => setDetail({ ...d, from: w })}
-            onAdd={() => (fiat ? (setD({ ...d, net: "bank" }), setPage("amount")) : setSheet("network"))}
+            sheet={sheet}
+            onPickNet={() => setSheet("network")}
+            onBack={(dirty) => (dirty ? setLeaving(true) : slideOut(".dp-page.is-amount", pop))}
+            onConfirmed={(r) => setDetail({ ...d, ...r, from: null })}
           />
         )}
         {detail && <DetailPage d={detail} onDone={finish} say={say} />}
@@ -530,40 +572,18 @@ export default function DepositFlow({ open, onClose }) {
         value={d.kind}
         onPick={(k) => {
           setD({ kind: k });
-          setSheet("asset");
+          setTokenPage(true);
         }}
         onClose={closeSheet("kind")}
         options={Object.entries(KINDS).map(([k, v]) => ({ value: k, label: v.label, name: v.sub }))}
       />
       <TokenSheet
-        open={sheet === "asset"}
-        title={fiat ? "Select currency" : "Select asset"}
-        value={d.asset}
-        onPick={(c) => {
-          if (page === "amount") {
-            // Changed on the amount page: keep the network if the new token has it, otherwise ask again.
-            const nets = (NETWORKS[c] || []).map((n) => n[0]);
-            const keep = fiat || nets.includes(d.net);
-            setD((x) => ({ ...x, asset: c, net: fiat ? "bank" : keep ? x.net : nets[0] }));
-            setSheet(keep || nets.length < 2 ? null : "network");
-            return;
-          }
-          setD((x) => ({ ...x, asset: c }));
-          setSheet("source");
-        }}
-        onClose={closeSheet("asset")}
-        options={assets.map((c) => ({ value: c, name: CCY[c].name, icon: <Icon c={c} /> }))}
-      />
-      <TokenSheet
         open={sheet === "source"}
-        title={fiat ? "Deposit from" : "Deposit from"}
+        title="Deposit from"
         value={null}
         onPick={(k) => {
-          if (k === "new") toNew(d);
-          else {
-            setPage("list");
-            setSheet(null);
-          }
+          if (k === "new") toAmount();
+          else setStack(["list"]);
         }}
         onClose={closeSheet("source")}
         options={[
@@ -583,11 +603,7 @@ export default function DepositFlow({ open, onClose }) {
         open={sheet === "network"}
         title="Select network"
         value={d.net}
-        onPick={(n) => {
-          setD((x) => ({ ...x, net: n }));
-          setPage("amount");
-          setSheet(null);
-        }}
+        onPick={(n) => setD((x) => ({ ...x, net: n }))}
         onClose={closeSheet("network")}
         options={(NETWORKS[d.asset] || []).map(([k, name, conf]) => ({ value: k, label: name, name: `Arrives after ${conf}` }))}
       />
@@ -596,9 +612,7 @@ export default function DepositFlow({ open, onClose }) {
         onStay={() => setLeaving(false)}
         onLeave={() => {
           setLeaving(false);
-          // Same exit as the other back actions: slide the page out, then close.
-          document.querySelector(".dp-page.is-amount")?.classList.add("is-leaving");
-          setTimeout(() => setPage(null), 240);
+          slideOut(".dp-page.is-amount", pop);
         }}
       />
     </>

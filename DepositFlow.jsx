@@ -7,7 +7,7 @@ import { slideBack } from "./backOut";
 import "./DepositFlow.css";
 
 // Deposit flow (2026-11-04), started from Home's Deposit buttons.
-//   Deposit → Fiat / Crypto (sheet) → token (page) → New / Existing (sheet)
+//   Deposit → token page (Crypto / Fiat section headers, one search) → New / Existing (sheet)
 //   New:      network + intended amount (page), Confirm ⇄ Modify →
 //             verification amount + total, slide to confirm → details + QR
 //   Existing: select wallet (page, + Add new wallet → New) → details + QR
@@ -426,35 +426,46 @@ const DetailPage = ({ d, onDone, say }) => {
 };
 
 /* ---------- Token selection (page) ---------- */
-const TokenPage = ({ kind, value, onBack, onPick }) => {
+const TokenPage = ({ value, onBack, onPick }) => {
   const [q, setQ] = useState("");
-  const list = KINDS[kind].assets.filter((c) => (c + CCY[c].name).toLowerCase().includes(q.trim().toLowerCase()));
+  const term = q.trim().toLowerCase();
+  const sections = Object.entries(KINDS)
+    .map(([k, v]) => [k, v, v.assets.filter((c) => (c + CCY[c].name).toLowerCase().includes(term))])
+    .filter(([, , list]) => list.length);
   return (
     <div className="oc-screen oc-page dp-page is-token">
-      <AppBar title={kind === "fiat" ? "Deposit fiat" : "Deposit crypto"} onBack={onBack} />
+      <AppBar title="Deposit" onBack={onBack} />
       <div className="oc-page-body dp-body">
         <label className="dp-search">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <circle cx="7" cy="7" r="5" stroke="rgba(0,0,0,0.4)" strokeWidth="1.5" />
             <path d="M11 11l3 3" stroke="rgba(0,0,0,0.4)" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={kind === "fiat" ? "Search currency" : "Search token"} aria-label="Search" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search token or currency" aria-label="Search" />
         </label>
-        <div className="tks-list dp-tokens">
-          {list.map((c) => (
-            <button key={c} type="button" className={`tks-row${c === value ? " is-on" : ""}`} onClick={() => onPick(c)}>
-              <span className="tks-icon">
-                <Icon c={c} />
-              </span>
-              <span className="tks-text">
-                <b>{c}</b>
-                <small>{CCY[c].name}</small>
-              </span>
-              <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-chev" />
-            </button>
-          ))}
-          {!list.length && <p className="dp-empty">No match for “{q}”.</p>}
-        </div>
+        {sections.map(([k, v, list]) => (
+          <section key={k} className="dp-section" aria-labelledby={`dp-sec-${k}`}>
+            <h2 id={`dp-sec-${k}`} className="dp-section-head">
+              {v.label}
+              {k === "fiat" && <span>By bank transfer</span>}
+            </h2>
+            <div className="tks-list dp-tokens">
+              {list.map((c) => (
+                <button key={c} type="button" className={`tks-row${c === value ? " is-on" : ""}`} onClick={() => onPick(k, c)}>
+                  <span className="tks-icon">
+                    <Icon c={c} />
+                  </span>
+                  <span className="tks-text">
+                    <b>{c}</b>
+                    <small>{CCY[c].name}</small>
+                  </span>
+                  <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-chev" />
+                </button>
+              ))}
+            </div>
+          </section>
+        ))}
+        {!sections.length && <p className="dp-empty">No match for “{q}”.</p>}
       </div>
     </div>
   );
@@ -484,7 +495,7 @@ const LeaveSheet = ({ open, onStay, onLeave }) => (
 
 /* ---------- The flow ---------- */
 export default function DepositFlow({ open, onClose }) {
-  const [sheet, setSheet] = useState(null); // kind | source | network
+  const [sheet, setSheet] = useState(null); // source | network
   const [d, setD] = useState({});
   const [tokenPage, setTokenPage] = useState(false);
   const [stack, setStack] = useState([]); // pages over the token page: "list", "amount"
@@ -504,7 +515,7 @@ export default function DepositFlow({ open, onClose }) {
       setStack([]);
       setDetail(null);
       setLeaving(false);
-      setSheet("kind");
+      setTokenPage(true);
     }
   }, [open]);
   const closeSheet = (name) => () => setSheet((s) => (s === name ? null : s));
@@ -537,13 +548,12 @@ export default function DepositFlow({ open, onClose }) {
   return (
     <>
       <PhoneLayer className="oc-layer dp-layer">
-        {tokenPage && d.kind && (
+        {tokenPage && (
           <TokenPage
-            kind={d.kind}
             value={d.asset}
             onBack={() => setTokenPage(false)}
-            onPick={(c) => {
-              setD((x) => ({ kind: x.kind, asset: c }));
+            onPick={(k, c) => {
+              setD({ kind: k, asset: c });
               setSheet("source");
             }}
           />
@@ -566,17 +576,6 @@ export default function DepositFlow({ open, onClose }) {
           </div>
         )}
       </PhoneLayer>
-      <TokenSheet
-        open={sheet === "kind"}
-        title="Deposit"
-        value={d.kind}
-        onPick={(k) => {
-          setD({ kind: k });
-          setTokenPage(true);
-        }}
-        onClose={closeSheet("kind")}
-        options={Object.entries(KINDS).map(([k, v]) => ({ value: k, label: v.label, name: v.sub }))}
-      />
       <TokenSheet
         open={sheet === "source"}
         title="Deposit from"

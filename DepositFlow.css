@@ -392,6 +392,29 @@
 }
 .dp-tokens {
   overflow: visible;
+  padding-bottom: 0;
+}
+/* Crypto / Fiat section headers on the token page */
+.dp-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dp-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+}
+.dp-section-head span {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
 }
 .dp-pick b.is-placeholder {
   font-weight: 500;

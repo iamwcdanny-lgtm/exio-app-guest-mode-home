@@ -630,6 +630,54 @@ const Field = ({ label, children, hint, error }) => (
   </div>
 );
 
+// Text field that follows the prototype's Input style, like the pickers:
+// ifta (label inside, top), float (label rests in the box, rises onto the
+// border), trad (label above). action: a text button inside on the right.
+const TextField = ({ ls = "ifta", id, label, value, onChange, placeholder = "", hint, error, disabled, action, onBlur, inputProps = {} }) => {
+  const [focused, setFocused] = useState(false);
+  const up = ls !== "float" || focused || value !== "";
+  const box = (
+    <span className={`dp-tf-box${action ? " has-action" : ""}`}>
+      {ls === "ifta" && (
+        <label className="dp-tf-label" htmlFor={id}>
+          {label}
+        </label>
+      )}
+      <input
+        id={id}
+        className="dp-tf-input"
+        value={value}
+        disabled={disabled}
+        placeholder={ls === "float" && !up ? "" : placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        {...inputProps}
+        onFocus={() => setFocused(true)}
+        onBlur={() => {
+          setFocused(false);
+          onBlur?.();
+        }}
+      />
+      {ls === "float" && (
+        <label className="dp-tf-label" htmlFor={id}>
+          {label}
+        </label>
+      )}
+      {action}
+    </span>
+  );
+  return (
+    <div className={`dp-tf is-${ls}${up ? " is-up" : ""}${focused ? " is-focused" : ""}${error ? " is-error" : ""}${disabled ? " is-disabled" : ""}`}>
+      {ls === "trad" && (
+        <label className="dp-tf-label" htmlFor={id}>
+          {label}
+        </label>
+      )}
+      {box}
+      {(error || hint) && <small className="dp-field-hint">{error || hint}</small>}
+    </div>
+  );
+};
+
 const Check = ({ on }) => (
   <span className={`dp-check${on ? " is-on" : ""}`} aria-hidden="true">
     {on && (
@@ -641,31 +689,31 @@ const Check = ({ on }) => (
 );
 
 // The shared top of both Add whitelist address pages.
-const WlHead = ({ d, ls, sheet, onPickNet }) => (
+// Asset (pre-filled from where the user came from, changeable), then Network.
+const WlHead = ({ d, ls, sheet, onPickAsset, onPickNet }) => (
   <>
     <div className="dp-note">{LOCK_NOTE}</div>
-    <div className="dp-picks">
-      <Picker ls={ls} label="Asset" fixed>
-        <Icon c={d.asset} size={20} />
-        <b>{d.asset}</b>
-      </Picker>
-      <Picker ls={ls} label="Network" open={sheet === "network"} onOpen={onPickNet}>
-        <b className={d.net ? "" : "is-placeholder"}>{d.net ? NET[d.net].name : "Select network"}</b>
-      </Picker>
-    </div>
+    <Picker ls={ls} label="Asset" open={sheet === "asset"} onOpen={onPickAsset}>
+      <Icon c={d.asset} size={20} />
+      <b>
+        {d.asset}
+        <small className="dp-pick-sub">{CCY[d.asset].name}</small>
+      </b>
+    </Picker>
+    <Picker ls={ls} label="Network" open={sheet === "network"} onOpen={onPickNet}>
+      <b className={d.net ? "" : "is-placeholder"}>{d.net ? NET[d.net].name : "Select network"}</b>
+    </Picker>
   </>
 );
 
-const ConnectPage = ({ d, ls, sheet, onPickNet, onBack, onConnect, remarks, setRemarks }) => {
+const ConnectPage = ({ d, ls, sheet, onPickAsset, onPickNet, onBack, onConnect, remarks, setRemarks }) => {
   const [agree, setAgree] = useState(false);
   return (
     <div className="oc-screen oc-page dp-page is-connect">
       <AppBar title="Add whitelist address" onBack={onBack} />
-      <div className="oc-page-body dp-body">
-        <WlHead d={d} ls={ls} sheet={sheet} onPickNet={onPickNet} />
-        <Field label="Remarks (optional)">
-          <input className="dp-input" value={remarks} maxLength={30} onChange={(e) => setRemarks(e.target.value)} placeholder="e.g. My MetaMask" />
-        </Field>
+      <div className={`oc-page-body dp-body dp-form is-${ls} otc-style-${ls}`}>
+        <WlHead d={d} ls={ls} sheet={sheet} onPickAsset={onPickAsset} onPickNet={onPickNet} />
+        <TextField ls={ls} id="dp-wc-remarks" label="Remarks (optional)" value={remarks} onChange={setRemarks} placeholder="e.g. My MetaMask" inputProps={{ maxLength: 30 }} />
         <button type="button" className="dp-agree" role="checkbox" aria-checked={agree} onClick={() => setAgree((a) => !a)}>
           <Check on={agree} />
           <span>
@@ -682,35 +730,33 @@ const ConnectPage = ({ d, ls, sheet, onPickNet, onBack, onConnect, remarks, setR
   );
 };
 
-const AddrPage = ({ d, ls, sheet, onPickNet, onBack, onNext, remarks, setRemarks, addr, setAddr }) => {
+const AddrPage = ({ d, ls, sheet, onPickAsset, onPickNet, onBack, onNext, remarks, setRemarks, addr, setAddr }) => {
   const [touched, setTouched] = useState(false);
   const ok = d.net && ADDR_RE[d.net].test(addr.trim());
   const err = touched && addr && d.net && !ok ? `Enter a valid ${NET[d.net].name} address` : "";
   return (
     <div className="oc-screen oc-page dp-page is-addr">
       <AppBar title="Add whitelist address" onBack={onBack} />
-      <div className="oc-page-body dp-body">
-        <WlHead d={d} ls={ls} sheet={sheet} onPickNet={onPickNet} />
-        <Field label="Address" error={err}>
-          <span className="dp-input-wrap">
-            <input
-              className="dp-input"
-              value={addr}
-              disabled={!d.net}
-              onChange={(e) => setAddr(e.target.value.trim())}
-              onBlur={() => setTouched(true)}
-              placeholder={d.net ? "Enter or paste the address" : "Select a network first"}
-              spellCheck={false}
-              autoCapitalize="off"
-            />
+      <div className={`oc-page-body dp-body dp-form is-${ls} otc-style-${ls}`}>
+        <WlHead d={d} ls={ls} sheet={sheet} onPickAsset={onPickAsset} onPickNet={onPickNet} />
+        <TextField
+          ls={ls}
+          id="dp-sig-addr"
+          label="Address"
+          value={addr}
+          onChange={(v) => setAddr(v.trim())}
+          onBlur={() => setTouched(true)}
+          error={err}
+          disabled={!d.net}
+          placeholder={d.net ? "Enter or paste the address" : "Select a network first"}
+          inputProps={{ spellCheck: false, autoCapitalize: "off" }}
+          action={
             <button type="button" className="dp-paste" disabled={!d.net} onClick={() => (setAddr(DEMO_ADDR[d.net]), setTouched(true))}>
               Paste
             </button>
-          </span>
-        </Field>
-        <Field label="Remarks (optional)">
-          <input className="dp-input" value={remarks} maxLength={30} onChange={(e) => setRemarks(e.target.value)} placeholder="e.g. My Ledger" />
-        </Field>
+          }
+        />
+        <TextField ls={ls} id="dp-sig-remarks" label="Remarks (optional)" value={remarks} onChange={setRemarks} placeholder="e.g. My Ledger" inputProps={{ maxLength: 30 }} />
       </div>
       <div className="oc-foot dp-foot">
         <button type="button" className="oc-btn is-primary" disabled={!ok} onClick={onNext}>
@@ -819,7 +865,7 @@ const HowSheet = ({ open, onClose }) => (
   </BaseSheet>
 );
 
-const SecuritySheet = ({ open, onClose, onSubmit }) => {
+const SecuritySheet = ({ open, onClose, onSubmit, ls = "ifta" }) => {
   const [sms, setSms] = useState("");
   const [ga, setGa] = useState("");
   const [left, setLeft] = useState(0);
@@ -839,18 +885,32 @@ const SecuritySheet = ({ open, onClose, onSubmit }) => {
   const ok = sms.length === 6 && ga.length === 6;
   return (
     <BaseSheet open={open} onClose={onClose} title="Security verification" className="dp-sec">
-      <div className="dp-sec-body">
-        <Field label="Mobile verification" hint="Code will be sent to +852 91***21">
-          <span className="dp-input-wrap">
-            <input className="dp-input" inputMode="numeric" autoComplete="one-time-code" value={sms} onChange={(e) => setSms(digits(e.target.value))} placeholder="6-digit code" tabIndex={open ? 0 : -1} />
+      <div className={`dp-sec-body dp-form is-${ls}`}>
+        <TextField
+          ls={ls}
+          id="dp-sec-sms"
+          label="Mobile verification code"
+          hint="Code will be sent to +852 91***21"
+          value={sms}
+          onChange={(v) => setSms(digits(v))}
+          placeholder="6-digit code"
+          inputProps={{ inputMode: "numeric", autoComplete: "one-time-code", tabIndex: open ? 0 : -1 }}
+          action={
             <button type="button" className="dp-paste" disabled={left > 0} tabIndex={open ? 0 : -1} onClick={() => setLeft(60)}>
               {left ? `Resend in ${left}s` : "Send code"}
             </button>
-          </span>
-        </Field>
-        <Field label="Authenticator code" hint="Enter the 6-digit code from your authenticator app">
-          <input className="dp-input" inputMode="numeric" value={ga} onChange={(e) => setGa(digits(e.target.value))} placeholder="6-digit code" tabIndex={open ? 0 : -1} />
-        </Field>
+          }
+        />
+        <TextField
+          ls={ls}
+          id="dp-sec-ga"
+          label="Authenticator code"
+          hint="Enter the 6-digit code from your authenticator app"
+          value={ga}
+          onChange={(v) => setGa(digits(v))}
+          placeholder="6-digit code"
+          inputProps={{ inputMode: "numeric", tabIndex: open ? 0 : -1 }}
+        />
       </div>
       <div className="dp-leave-btns">
         <button type="button" className="oc-btn is-primary" disabled={!ok} tabIndex={open ? 0 : -1} onClick={onSubmit}>
@@ -1016,6 +1076,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta" }) {
             d={d}
             ls={labelStyle}
             sheet={sheet}
+            onPickAsset={() => setSheet("asset")}
             onPickNet={() => setSheet("network")}
             onBack={pop}
             onConnect={() => setSheet("wallets")}
@@ -1028,6 +1089,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta" }) {
             d={d}
             ls={labelStyle}
             sheet={sheet}
+            onPickAsset={() => setSheet("asset")}
             onPickNet={() => setSheet("network")}
             onBack={pop}
             onNext={() => push("sign")}
@@ -1119,8 +1181,21 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta" }) {
         onClose={closeSheet("wallets")}
         options={WALLETS.map(([k, name]) => ({ value: k, label: name, icon: <WalletBadge k={k} />, name: "Installed" }))}
       />
+      <TokenSheet
+        open={sheet === "asset"}
+        title="Select asset"
+        value={d.asset}
+        onPick={(c) => {
+          if (c === d.asset) return;
+          const nets = NETWORKS[c] || [];
+          setD((x) => ({ ...x, asset: c, net: nets.length === 1 ? nets[0][0] : null }));
+          setWl((x) => ({ ...x, addr: "" }));
+        }}
+        onClose={closeSheet("asset")}
+        options={KINDS.crypto.assets.map((c) => ({ value: c, label: c, icon: <Icon c={c} />, name: CCY[c].name, tag: CCY[c].pi ? "PI" : undefined }))}
+      />
       <HowSheet open={sheet === "how"} onClose={closeSheet("how")} />
-      <SecuritySheet open={sheet === "security"} onClose={closeSheet("security")} onSubmit={whitelist} />
+      <SecuritySheet ls={labelStyle} open={sheet === "security"} onClose={closeSheet("security")} onSubmit={whitelist} />
       <LeaveSheet
         open={leaving}
         onStay={() => setLeaving(false)}

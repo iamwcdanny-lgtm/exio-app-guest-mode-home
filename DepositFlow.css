@@ -826,3 +826,144 @@ textarea.dp-input {
   font-size: 11px;
   color: rgba(255, 255, 255, 0.35);
 }
+
+/* ---------- Text fields that follow the Input style ---------- */
+/* Gaps between fields, as on the OTC form: IFTA 16, Floating 20, Traditional 24. */
+.dp-form.is-ifta {
+  gap: 16px;
+}
+.dp-form.is-float {
+  gap: 20px;
+}
+.dp-form.is-trad {
+  gap: 24px;
+}
+.dp-pick-sub {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+}
+.dp-tf {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dp-tf-box {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.dp-tf.is-focused .dp-tf-box {
+  border-color: rgba(0, 0, 0, 0.9);
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.9);
+}
+.dp-tf.is-error .dp-tf-box {
+  border-color: #e5484d;
+  box-shadow: inset 0 0 0 0.5px #e5484d;
+}
+.dp-tf.is-disabled .dp-tf-box {
+  background: rgba(0, 0, 0, 0.03);
+}
+.dp-tf-input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+}
+.dp-tf-input::placeholder {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.3);
+}
+.dp-tf-box.has-action .dp-tf-input {
+  padding-right: 92px;
+}
+.dp-tf-box .dp-paste {
+  top: 50%;
+  transform: translateY(-50%);
+}
+.dp-tf-label {
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+  transition: top 0.2s ease, font-size 0.2s ease, color 0.2s ease;
+}
+.dp-tf.is-focused .dp-tf-label {
+  color: rgba(0, 0, 0, 0.9);
+}
+.dp-tf.is-error .dp-tf-label {
+  color: #e5484d;
+}
+/* IFTA: 56px box, small label at the top inside. */
+.dp-tf.is-ifta .dp-tf-box {
+  height: 56px;
+  gap: 2px;
+  padding: 8px 12px;
+}
+/* Floating: 48px box, label rests inside and rides up onto the border. */
+.dp-tf.is-float .dp-tf-box {
+  height: 48px;
+  padding: 0 12px;
+}
+.dp-tf.is-float .dp-tf-label {
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  z-index: 1;
+  transform: translateY(-50%);
+  padding: 0 4px;
+  background: #fff;
+  font-size: 14px;
+  line-height: 1;
+  white-space: nowrap;
+  color: rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+.dp-tf.is-float.is-up .dp-tf-label {
+  top: 0;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.6);
+}
+.dp-tf.is-float.is-focused .dp-tf-label {
+  color: rgba(0, 0, 0, 0.9);
+}
+.dp-tf.is-float.is-error .dp-tf-label {
+  color: #e5484d;
+}
+.dp-tf.is-float.is-disabled .dp-tf-label {
+  background: linear-gradient(#fff 50%, transparent 50%);
+}
+/* Traditional: label above a grey 48px box. */
+.dp-tf.is-trad .dp-tf-label {
+  font-size: 12px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.6);
+}
+.dp-tf.is-trad .dp-tf-box {
+  height: 48px;
+  padding: 0 12px;
+  border-color: transparent;
+  background: rgba(0, 0, 0, 0.03);
+}
+.dp-tf.is-trad.is-focused .dp-tf-box {
+  background: #fff;
+}
+/* The pickers on these forms run the full row. */
+.dp-form > .dp-pick,
+.dp-form > .dp-trad {
+  align-self: stretch;
+}

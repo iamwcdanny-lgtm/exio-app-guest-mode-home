@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import PhoneLayer from "./PhoneLayer";
 import TokenSheet from "./TokenSheet";
@@ -633,23 +633,36 @@ const Field = ({ label, children, hint, error }) => (
 // Text field that follows the prototype's Input style, like the pickers:
 // ifta (label inside, top), float (label rests in the box, rises onto the
 // border), trad (label above). action: a text button inside on the right.
-const TextField = ({ ls = "ifta", id, label, value, onChange, placeholder = "", hint, error, disabled, action, onBlur, inputProps = {} }) => {
+// multiline: a textarea that grows with its content (e.g. a full address that
+// needs two rows) instead of scrolling sideways; Enter doesn't add a line.
+const TextField = ({ ls = "ifta", id, label, value, onChange, placeholder = "", hint, error, disabled, action, onBlur, multiline = false, inputProps = {} }) => {
   const [focused, setFocused] = useState(false);
   const up = ls !== "float" || focused || value !== "";
+  const ta = useRef(null);
+  useLayoutEffect(() => {
+    const el = ta.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [value, multiline]);
+  const Input = multiline ? "textarea" : "input";
   const box = (
-    <span className={`dp-tf-box${action ? " has-action" : ""}`}>
+    <span className={`dp-tf-box${action ? " has-action" : ""}${multiline ? " is-multi" : ""}`}>
       {ls === "ifta" && (
         <label className="dp-tf-label" htmlFor={id}>
           {label}
         </label>
       )}
-      <input
+      <Input
         id={id}
+        ref={multiline ? ta : undefined}
+        rows={multiline ? 1 : undefined}
         className="dp-tf-input"
         value={value}
         disabled={disabled}
         placeholder={ls === "float" && !up ? "" : placeholder}
         onChange={(e) => onChange(e.target.value)}
+        onKeyDown={multiline ? (e) => e.key === "Enter" && e.preventDefault() : undefined}
         {...inputProps}
         onFocus={() => setFocused(true)}
         onBlur={() => {
@@ -742,6 +755,7 @@ const AddrPage = ({ d, ls, sheet, onPickAsset, onPickNet, onBack, onNext, remark
         <TextField
           ls={ls}
           id="dp-sig-addr"
+          multiline
           label="Address"
           value={addr}
           onChange={(v) => setAddr(v.trim())}

@@ -970,3 +970,30 @@ textarea.dp-input {
 .dp-form > .dp-trad {
   align-self: stretch;
 }
+/* Multi-line text field (address): the box grows instead of scrolling. */
+.dp-tf-box.is-multi {
+  height: auto !important;
+  justify-content: flex-start;
+}
+.dp-tf.is-ifta .dp-tf-box.is-multi {
+  min-height: 56px;
+}
+.dp-tf.is-float .dp-tf-box.is-multi,
+.dp-tf.is-trad .dp-tf-box.is-multi {
+  min-height: 48px;
+  padding-top: 13px;
+  padding-bottom: 13px;
+}
+.dp-tf.is-float .dp-tf-box.is-multi .dp-tf-label {
+  top: 24px;
+}
+.dp-tf.is-float.is-up .dp-tf-box.is-multi .dp-tf-label {
+  top: 0;
+}
+textarea.dp-tf-input {
+  display: block;
+  resize: none;
+  overflow: hidden;
+  word-break: break-all;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}

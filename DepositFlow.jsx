@@ -166,17 +166,28 @@ const SlideToConfirm = ({ label = "Slide to confirm", onDone }) => {
 };
 
 /* ---------- Step 6–8: amount, verification, slide ---------- */
-const Picker = ({ label, open, onOpen, children }) => (
-  <button type="button" className={`oc-xpick dp-pick${open ? " is-open" : ""}`} aria-haspopup="dialog" aria-expanded={open} onClick={onOpen}>
-    <span className="otc-label">{label}</span>
-    <span className="oc-xpick-row">
-      {children}
-      <img className="sel-caret" src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
-    </span>
-  </button>
-);
+// ls: the prototype's Input style — "ifta" (label inside, top), "float"
+// (label on the border), "trad" (label above a grey box).
+const Picker = ({ label, open, onOpen, children, ls = "ifta" }) => {
+  const btn = (
+    <button type="button" className={`oc-xpick dp-pick is-${ls}${open ? " is-open" : ""}`} aria-haspopup="dialog" aria-expanded={open} aria-label={ls === "trad" ? label : undefined} onClick={onOpen}>
+      {ls !== "trad" && <span className="otc-label">{label}</span>}
+      <span className="oc-xpick-row">
+        {children}
+        <img className="sel-caret" src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
+      </span>
+    </button>
+  );
+  if (ls !== "trad") return btn;
+  return (
+    <div className="dp-trad">
+      <span className="dp-trad-label">{label}</span>
+      {btn}
+    </div>
+  );
+};
 
-const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed }) => {
+const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta" }) => {
   const c = d.asset;
   const fiat = d.kind === "fiat";
   const [amt, setAmt] = useState("");
@@ -207,9 +218,9 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed }) => {
   return (
     <div className="oc-screen oc-page dp-page is-amount">
       <AppBar title={`Deposit ${c}`} onBack={(e) => onBack(amt !== "" || locked)} slide={false} />
-      <div className="oc-page-body dp-body otc otc-style-ifta">
+      <div className={`oc-page-body dp-body otc otc-style-${ls}`}>
         {!fiat && (
-          <Picker label="Network" open={sheet === "network"} onOpen={onPickNet}>
+          <Picker ls={ls} label="Network" open={sheet === "network"} onOpen={onPickNet}>
             <b className={noNet ? "is-placeholder" : ""}>{noNet ? "Select network" : NET[d.net].name}</b>
           </Picker>
         )}
@@ -218,7 +229,14 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed }) => {
           <b>{fiat ? "A new bank account" : "A new address"}</b>
         </div>
         <div className="otc-fields">
-          <div className={`otc-amount is-pay is-up${focused ? " is-focused" : ""}${locked ? " is-locked" : ""}${noNet ? " is-dim" : ""}`}>
+          <div className={`otc-amount is-pay${ls !== "float" || focused || amt !== "" ? " is-up" : ""}${focused ? " is-focused" : ""}${locked ? " is-locked" : ""}${noNet ? " is-dim" : ""}`}>
+            {ls === "trad" && (
+              <div className="otc-amount-head">
+                <label className="otc-label" htmlFor="dp-amt">
+                  Intended deposit amount
+                </label>
+              </div>
+            )}
             <div
               className="otc-amount-box"
               onMouseDown={(e) => {
@@ -227,11 +245,13 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed }) => {
                 ref.current?.focus();
               }}
             >
-              <div className="otc-amount-head">
-                <label className="otc-label" htmlFor="dp-amt">
-                  Intended deposit amount
-                </label>
-              </div>
+              {ls === "ifta" && (
+                <div className="otc-amount-head">
+                  <label className="otc-label" htmlFor="dp-amt">
+                    Intended deposit amount
+                  </label>
+                </div>
+              )}
               <div className="otc-amount-row">
                 <input
                   ref={ref}
@@ -239,7 +259,7 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed }) => {
                   className="otc-input"
                   inputMode="decimal"
                   autoComplete="off"
-                  placeholder="0"
+                  placeholder={ls === "float" && !focused ? "" : "0"}
                   readOnly={locked}
                   disabled={noNet}
                   value={focused ? amt : group(amt)}
@@ -253,6 +273,11 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed }) => {
                   <b>{c}</b>
                 </span>
               </div>
+              {ls === "float" && (
+                <label className="otc-label" htmlFor="dp-amt">
+                  Intended deposit amount
+                </label>
+              )}
             </div>
           </div>
         </div>
@@ -503,7 +528,7 @@ const LeaveSheet = ({ open, onStay, onLeave }) => (
 );
 
 /* ---------- The flow ---------- */
-export default function DepositFlow({ open, onClose }) {
+export default function DepositFlow({ open, onClose, labelStyle = "ifta" }) {
   const [sheet, setSheet] = useState(null); // source | network
   const [d, setD] = useState({});
   const [tokenPage, setTokenPage] = useState(false);
@@ -573,6 +598,7 @@ export default function DepositFlow({ open, onClose }) {
         {stack.includes("amount") && (
           <AmountPage
             key={d.asset}
+            ls={labelStyle}
             d={d}
             sheet={sheet}
             onPickNet={() => setSheet("network")}

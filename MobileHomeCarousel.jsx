@@ -1006,7 +1006,7 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
           ) : tab === "rwa" ? (
             rwaView === "asset" ? <RwaExplore labelStyle={labelStyle} /> : <RwaPage labelStyle={labelStyle} cardStyle={cardStyle} pdUser={pdUser} setPdUser={setPdUser} onImmersive={setImmersive} />
           ) : home === "member" ? (
-            <LoggedInHome key={welcome.n} welcome={welcome.text} />
+            <LoggedInHome key={welcome.n} welcome={welcome.text} labelStyle={labelStyle} />
           ) : (
           <>
           <Header />

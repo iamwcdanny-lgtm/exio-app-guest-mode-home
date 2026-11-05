@@ -423,3 +423,49 @@
 .otc-amount.is-dim {
   opacity: 0.4;
 }
+
+/* Input style variants of the Network selector (Prototype controls → Input style) */
+.dp-pick.is-float {
+  position: relative;
+  height: 48px;
+  justify-content: center;
+}
+.dp-pick.is-float .otc-label {
+  top: 0;
+  left: 8px;
+}
+.dp-pick.is-float.is-open .otc-label {
+  color: rgba(0, 0, 0, 0.9);
+}
+.dp-trad {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dp-trad-label {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+}
+.dp-pick.is-trad {
+  height: 48px;
+  border-color: transparent;
+  background: rgba(0, 0, 0, 0.03);
+}
+.dp-pick.is-trad.is-open {
+  background: #fff;
+}
+/* Floating: the deposit amount has no Avail. row, so the box is a plain
+   64px field and the label rests on its vertical centre until it rises. */
+.dp-body.otc-style-float .otc-fields .otc-amount.is-pay .otc-amount-box {
+  height: 64px;
+  padding: 0 12px;
+  justify-content: center;
+}
+.dp-body.otc-style-float .otc-fields .otc-amount.is-pay .otc-amount-box .otc-label {
+  top: 50%;
+}
+.dp-body.otc-style-float .otc-fields .otc-amount.is-pay.is-up .otc-amount-box .otc-label {
+  top: 0;
+}

@@ -21,7 +21,7 @@ const TABS = [
   { key: "otc", label: "OTC", wallet: "OTC" },
 ];
 
-const LoggedInHome = ({ welcome = "" }) => {
+const LoggedInHome = ({ welcome = "", labelStyle = "ifta" }) => {
   const [hidden, setHidden] = useState(false);
   const [tab, setTab] = useState("custody");
   const [hideSmall, setHideSmall] = useState(true);
@@ -192,7 +192,7 @@ const LoggedInHome = ({ welcome = "" }) => {
       <div className={`lh-toast${toast ? " is-shown" : ""}`} role="status">
         {toast}
       </div>
-      <DepositFlow open={depositing} onClose={() => setDepositing(false)} />
+      <DepositFlow open={depositing} onClose={() => setDepositing(false)} labelStyle={labelStyle} />
     </div>
   );
 };

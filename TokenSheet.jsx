@@ -21,7 +21,7 @@ export const ChipCaret = () => (
   </svg>
 );
 
-export default function TokenSheet({ open, title = "Select currency", options, value, onPick, onClose, balanceLabel = "Avail." }) {
+export default function TokenSheet({ open, title = "Select currency", options, value, onPick, onClose, balanceLabel = "Avail.", note }) {
   useEffect(() => {
     if (!open) return undefined;
     const k = (e) => e.key === "Escape" && onClose();
@@ -36,6 +36,7 @@ export default function TokenSheet({ open, title = "Select currency", options, v
         <div className="tks-head">
           <h2>{title}</h2>
         </div>
+        {note && <p className="tks-note">{note}</p>}
         <div className="tks-list" role="radiogroup" aria-label={title}>
           {options.map((o) => (
             <button

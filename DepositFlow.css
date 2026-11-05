@@ -490,3 +490,339 @@
 .dp-page {
   isolation: isolate;
 }
+
+/* ---------- Add new wallet ---------- */
+.tks-note {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(0, 120, 255, 0.06);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+}
+.dp-micon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.8);
+}
+.dp-wbadge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+}
+.dp-tag.is-new {
+  background: rgba(0, 214, 144, 0.12);
+  color: #00a874;
+}
+.dp-cell.is-new {
+  box-shadow: inset 0 0 0 1.5px #00d690;
+}
+.dp-pick.is-fixed {
+  cursor: default;
+  background: rgba(0, 0, 0, 0.03);
+}
+.dp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dp-field-label {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+}
+.dp-field-hint {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+}
+.dp-field.is-error .dp-field-hint,
+.dp-field-hint.is-error {
+  color: #e5484d;
+}
+.dp-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.dp-input {
+  width: 100%;
+  min-width: 0;
+  height: 48px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.9);
+  outline: none;
+}
+.dp-input::placeholder {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.3);
+}
+.dp-input:focus {
+  box-shadow: inset 0 0 0 1.5px rgba(0, 0, 0, 0.9);
+}
+.dp-input:disabled {
+  background: rgba(0, 0, 0, 0.03);
+}
+.dp-field.is-error .dp-input {
+  box-shadow: inset 0 0 0 1.5px #e5484d;
+}
+.dp-input-wrap .dp-input {
+  padding-right: 96px;
+}
+textarea.dp-input {
+  height: auto;
+  padding: 12px 12px 36px;
+  resize: none;
+  font-weight: 500;
+  word-break: break-all;
+  line-height: 20px;
+}
+.dp-input-wrap.is-area .dp-input {
+  padding-right: 12px;
+}
+.dp-paste {
+  position: absolute;
+  right: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0a84ff;
+  cursor: pointer;
+}
+.dp-paste:disabled {
+  color: rgba(0, 0, 0, 0.25);
+  cursor: default;
+}
+.dp-input-wrap.is-area .dp-paste {
+  bottom: 6px;
+}
+.dp-agree {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  font: inherit;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+}
+.dp-agree u {
+  text-decoration: none;
+  color: #0a84ff;
+}
+.dp-check {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px rgba(0, 0, 0, 0.25);
+}
+.dp-check.is-on {
+  background: #00d690;
+  box-shadow: none;
+}
+/* Address ownership verification */
+.dp-sign-head h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 700;
+}
+.dp-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.dp-steps li {
+  display: flex;
+  gap: 10px;
+}
+.dp-step-n {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+.dp-step-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.dp-step-body > b {
+  font-size: 14px;
+  line-height: 20px;
+}
+.dp-step-body .dp-input-wrap {
+  align-self: stretch;
+}
+.dp-msg {
+  align-self: stretch;
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.03);
+}
+.dp-msg p {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.dp-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0a84ff;
+  cursor: pointer;
+}
+.dp-how-list {
+  margin: 0 0 24px;
+  padding-left: 20px;
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.7);
+}
+.dp-how-list li + li {
+  margin-top: 6px;
+}
+.dp-sec-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+/* Simulated wallet app */
+.dp-wapp {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  background: #141414;
+  color: #fff;
+  animation: dp-fade 0.2s ease;
+}
+@keyframes dp-fade {
+  from {
+    opacity: 0;
+  }
+}
+.dp-wapp-top {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.dp-wapp-top small {
+  color: rgba(255, 255, 255, 0.5);
+}
+.dp-wapp-sheet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 16px calc(16px + var(--dc-bottom, 0px));
+  border-radius: 16px 16px 0 0;
+  background: #222;
+  animation: dp-rise 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.dp-wapp-logo {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #fff;
+  color: #000;
+  font-weight: 800;
+}
+.dp-wapp-sheet h2 {
+  margin: 0;
+  font-size: 16px;
+}
+.dp-wapp-sheet ul {
+  align-self: stretch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.dp-wapp-sheet li {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 13px;
+}
+.dp-wapp-sheet li small {
+  color: rgba(255, 255, 255, 0.5);
+}
+.dp-wapp-sheet .dp-leave-btns {
+  align-self: stretch;
+}
+.dp-wapp-sheet .oc-btn.is-outline {
+  background: none;
+  color: #fff;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.6);
+}
+.dp-wapp-hint {
+  margin: 0;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+}

@@ -169,15 +169,22 @@ const SlideToConfirm = ({ label = "Slide to confirm", onDone }) => {
 /* ---------- Step 6–8: amount, verification, slide ---------- */
 // ls: the prototype's Input style — "ifta" (label inside, top), "float"
 // (label on the border), "trad" (label above a grey box).
-const Picker = ({ label, open, onOpen, children, ls = "ifta" }) => {
+// fixed: shows the value only (no caret, not tappable), e.g. the asset when
+// whitelisting an address for it.
+const Picker = ({ label, open, onOpen, children, ls = "ifta", fixed = false }) => {
+  const Tag = fixed ? "div" : "button";
   const btn = (
-    <button type="button" className={`oc-xpick dp-pick is-${ls}${open ? " is-open" : ""}`} aria-haspopup="dialog" aria-expanded={open} aria-label={ls === "trad" ? label : undefined} onClick={onOpen}>
+    <Tag
+      {...(fixed ? {} : { type: "button", onClick: onOpen, "aria-haspopup": "dialog", "aria-expanded": open })}
+      className={`oc-xpick dp-pick is-${ls}${open ? " is-open" : ""}${fixed ? " is-fixed" : ""}`}
+      aria-label={ls === "trad" ? label : undefined}
+    >
       {ls !== "trad" && <span className="otc-label">{label}</span>}
       <span className="oc-xpick-row">
         {children}
-        <img className="sel-caret" src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
+        {!fixed && <img className="sel-caret" src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />}
       </span>
-    </button>
+    </Tag>
   );
   if (ls !== "trad") return btn;
   return (
@@ -335,9 +342,9 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta" }) =
 };
 
 /* ---------- Step 10–11: whitelisted list ---------- */
-const ListPage = ({ d, onBack, onPick, onAdd }) => {
+const ListPage = ({ d, added = [], onBack, onPick, onAdd }) => {
   const fiat = d.kind === "fiat";
-  const list = WHITELIST[d.asset] || [];
+  const list = [...added, ...(WHITELIST[d.asset] || [])];
   return (
     <div className="oc-screen oc-page dp-page is-list">
       <AppBar title={fiat ? "Select bank account" : "Select wallet"} onBack={onBack} />
@@ -345,7 +352,7 @@ const ListPage = ({ d, onBack, onPick, onAdd }) => {
         <p className="dp-lead">Choose where you’ll send {d.asset} from.</p>
         <div className="dp-list">
           {list.map((w) => (
-            <button key={w.id} type="button" className="dp-cell" onClick={() => onPick(w)}>
+            <button key={w.id} type="button" className={`dp-cell${w.isNew ? " is-new" : ""}`} onClick={() => onPick(w)}>
               {w.net === "bank" ? (
                 <span className="dp-cell-text">
                   <b>{w.label}</b>
@@ -358,6 +365,7 @@ const ListPage = ({ d, onBack, onPick, onAdd }) => {
                   <small>
                     {w.label}
                     <span className="dp-tag">{w.net}</span>
+                    {w.isNew && <span className="dp-tag is-new">Just added</span>}
                   </small>
                 </span>
               )}
@@ -552,6 +560,350 @@ const LeaveSheet = ({ open, onStay, onLeave }) => (
   </PhoneLayer>
 );
 
+/* ---------- Add new wallet (2026-11-05) ----------
+   Add new wallet → sheet: Small-amount verification | WalletConnect | Signature verification
+   Small amount: the New-address amount page (verified by the deposit itself).
+   WalletConnect: Add whitelist address (network, remarks, terms) → Connect wallet
+     sheet → the wallet app asks to connect → Security verification → list.
+   Signature: Add whitelist address (network, address, remarks) → Address ownership
+     verification (copy message, sign in wallet, paste result) → Security
+     verification → list.
+   Reorganised from EXIO Mobile 19776:127306: the Wallet / Manual radio on the
+   form is now the choice in the sheet. Wallet apps, codes and signatures are
+   simulated; any 6 digits pass. */
+const LOCK_NOTE = "For added security, a 4-hour lock is implemented on fund withdrawals for newly whitelisted addresses.";
+const WALLETS = [
+  ["metamask", "MetaMask", "#f6851b"],
+  ["coinbase", "Coinbase Wallet", "#0052ff"],
+  ["okx", "OKX Wallet", "#111"],
+  ["phantom", "Phantom", "#ab9ff2"],
+  ["trust", "Trust Wallet", "#0500ff"],
+];
+const WALLET = Object.fromEntries(WALLETS.map(([k, name, bg]) => [k, { name, bg }]));
+const WalletBadge = ({ k, size = 32 }) => (
+  <span className="dp-wbadge" style={{ width: size, height: size, background: WALLET[k].bg }} aria-hidden="true">
+    {WALLET[k].name[0]}
+  </span>
+);
+// Demo addresses a connected wallet / the Paste button hands over, per network.
+const DEMO_ADDR = {
+  BTC: "bc1q9h7garjk7xg4ek3gf9xkqrz7dhpcm4nn2ul8qx",
+  ERC20: "0x451ceE9936cE1F566DfA4b09E09e3485DC17a1de",
+  TRC20: "TJ4r8qWm2Xc7Vb3Nk9Lp5Hd6Ys1FgPQa8z",
+  SOL: "5YNmS1R9nNSCDzb5a7mMJ1dwK9uHeAAF4CmPEwKgVWr8",
+};
+const ADDR_RE = {
+  BTC: /^(bc1[02-9ac-hj-np-z]{25,60}|[13][1-9A-HJ-NP-Za-km-z]{25,34})$/,
+  ERC20: /^0x[0-9a-fA-F]{40}$/,
+  TRC20: /^T[1-9A-HJ-NP-Za-km-z]{33}$/,
+  SOL: /^[1-9A-HJ-NP-Za-km-z]{32,44}$/,
+};
+const DEMO_SIG =
+  "0x38e83f5b0d3ae0d392c09cfe7ac78bf9e480acd55e491cf9a47207ea7639303d359547ab324580b7d37aab3464ccd919f701d4d0a6a2a0aa82d5088aae5f1dc51b";
+
+const MethodIcon = ({ k }) => (
+  <span className="dp-micon" aria-hidden="true">
+    {k === "small" && (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M3 10h14M10 3v14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        <circle cx="15.5" cy="15.5" r="2" fill="currentColor" />
+      </svg>
+    )}
+    {k === "connect" && (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M8.5 11.5l3-3M7 9l-1.8 1.8a2.5 2.5 0 0 0 3.5 3.5L10.5 13M13 11l1.8-1.8a2.5 2.5 0 0 0-3.5-3.5L9.5 7.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      </svg>
+    )}
+    {k === "sign" && (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M4 15.5c2-3 3.5-3 4.5-1.5s2 1.5 3.5-.5M12.5 4.5l3 3-6 6H6.5v-3l6-6z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    )}
+  </span>
+);
+
+const Field = ({ label, children, hint, error }) => (
+  <div className={`dp-field${error ? " is-error" : ""}`}>
+    <span className="dp-field-label">{label}</span>
+    {children}
+    {(error || hint) && <small className="dp-field-hint">{error || hint}</small>}
+  </div>
+);
+
+const Check = ({ on }) => (
+  <span className={`dp-check${on ? " is-on" : ""}`} aria-hidden="true">
+    {on && (
+      <svg width="12" height="12" viewBox="0 0 12 12">
+        <path d="M2.5 6.2l2.3 2.3L9.5 3.8" fill="none" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    )}
+  </span>
+);
+
+// The shared top of both Add whitelist address pages.
+const WlHead = ({ d, ls, sheet, onPickNet }) => (
+  <>
+    <div className="dp-note">{LOCK_NOTE}</div>
+    <div className="dp-picks">
+      <Picker ls={ls} label="Asset" fixed>
+        <Icon c={d.asset} size={20} />
+        <b>{d.asset}</b>
+      </Picker>
+      <Picker ls={ls} label="Network" open={sheet === "network"} onOpen={onPickNet}>
+        <b className={d.net ? "" : "is-placeholder"}>{d.net ? NET[d.net].name : "Select network"}</b>
+      </Picker>
+    </div>
+  </>
+);
+
+const ConnectPage = ({ d, ls, sheet, onPickNet, onBack, onConnect, remarks, setRemarks }) => {
+  const [agree, setAgree] = useState(false);
+  return (
+    <div className="oc-screen oc-page dp-page is-connect">
+      <AppBar title="Add whitelist address" onBack={onBack} />
+      <div className="oc-page-body dp-body">
+        <WlHead d={d} ls={ls} sheet={sheet} onPickNet={onPickNet} />
+        <Field label="Remarks (optional)">
+          <input className="dp-input" value={remarks} maxLength={30} onChange={(e) => setRemarks(e.target.value)} placeholder="e.g. My MetaMask" />
+        </Field>
+        <button type="button" className="dp-agree" role="checkbox" aria-checked={agree} onClick={() => setAgree((a) => !a)}>
+          <Check on={agree} />
+          <span>
+            I have read and agreed to EX.IO’s <u>Privacy Policy</u> and <u>Terms &amp; Conditions</u>.
+          </span>
+        </button>
+      </div>
+      <div className="oc-foot dp-foot">
+        <button type="button" className="oc-btn is-primary" disabled={!agree || !d.net} onClick={onConnect}>
+          Connect wallet
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const AddrPage = ({ d, ls, sheet, onPickNet, onBack, onNext, remarks, setRemarks, addr, setAddr }) => {
+  const [touched, setTouched] = useState(false);
+  const ok = d.net && ADDR_RE[d.net].test(addr.trim());
+  const err = touched && addr && d.net && !ok ? `Enter a valid ${NET[d.net].name} address` : "";
+  return (
+    <div className="oc-screen oc-page dp-page is-addr">
+      <AppBar title="Add whitelist address" onBack={onBack} />
+      <div className="oc-page-body dp-body">
+        <WlHead d={d} ls={ls} sheet={sheet} onPickNet={onPickNet} />
+        <Field label="Address" error={err}>
+          <span className="dp-input-wrap">
+            <input
+              className="dp-input"
+              value={addr}
+              disabled={!d.net}
+              onChange={(e) => setAddr(e.target.value.trim())}
+              onBlur={() => setTouched(true)}
+              placeholder={d.net ? "Enter or paste the address" : "Select a network first"}
+              spellCheck={false}
+              autoCapitalize="off"
+            />
+            <button type="button" className="dp-paste" disabled={!d.net} onClick={() => (setAddr(DEMO_ADDR[d.net]), setTouched(true))}>
+              Paste
+            </button>
+          </span>
+        </Field>
+        <Field label="Remarks (optional)">
+          <input className="dp-input" value={remarks} maxLength={30} onChange={(e) => setRemarks(e.target.value)} placeholder="e.g. My Ledger" />
+        </Field>
+      </div>
+      <div className="oc-foot dp-foot">
+        <button type="button" className="oc-btn is-primary" disabled={!ok} onClick={onNext}>
+          Next
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const SignPage = ({ addr, onBack, onHow, onSubmit, say }) => {
+  const [sig, setSig] = useState("");
+  const msg = useRef(
+    `It is hereby declared, on ${new Date().toISOString().slice(0, 10)}, that I/we own the wallet address ${addr} Nonce: ${Math.floor(Date.now() / 1000)}`
+  ).current;
+  const ok = /^0x[0-9a-fA-F]{64,}$/.test(sig.trim());
+  return (
+    <div className="oc-screen oc-page dp-page is-sign">
+      <AppBar title="Add whitelist address" onBack={onBack} />
+      <div className="oc-page-body dp-body">
+        <div className="dp-sign-head">
+          <h2>Address ownership verification</h2>
+          <p className="dp-lead">Sign the message below with this address’s wallet, then paste the signature here.</p>
+        </div>
+        <ol className="dp-steps">
+          <li>
+            <span className="dp-step-n">1</span>
+            <div className="dp-step-body">
+              <b>Copy the message</b>
+              <div className="dp-msg">
+                <p>{msg}</p>
+                <button
+                  type="button"
+                  className="dp-copy"
+                  aria-label="Copy message"
+                  onClick={() => {
+                    navigator.clipboard?.writeText(msg).catch(() => {});
+                    say("Message copied");
+                  }}
+                >
+                  <CopyIcon />
+                </button>
+              </div>
+            </div>
+          </li>
+          <li>
+            <span className="dp-step-n">2</span>
+            <div className="dp-step-body">
+              <b>Sign the copied message with your wallet</b>
+              <button type="button" className="dp-link" onClick={onHow}>
+                How to sign with your wallet?
+              </button>
+            </div>
+          </li>
+          <li>
+            <span className="dp-step-n">3</span>
+            <div className="dp-step-body">
+              <b>Paste the result</b>
+              <span className="dp-input-wrap is-area">
+                <textarea className="dp-input" rows={4} value={sig} onChange={(e) => setSig(e.target.value.trim())} placeholder="Paste the signature result here" spellCheck={false} />
+                <button type="button" className="dp-paste" onClick={() => setSig(DEMO_SIG)}>
+                  Paste
+                </button>
+              </span>
+              {sig && !ok && <small className="dp-field-hint is-error">This doesn’t look like a signature. It starts with 0x.</small>}
+            </div>
+          </li>
+        </ol>
+      </div>
+      <div className="oc-foot dp-foot">
+        <button type="button" className="oc-btn is-primary" disabled={!ok} onClick={onSubmit}>
+          Submit
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const BaseSheet = ({ open, onClose, title, children, className = "" }) => (
+  <PhoneLayer className="tks-layer">
+    <div className={`tks-scrim${open ? " is-open" : ""}`} onClick={onClose} aria-hidden="true" />
+    <div className={`tks-sheet ${className}${open ? " is-open" : ""}`} role="dialog" aria-modal="true" aria-label={title} aria-hidden={!open}>
+      <span className="tks-grab" aria-hidden="true" />
+      <div className="tks-head">
+        <h2>{title}</h2>
+      </div>
+      {children}
+    </div>
+  </PhoneLayer>
+);
+
+const HowSheet = ({ open, onClose }) => (
+  <BaseSheet open={open} onClose={onClose} title="How to sign with your wallet?" className="dp-how">
+    <ol className="dp-how-list">
+      <li>Copy the verification message provided by EX.IO.</li>
+      <li>Open your wallet (e.g. MetaMask, or another supported wallet).</li>
+      <li>Sign the message using the address you want to verify.</li>
+      <li>Copy the signed message from your wallet.</li>
+      <li>Paste and submit the signed message in the field on this page.</li>
+    </ol>
+    <div className="dp-leave-btns">
+      <button type="button" className="oc-btn is-primary" tabIndex={open ? 0 : -1} onClick={onClose}>
+        Got it
+      </button>
+    </div>
+  </BaseSheet>
+);
+
+const SecuritySheet = ({ open, onClose, onSubmit }) => {
+  const [sms, setSms] = useState("");
+  const [ga, setGa] = useState("");
+  const [left, setLeft] = useState(0);
+  useEffect(() => {
+    if (open) {
+      setSms("");
+      setGa("");
+      setLeft(0);
+    }
+  }, [open]);
+  useEffect(() => {
+    if (!left) return undefined;
+    const t = setTimeout(() => setLeft((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [left]);
+  const digits = (v) => v.replace(/\D/g, "").slice(0, 6);
+  const ok = sms.length === 6 && ga.length === 6;
+  return (
+    <BaseSheet open={open} onClose={onClose} title="Security verification" className="dp-sec">
+      <div className="dp-sec-body">
+        <Field label="Mobile verification" hint="Code will be sent to +852 91***21">
+          <span className="dp-input-wrap">
+            <input className="dp-input" inputMode="numeric" autoComplete="one-time-code" value={sms} onChange={(e) => setSms(digits(e.target.value))} placeholder="6-digit code" tabIndex={open ? 0 : -1} />
+            <button type="button" className="dp-paste" disabled={left > 0} tabIndex={open ? 0 : -1} onClick={() => setLeft(60)}>
+              {left ? `Resend in ${left}s` : "Send code"}
+            </button>
+          </span>
+        </Field>
+        <Field label="Authenticator code" hint="Enter the 6-digit code from your authenticator app">
+          <input className="dp-input" inputMode="numeric" value={ga} onChange={(e) => setGa(digits(e.target.value))} placeholder="6-digit code" tabIndex={open ? 0 : -1} />
+        </Field>
+      </div>
+      <div className="dp-leave-btns">
+        <button type="button" className="oc-btn is-primary" disabled={!ok} tabIndex={open ? 0 : -1} onClick={onSubmit}>
+          Submit
+        </button>
+      </div>
+    </BaseSheet>
+  );
+};
+
+// Stand-in for the wallet app: "Opening…", then its connect request.
+const WalletApp = ({ k, onCancel, onConnect }) => {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setReady(true), 900);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <div className="dp-wapp" role="dialog" aria-modal="true" aria-label={WALLET[k].name}>
+      <div className="dp-wapp-top">
+        <WalletBadge k={k} size={56} />
+        <b>{WALLET[k].name}</b>
+        {!ready && <small>Opening…</small>}
+      </div>
+      {ready && (
+        <div className="dp-wapp-sheet">
+          <span className="dp-wapp-logo">EX</span>
+          <h2>EX.IO wants to:</h2>
+          <ul>
+            <li>
+              <b>See your accounts and suggest transactions</b>
+              <small>Requesting for Account 1</small>
+            </li>
+            <li>
+              <b>Use your enabled networks</b>
+              <small>Needed to verify the address on this network</small>
+            </li>
+          </ul>
+          <div className="dp-leave-btns">
+            <button type="button" className="oc-btn is-outline" onClick={onCancel}>
+              Cancel
+            </button>
+            <button type="button" className="oc-btn is-primary" onClick={onConnect}>
+              Connect
+            </button>
+          </div>
+          <p className="dp-wapp-hint">Simulated wallet app</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 /* ---------- The flow ---------- */
 export default function DepositFlow({ open, onClose, labelStyle = "ifta" }) {
   const [sheet, setSheet] = useState(null); // source | network
@@ -560,6 +912,9 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta" }) {
   const [stack, setStack] = useState([]); // pages over the token page: "list", "amount"
   const [detail, setDetail] = useState(null);
   const [leaving, setLeaving] = useState(false);
+  const [added, setAdded] = useState({}); // asset → wallets whitelisted in this session
+  const [wl, setWl] = useState({ remarks: "", addr: "", wallet: null, method: null });
+  const [wapp, setWapp] = useState(null); // wallet app being "opened"
   const picked = useRef(false); // the New / Existing sheet closed by a choice, not a dismiss
   const [toast, setToast] = useState("");
   const tt = useRef(null);
@@ -600,6 +955,29 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta" }) {
     setStack((s) => [...s.filter((x) => x !== "amount"), "amount"]);
   };
   const pop = () => setStack((s) => s.slice(0, -1));
+  const push = (pg) => setStack((s) => [...s.filter((x) => x !== pg), pg]);
+  const startAdd = (method) => {
+    const nets = NETWORKS[d.asset] || [];
+    setWl({ remarks: "", addr: "", wallet: null, method });
+    setD((x) => ({ ...x, net: nets.length === 1 ? nets[0][0] : null }));
+    push(method === "connect" ? "connect" : "addr");
+  };
+  // Security passed: the address joins the list, back to Select wallet.
+  const whitelist = () => {
+    setSheet(null);
+    const w = {
+      id: `n${Date.now()}`,
+      label: wl.remarks.trim() || (wl.wallet ? WALLET[wl.wallet].name : "Wallet"),
+      net: d.net,
+      addr: wl.method === "connect" ? DEMO_ADDR[d.net] : wl.addr,
+      isNew: true,
+    };
+    setAdded((a) => ({ ...a, [d.asset]: [w, ...(a[d.asset] || []).map((x) => ({ ...x, isNew: false }))] }));
+    setTimeout(() => {
+      setStack(["list"]);
+      say("Address added");
+    }, 280);
+  };
   const slideOut = (sel, then) => {
     document.querySelector(sel)?.classList.add("is-leaving");
     setTimeout(then, 240);
@@ -619,7 +997,9 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta" }) {
             }}
           />
         )}
-        {stack.includes("list") && <ListPage d={d} onBack={pop} onPick={(w) => setDetail({ ...d, from: w })} onAdd={toAmount} />}
+        {stack.includes("list") && (
+          <ListPage d={d} added={added[d.asset]} onBack={pop} onPick={(w) => setDetail({ ...d, from: w })} onAdd={() => (fiat ? toAmount() : setSheet("method"))} />
+        )}
         {stack.includes("amount") && (
           <AmountPage
             key={d.asset}
@@ -629,6 +1009,43 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta" }) {
             onPickNet={() => setSheet("network")}
             onBack={(dirty) => (dirty ? setLeaving(true) : slideOut(".dp-page.is-amount", pop))}
             onConfirmed={(r) => setDetail({ ...d, ...r, from: null })}
+          />
+        )}
+        {stack.includes("connect") && (
+          <ConnectPage
+            d={d}
+            ls={labelStyle}
+            sheet={sheet}
+            onPickNet={() => setSheet("network")}
+            onBack={pop}
+            onConnect={() => setSheet("wallets")}
+            remarks={wl.remarks}
+            setRemarks={(v) => setWl((x) => ({ ...x, remarks: v }))}
+          />
+        )}
+        {stack.includes("addr") && (
+          <AddrPage
+            d={d}
+            ls={labelStyle}
+            sheet={sheet}
+            onPickNet={() => setSheet("network")}
+            onBack={pop}
+            onNext={() => push("sign")}
+            remarks={wl.remarks}
+            setRemarks={(v) => setWl((x) => ({ ...x, remarks: v }))}
+            addr={wl.addr}
+            setAddr={(v) => setWl((x) => ({ ...x, addr: v }))}
+          />
+        )}
+        {stack.includes("sign") && <SignPage addr={wl.addr} onBack={pop} onHow={() => setSheet("how")} onSubmit={() => setSheet("security")} say={say} />}
+        {wapp && (
+          <WalletApp
+            k={wapp}
+            onCancel={() => setWapp(null)}
+            onConnect={() => {
+              setWapp(null);
+              setTimeout(() => setSheet("security"), 200);
+            }}
           />
         )}
         {detail && <DetailPage d={detail} onDone={finish} say={say} />}
@@ -674,6 +1091,36 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta" }) {
         onClose={closeSheet("network")}
         options={(NETWORKS[d.asset] || []).map(([k, name, conf]) => ({ value: k, label: name, name: `Arrives after ${conf}` }))}
       />
+      <TokenSheet
+        open={sheet === "method"}
+        title="Add new wallet"
+        value={null}
+        onPick={(m) => {
+          picked.current = true;
+          if (m === "small") toAmount();
+          else startAdd(m);
+        }}
+        onClose={closeSheet("method")}
+        options={[
+          { value: "small", icon: <MethodIcon k="small" />, label: "Small-amount verification", name: "Deposit with a small extra amount; whitelisted when it arrives" },
+          { value: "connect", icon: <MethodIcon k="connect" />, label: "WalletConnect", name: "Connect your wallet app to prove you own the address" },
+          { value: "sign", icon: <MethodIcon k="sign" />, label: "Signature verification", name: "Sign a message in your wallet and paste the result" },
+        ]}
+      />
+      <TokenSheet
+        open={sheet === "wallets"}
+        title="Connect wallet"
+        note="If you don’t have a wallet yet, you can select a provider and create one now."
+        value={null}
+        onPick={(k) => {
+          setWl((x) => ({ ...x, wallet: k }));
+          setTimeout(() => setWapp(k), 250);
+        }}
+        onClose={closeSheet("wallets")}
+        options={WALLETS.map(([k, name]) => ({ value: k, label: name, icon: <WalletBadge k={k} />, name: "Installed" }))}
+      />
+      <HowSheet open={sheet === "how"} onClose={closeSheet("how")} />
+      <SecuritySheet open={sheet === "security"} onClose={closeSheet("security")} onSubmit={whitelist} />
       <LeaveSheet
         open={leaving}
         onStay={() => setLeaving(false)}

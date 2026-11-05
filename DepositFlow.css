@@ -469,3 +469,8 @@
 .dp-body.otc-style-float .otc-fields .otc-amount.is-pay.is-up .otc-amount-box .otc-label {
   top: 0;
 }
+/* Each page is its own stacking context, so a lifted floating label
+   (z-index 1) on a page underneath never shows through the page above. */
+.dp-page {
+  isolation: isolate;
+}

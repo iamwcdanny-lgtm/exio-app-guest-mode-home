@@ -346,13 +346,21 @@ const ListPage = ({ d, onBack, onPick, onAdd }) => {
         <div className="dp-list">
           {list.map((w) => (
             <button key={w.id} type="button" className="dp-cell" onClick={() => onPick(w)}>
-              <span className="dp-cell-text">
-                <b>
-                  {w.label}
-                  {w.net !== "bank" && <span className="dp-tag">{w.net}</span>}
-                </b>
-                <small>{w.net === "bank" ? w.addr : short(w.addr)}</small>
-              </span>
+              {w.net === "bank" ? (
+                <span className="dp-cell-text">
+                  <b>{w.label}</b>
+                  <small>{w.addr}</small>
+                </span>
+              ) : (
+                /* Wallet: the full address is the title; name + network underneath */
+                <span className="dp-cell-text is-addr">
+                  <b className="dp-cell-addr">{w.addr}</b>
+                  <small>
+                    {w.label}
+                    <span className="dp-tag">{w.net}</span>
+                  </small>
+                </span>
+              )}
               <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-chev" />
             </button>
           ))}

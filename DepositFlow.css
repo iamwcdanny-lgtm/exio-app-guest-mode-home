@@ -223,6 +223,20 @@
   color: rgba(0, 0, 0, 0.6);
   font-feature-settings: "lnum" 1, "tnum" 1;
 }
+.dp-cell-text.is-addr {
+  gap: 4px;
+  padding: 12px 0;
+}
+.dp-cell-text b.dp-cell-addr {
+  display: block;
+  word-break: break-all;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+.dp-cell-text.is-addr small {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .dp-chev {
   flex: none;
   transform: rotate(-90deg);

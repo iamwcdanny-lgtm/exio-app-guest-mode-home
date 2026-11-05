@@ -197,6 +197,7 @@
   background: none;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
   font-family: inherit;
+  color: rgba(0, 0, 0, 0.9);
   text-align: left;
 }
 .dp-cell:active {
@@ -229,6 +230,7 @@
 }
 .dp-cell-text b.dp-cell-addr {
   display: block;
+  color: rgba(0, 0, 0, 0.9);
   word-break: break-all;
   font-feature-settings: "lnum" 1, "tnum" 1;
 }

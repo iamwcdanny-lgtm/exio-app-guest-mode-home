@@ -944,8 +944,11 @@ textarea.dp-input {
 .dp-tf.is-float.is-error .dp-tf-label {
   color: #e5484d;
 }
-.dp-tf.is-float.is-disabled .dp-tf-label {
-  background: linear-gradient(#fff 50%, transparent 50%);
+.dp-tf.is-float.is-disabled:not(.is-up) .dp-tf-label {
+  background: none;
+}
+.dp-tf.is-float.is-disabled.is-up .dp-tf-label {
+  background: linear-gradient(#fff 50%, #f7f7f7 50%);
 }
 /* Traditional: label above a grey 48px box. */
 .dp-tf.is-trad .dp-tf-label {

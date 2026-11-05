@@ -1019,7 +1019,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta" }) {
   const startAdd = (method) => {
     const nets = NETWORKS[d.asset] || [];
     setWl({ remarks: "", addr: "", wallet: null, method });
-    setD((x) => ({ ...x, net: nets.length === 1 ? nets[0][0] : null }));
+    setD((x) => ({ ...x, net: nets[0]?.[0] ?? null }));
     push(method === "connect" ? "connect" : "addr");
   };
   // Security passed: the address joins the list, back to Select wallet.
@@ -1188,7 +1188,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta" }) {
         onPick={(c) => {
           if (c === d.asset) return;
           const nets = NETWORKS[c] || [];
-          setD((x) => ({ ...x, asset: c, net: nets.length === 1 ? nets[0][0] : null }));
+          setD((x) => ({ ...x, asset: c, net: nets[0]?.[0] ?? null }));
           setWl((x) => ({ ...x, addr: "" }));
         }}
         onClose={closeSheet("asset")}

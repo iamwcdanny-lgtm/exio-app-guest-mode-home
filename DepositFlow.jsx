@@ -13,8 +13,9 @@ import "./DepositFlow.css";
 //   Existing: select wallet (page, + Add new wallet → New) → details + QR
 // Pages stack: back from a page returns to the one under it; back from the
 // amount page asks first once something has been entered.
-// Fiat follows the same steps with bank accounts instead of addresses and no
-// network; its details show EXIO's bank account instead of a QR code.
+// Fiat follows the same steps with bank accounts instead of addresses, no
+// network and no verification amount (the bank account must be in the user's
+// name); its details show EXIO's bank account instead of a QR code.
 // Addresses, bank details and amounts are placeholders.
 
 const KINDS = {
@@ -207,8 +208,10 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta" }) =
   }, [c, d.net]);
   const noNet = !fiat && !d.net;
   const v = parseFloat(amt) || 0;
-  const tdp = Math.max(dpOf(c), verDp(c));
-  const total = v + ver;
+  // Fiat has no small-amount verification: the total is the amount itself.
+  const vv = fiat ? 0 : ver;
+  const tdp = fiat ? dpOf(c) : Math.max(dpOf(c), verDp(c));
+  const total = v + vv;
   const confirm = () => {
     if (!v) return;
     setVer(makeVer(c)); // a fresh tail each time the amount is set
@@ -292,33 +295,39 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta" }) =
         )}
         {locked && (
           <section className="dp-verify" aria-live="polite">
-            <div className="dp-row">
-              <span>Intended amount</span>
-              <b>
-                {fmtDp(v, dpOf(c))} {c}
-              </b>
-            </div>
-            <div className="dp-row">
-              <span>Verification amount</span>
-              <b className="is-accent">
-                + {fmtDp(ver, verDp(c))} {c}
-              </b>
-            </div>
-            <div className="dp-row is-total">
-              <span>Total deposit amount</span>
+            {!fiat && (
+              <>
+                <div className="dp-row">
+                  <span>Intended amount</span>
+                  <b>
+                    {fmtDp(v, dpOf(c))} {c}
+                  </b>
+                </div>
+                <div className="dp-row">
+                  <span>Verification amount</span>
+                  <b className="is-accent">
+                    + {fmtDp(ver, verDp(c))} {c}
+                  </b>
+                </div>
+              </>
+            )}
+            <div className={`dp-row${fiat ? "" : " is-total"}`}>
+              <span>{fiat ? "Deposit amount" : "Total deposit amount"}</span>
               <b>
                 {fmtDp(total, tdp)} {c}
               </b>
             </div>
             <p className="dp-hint">
-              Send exactly the total amount. The extra {fmtDp(ver, verDp(c))} {c} lets us confirm this {fiat ? "bank account" : "address"} is yours; once it arrives, it’s added to your whitelist.
+              {fiat
+                ? "Send from a bank account in your own name. Once the deposit arrives, the account is added to your whitelist."
+                : `Send exactly the total amount. The extra ${fmtDp(ver, verDp(c))} ${c} lets us confirm this address is yours; once it arrives, it’s added to your whitelist.`}
             </p>
           </section>
         )}
       </div>
       {locked && (
         <div className="oc-foot dp-foot">
-          <SlideToConfirm onDone={() => onConfirmed({ amount: v, ver, total, tdp })} />
+          <SlideToConfirm onDone={() => onConfirmed({ amount: v, ver: vv, total, tdp })} />
         </div>
       )}
     </div>
@@ -404,7 +413,15 @@ const DetailPage = ({ d, onDone, say }) => {
         <div className="dp-note">
           {fromNew ? (
             <>
-              Send <b>exactly {amountStr}</b> from your new {fiat ? "bank account" : "address"} within 24 hours. Other amounts can’t be matched to you and are returned.
+              {fiat ? (
+                <>
+                  Send <b>{amountStr}</b> from a bank account in your own name, with the reference below in the remarks. Transfers from third-party accounts are returned.
+                </>
+              ) : (
+                <>
+                  Send <b>exactly {amountStr}</b> from your new address within 24 hours. Other amounts can’t be matched to you and are returned.
+                </>
+              )}
             </>
           ) : (
             <>
@@ -632,7 +649,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta" }) {
           {
             value: "new",
             label: fiat ? "New bank account" : "New address",
-            name: "Verified with a small extra amount, then whitelisted",
+            name: fiat ? "Must be in your own name; whitelisted after the first deposit" : "Verified with a small extra amount, then whitelisted",
           },
           {
             value: "existing",

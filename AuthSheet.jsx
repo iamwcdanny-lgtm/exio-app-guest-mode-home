@@ -532,7 +532,7 @@ const maskEmail = (email) => {
 // One box per digit. Typing moves to the next box, Backspace on an empty box
 // goes back, and pasting (or the phone's one-time-code autofill) spreads the
 // digits across the boxes.
-const OtpInput = ({ code, onChange, error, disabled }) => {
+export const OtpInput = ({ code, onChange, error, disabled }) => {
   const refs = useRef([]);
   const focusBox = (i) => {
     const el = refs.current[Math.max(0, Math.min(OTP_LENGTH - 1, i))];

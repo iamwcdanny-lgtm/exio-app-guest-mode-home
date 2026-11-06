@@ -1,0 +1,171 @@
+/* Set up passkey (PasskeySetup.jsx). Page shell from OTC (.oc-screen / .oc-appbar / .oc-foot),
+   sheet from TokenSheet (.tks-sheet), digit boxes from AuthSheet (.as-otp). */
+.pk-page {
+  color: rgba(0, 0, 0, 0.9);
+}
+.pk-body {
+  align-items: center;
+  gap: 0;
+  padding: 24px 16px;
+  text-align: center;
+}
+.pk-illu {
+  margin: 8px 0 20px;
+}
+.pk-body h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: 800;
+}
+.pk-lead {
+  margin: 0 0 24px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+}
+.pk-benefits {
+  align-self: stretch;
+  margin: 0;
+  padding: 16px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.03);
+  text-align: left;
+}
+.pk-benefit {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.pk-benefit-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 214, 144, 0.12);
+  color: #00a874;
+}
+.pk-benefit span:last-child {
+  display: flex;
+  flex-direction: column;
+}
+.pk-benefit b {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+}
+.pk-benefit small {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+}
+.pk-note {
+  margin: 16px 0 0;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+}
+.pk-done {
+  justify-content: center;
+}
+.pk-done-icon {
+  margin-bottom: 20px;
+}
+.pk-done p {
+  margin: 0;
+  max-width: 300px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* Security verification sheet */
+.pk-sheet {
+  padding-top: 0;
+  overflow: hidden;
+}
+.pk-step {
+  display: flex;
+  flex-direction: column;
+  padding-top: 24px;
+}
+.pk-step[data-dir="next"] {
+  animation: pk-in 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes pk-in {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pk-step[data-dir="next"] {
+    animation: none;
+  }
+}
+/* The stepper: a text eyebrow above the unchanged title. */
+.pk-eyebrow {
+  margin: 0 0 4px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 700;
+  color: #00a874;
+}
+.pk-eyebrow span {
+  margin: 0 2px;
+  color: rgba(0, 0, 0, 0.3);
+}
+.pk-title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 700;
+}
+.pk-sub {
+  margin: 0 0 24px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+}
+.pk-sub b {
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+}
+.pk-error {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: #e5484d;
+}
+.pk-actions {
+  margin-top: 12px;
+}
+.pk-next {
+  margin: 20px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.03);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+}
+.pk-cta {
+  margin-top: 24px;
+}
+/* The device's passkey prompt sits above the sheet layer. */
+.pk-device-layer {
+  z-index: 90;
+}

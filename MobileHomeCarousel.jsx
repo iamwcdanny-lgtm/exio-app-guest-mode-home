@@ -10,6 +10,7 @@ import RwaPage from "./RwaPage";
 import RwaExplore from "./RwaExplore";
 import { PD_SETTINGS, PD_DEFAULT } from "./PdFlow";
 import LoggedInHome from "./LoggedInHome";
+import PasskeySetup from "./PasskeySetup";
 
 // Asset paths follow Vite's base, so the build also works from a subpath
 // (e.g. GitHub Pages at /rwa-portal/).
@@ -660,6 +661,9 @@ const SceneVideo = ({ scene, mode, direction, releases, onDone, onAtEnd, onBuilt
 const MobileHomeCarousel = ({ onLogin, onRegister }) => {
   const [index, setIndex] = useState(0);
   const [tab, setTab] = useState("home");
+  // Prototype entry for Set up passkey (2026-11-06): the Markets tab opens it.
+  const [passkeySetup, setPasskeySetup] = useState(false);
+  const onNav = (k) => (k === "markets" ? setPasskeySetup(true) : setTab(k));
   const trackRef = useRef(null);
   // The scene the track has come to rest on and how it animates in: build
   // the first time it is landed on, straight to loop after that.
@@ -1122,11 +1126,11 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
             <GlassNav
               tabs={NAV_TABS}
               active={tab}
-              onChange={setTab}
+              onChange={onNav}
               iconSrc={(t, on) => `${ICONS}/${t.icon.replace(".svg", on ? "-on.svg" : "-off.svg")}`}
             />
           ) : (
-            <BottomNav active={tab} onChange={setTab} />
+            <BottomNav active={tab} onChange={onNav} />
           )}
         </div>
 
@@ -1152,6 +1156,19 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
           screenRef={screenRef}
         />
 
+        <PasskeySetup
+          open={passkeySetup}
+          platform={platform}
+          account={userName}
+          onClose={() => setPasskeySetup(false)}
+          onSetUp={() =>
+            setBound((b) => {
+              const next = { ...b, passkey: true };
+              writeBindings(next);
+              return next;
+            })
+          }
+        />
         <PasskeyPromo open={promo} onSetUp={promoSetUp} onLater={promoLater} />
         <DevicePasskey
           mode="create"

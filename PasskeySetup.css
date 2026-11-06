@@ -150,7 +150,10 @@
   font-size: 12px;
   line-height: 18px;
   font-weight: 500;
-  color: #e5484d;
+  color: #ff649b;
+}
+.pk-sheet .as-otp.is-error .as-otp-box {
+  border-color: #ff649b;
 }
 .pk-actions {
   margin-top: 12px;

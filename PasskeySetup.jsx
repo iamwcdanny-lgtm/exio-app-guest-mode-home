@@ -73,7 +73,8 @@ const VerifySheet = ({ open, onClose, onDone }) => {
     timer.current = setTimeout(() => {
       setBusy(false);
       if (c.join("") === "000000") {
-        setError(step === "sms" ? "Incorrect code. Check the SMS and try again." : "Incorrect code. Check your authenticator app and try again.");
+        // Copy from the Figma "OTP code (demo)" Error state; the authenticator step has no resend.
+        setError(step === "sms" ? "That code isn’t right. Check it and try again, or resend a new one." : "That code isn’t right. Check your authenticator app and try again.");
         focus(0);
         return;
       }

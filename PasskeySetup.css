@@ -1,97 +1,93 @@
-/* Set up passkey (PasskeySetup.jsx). Page shell from OTC (.oc-screen / .oc-appbar / .oc-foot),
-   sheet from TokenSheet (.tks-sheet), digit boxes from AuthSheet (.as-otp). */
+/* Set up passkey (PasskeySetup.jsx), Figma EXIO Mobile › Security Rebuild.
+   Page shell from OTC (.oc-screen / .oc-appbar / .oc-foot), sheet from TokenSheet
+   (.tks-sheet), digit boxes from AuthSheet (.as-otp). */
 .pk-page {
   color: rgba(0, 0, 0, 0.9);
 }
 .pk-body {
   align-items: center;
-  gap: 0;
-  padding: 24px 16px;
-  text-align: center;
+  gap: 32px;
+  padding: 32px 16px 16px;
 }
-.pk-illu {
-  margin: 8px 0 20px;
-}
-.pk-body h2 {
-  margin: 0 0 8px;
-  font-size: 22px;
-  line-height: 30px;
-  font-weight: 800;
-}
-.pk-lead {
-  margin: 0 0 24px;
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.6);
-}
-.pk-benefits {
+.pk-list {
   align-self: stretch;
   margin: 0;
   padding: 16px;
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.03);
-  text-align: left;
+  border: 1px solid #d9d9d9;
+  border-radius: 16px;
 }
-.pk-benefit {
+.pk-list li {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
+  padding: 12px 8px;
 }
-.pk-benefit-icon {
+.pk-list li img {
   flex: none;
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: rgba(0, 214, 144, 0.12);
-  color: #00a874;
 }
-.pk-benefit span:last-child {
+.pk-list li span {
   display: flex;
   flex-direction: column;
 }
-.pk-benefit b {
+.pk-list b {
   font-size: 14px;
   line-height: 20px;
   font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
 }
-.pk-benefit small {
-  font-size: 12px;
-  line-height: 18px;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.6);
-}
-.pk-note {
-  margin: 16px 0 0;
+.pk-list small {
   font-size: 12px;
   line-height: 18px;
   font-weight: 500;
   color: rgba(0, 0, 0, 0.4);
 }
-.pk-done {
-  justify-content: center;
+.pk-foot {
+  gap: 16px;
+  border-top: 0;
 }
-.pk-done-icon {
-  margin-bottom: 20px;
+.pk-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 16px;
+  border-radius: 8px;
+  background: #fff7ee;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+  color: #fe9016;
+}
+.pk-alert svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+/* Result */
+.pk-done {
+  gap: 0;
+  padding-top: 64px;
+  text-align: center;
+}
+.pk-done h2 {
+  margin: 24px 0 4px;
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 700;
 }
 .pk-done p {
   margin: 0;
-  max-width: 300px;
   font-size: 14px;
   line-height: 20px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(0, 0, 0, 0.8);
 }
 
 /* Security verification sheet */
 .pk-sheet {
-  padding-top: 0;
   overflow: hidden;
 }
 .pk-step {
@@ -99,7 +95,7 @@
   flex-direction: column;
   padding-top: 24px;
 }
-.pk-step[data-dir="next"] {
+.pk-step[data-anim="next"] {
   animation: pk-in 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 @keyframes pk-in {
@@ -109,27 +105,16 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .pk-step[data-dir="next"] {
+  .pk-step[data-anim="next"] {
     animation: none;
   }
-}
-/* The stepper: a text eyebrow above the unchanged title. */
-.pk-eyebrow {
-  margin: 0 0 4px;
-  font-size: 12px;
-  line-height: 18px;
-  font-weight: 700;
-  color: #00a874;
-}
-.pk-eyebrow span {
-  margin: 0 2px;
-  color: rgba(0, 0, 0, 0.3);
 }
 .pk-title {
   margin: 0 0 8px;
   font-size: 18px;
   line-height: 26px;
   font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
 }
 .pk-sub {
   margin: 0 0 24px;
@@ -152,20 +137,134 @@
 .pk-actions {
   margin-top: 12px;
 }
-.pk-next {
-  margin: 20px 0 0;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.03);
-  font-size: 12px;
-  line-height: 18px;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.6);
+.pk-actions .as-link {
+  color: #019ff8;
 }
 .pk-cta {
-  margin-top: 24px;
+  position: relative;
+  margin-top: 32px;
 }
-/* The device's passkey prompt sits above the sheet layer. */
-.pk-device-layer {
-  z-index: 90;
+/* Loading: the button keeps its gradient while the code is checked. */
+.oc-btn.is-primary.pk-cta.is-busy:disabled {
+  background: linear-gradient(90deg, #36cdca, #00dd95);
+  color: #fff;
+}
+.pk-spin {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: pk-rot 0.8s linear infinite;
+}
+@keyframes pk-rot {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.pk-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+/* iOS "Save a passkey?" (stand-in for the system sheet) */
+.pk-os {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  border-radius: inherit;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Manrope", sans-serif;
+}
+.pk-os-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: pk-fade 0.2s ease;
+}
+@keyframes pk-fade {
+  from {
+    opacity: 0;
+  }
+}
+.pk-os-sheet {
+  position: relative;
+  width: 100%;
+  padding: 66px 32px calc(16px + var(--dc-bottom, 0px));
+  border-radius: 34px 34px 0 0;
+  background: rgba(242, 242, 247, 0.96);
+  color: #000;
+  animation: pk-up 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes pk-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+.pk-os-x {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(118, 118, 128, 0.12);
+  color: rgba(60, 60, 67, 0.6);
+  cursor: pointer;
+}
+.pk-os-icon {
+  position: relative;
+  display: block;
+  width: 88px;
+  height: 80px;
+  margin-bottom: 18px;
+}
+.pk-os-icon img {
+  position: absolute;
+  left: 38px;
+  top: 32px;
+}
+.pk-os-sheet h2 {
+  margin: 0 0 16px;
+  font-size: 22px;
+  line-height: 26px;
+  font-weight: 700;
+}
+.pk-os-sheet p {
+  margin: 0 0 32px;
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 500;
+}
+.pk-os-btn {
+  display: block;
+  width: 100%;
+  height: 44px;
+  margin-top: 8px;
+  border: 0;
+  border-radius: 22px;
+  background: #fff;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  color: #0a84ff;
+  cursor: pointer;
+}
+.pk-os-btn.is-primary {
+  margin-top: 0;
+  background: #0a84ff;
+  color: #fff;
+  font-weight: 600;
 }

@@ -706,12 +706,6 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
                   {fmt(a.redeemMinQty)} <small>{p.symbol}</small>
                 </dd>
               </div>
-              <div>
-                <dt>Min. holding to redeem</dt>
-                <dd>
-                  {fmt(a.redeemMinHoldingQty)} <small>{p.symbol}</small>
-                </dd>
-              </div>
             </>
           )}
           {/* Step size row removed (2026-11-07); the step rule still applies

@@ -109,8 +109,26 @@
     animation: none;
   }
 }
+.pk-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.pk-step-tag {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(0, 214, 144, 0.12);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 700;
+  color: #00a874;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
 .pk-title {
-  margin: 0 0 8px;
+  margin: 0;
   font-size: 18px;
   line-height: 26px;
   font-weight: 700;

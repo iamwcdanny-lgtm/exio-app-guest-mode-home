@@ -99,9 +99,15 @@ const VerifySheet = ({ open, onClose, onDone }) => {
       <div className={`tks-sheet pk-sheet as-style-float${open ? " is-open" : ""}`} role="dialog" aria-modal="true" aria-labelledby="pk-title" aria-hidden={!open}>
         <span className="tks-grab" aria-hidden="true" />
         <div className="pk-step" key={n} data-anim={n ? "next" : "first"}>
-          <h2 className="pk-title" id="pk-title">
-            Security verification ({step === "sms" ? 1 : 2}/2)
-          </h2>
+          {/* One row: the title names this step, the tag says where it sits. */}
+          <div className="pk-title-row">
+            <h2 className="pk-title" id="pk-title">
+              {step === "sms" ? "SMS verification" : "Authenticator verification"}
+            </h2>
+            <span className="pk-step-tag" aria-label={`Step ${step === "sms" ? 1 : 2} of 2`}>
+              Step {step === "sms" ? 1 : 2} of 2
+            </span>
+          </div>
           <p className="pk-sub">
             {step === "sms" ? (
               <>

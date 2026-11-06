@@ -134,10 +134,10 @@ const VerifySheet = ({ open, onClose, onDone }) => {
           <button
             type="button"
             className={`oc-btn is-primary pk-cta${busy ? " is-busy" : ""}`}
-            disabled={!full || busy}
+            disabled={!full || busy || Boolean(error)}
             tabIndex={open ? 0 : -1}
             aria-busy={busy || undefined}
-            onClick={() => full && !busy && submit(code)}
+            onClick={() => full && !busy && !error && submit(code)}
           >
             {busy ? <Spinner /> : "Next"}
             <span className="pk-sr">{busy ? "Verifying" : ""}</span>

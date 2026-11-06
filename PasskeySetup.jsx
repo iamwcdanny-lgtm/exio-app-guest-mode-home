@@ -8,7 +8,8 @@ import "./PasskeySetup.css";
 //   17795:46099 Set up passkey → 17825:278799 Security verification (1/2) SMS
 //   → 19832:108559 Security verification (2/2) authenticator
 //   → 17825:282735 OS "Save a passkey?" → 17795:11404 Passkey added successfully.
-// Prototype entry: the Markets tab in the bottom nav.
+// Entry: "Set up" on the passkey invitation (PasskeyPromo) shown after a
+// sign-in without a passkey.
 // The code steps submit themselves: once the 6th digit is in, Next shows a
 // spinner and the next step loads (same sheet, content slides across).
 // Any 6 digits pass except 000000, which shows the wrong-code error.

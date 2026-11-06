@@ -661,9 +661,10 @@ const SceneVideo = ({ scene, mode, direction, releases, onDone, onAtEnd, onBuilt
 const MobileHomeCarousel = ({ onLogin, onRegister }) => {
   const [index, setIndex] = useState(0);
   const [tab, setTab] = useState("home");
-  // Prototype entry for Set up passkey (2026-11-06): the Markets tab opens it.
+  // Set up passkey (2026-11-06): opened from the passkey invitation shown
+  // after a sign-in without a passkey (PasskeyPromo → "Set up").
   const [passkeySetup, setPasskeySetup] = useState(false);
-  const onNav = (k) => (k === "markets" ? setPasskeySetup(true) : setTab(k));
+  const onNav = setTab;
   const trackRef = useRef(null);
   // The scene the track has come to rest on and how it animates in: build
   // the first time it is landed on, straight to loop after that.
@@ -776,7 +777,7 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
   }, []);
   const promoSetUp = () => {
     setPromo(false);
-    setCreateStage("ask");
+    setTimeout(() => setPasskeySetup(true), 280);
   };
   const createCancel = () => {
     clearTimeout(createTimer.current);
@@ -1160,7 +1161,12 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
           open={passkeySetup}
           platform={platform}
           account={userName}
-          onClose={() => setPasskeySetup(false)}
+          onClose={() => {
+            setPasskeySetup(false);
+            // The sign-in welcome waits until the passkey set-up is closed.
+            if (pendingWelcome.current) showNote(pendingWelcome.current);
+            pendingWelcome.current = "";
+          }}
           onSetUp={() =>
             setBound((b) => {
               const next = { ...b, passkey: true };

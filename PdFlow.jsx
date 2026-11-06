@@ -681,14 +681,8 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
               {fmt(fee.qty)} <small>{unit}</small>
             </dd>
           </div>
-          {/* Subscribe: no total on the form (2026-11-07), it isn't calculated
-              until the confirm sheet. Redeem keeps its total for now. */}
-          {!sub && (
-            <div className="pd-row-total">
-              <dt>Total redemption amount (including fees)</dt>
-              <dd>{v > 0 ? <>{fmt(total)} <small>{unit}</small></> : "--"}</dd>
-            </div>
-          )}
+          {/* No total on the order form (2026-11-07): it isn't calculated
+              until the confirm sheet, which still shows it. */}
           {sub ? (
             <>
               <div>

@@ -720,12 +720,8 @@ const OrderPage = ({ p, u, setU, instr, setInstr, onBack, say, labelStyle = "flo
               </div>
             </>
           )}
-          <div>
-            <dt>Step size</dt>
-            <dd>
-              {rules.step} <small>{unit}</small>
-            </dd>
-          </div>
+          {/* Step size row removed (2026-11-07); the step rule still applies
+              and shows its own error when an amount breaks it. */}
         </dl>
         <div className="pd-settle">
           <span className="pd-k">Settlement Period</span>

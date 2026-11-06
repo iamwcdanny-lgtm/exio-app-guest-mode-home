@@ -240,7 +240,7 @@ export default function PasskeySetup({ open, onClose, onSetUp, platform = "ios",
               <ul className="pk-list">
                 {BENEFITS.map(([t, d]) => (
                   <li key={t}>
-                    <img src={`${IMG}/passkey/benefit-check.svg`} width="20" height="20" alt="" />
+                    <img src={`${IMG}/passkey/benefit-check.svg`} width="24" height="24" alt="" />
                     <span>
                       <b>{t}</b>
                       <small>{d}</small>

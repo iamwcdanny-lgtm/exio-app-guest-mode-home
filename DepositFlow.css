@@ -339,7 +339,9 @@
   font-size: 13px;
   line-height: 18px;
   font-weight: 600;
-  white-space: nowrap;
+  width: max-content;
+  max-width: calc(100% - 48px);
+  text-align: center;
   pointer-events: none;
 }
 
@@ -1046,4 +1048,279 @@ textarea.dp-tf-input {
   font-size: 18px;
   line-height: 26px;
   font-weight: 700;
+}
+
+/* ---------- Deposit / withdraw whitelist (Figma 18169:143919) ---------- */
+.dp-tag.is-wl {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 4px 0 6px;
+}
+.dp-bar-icon {
+  justify-self: end;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-right: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.dp-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  margin: 0;
+  padding: 16px;
+  border-radius: 12px;
+  background: #e6f6ff;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+  color: #007dc0;
+}
+.dp-info svg {
+  flex: none;
+  margin: 2px;
+}
+.dp-mcell {
+  border: 1px solid #d9d9d9;
+  border-radius: 16px;
+  background: #fff;
+}
+.dp-mcell-top {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  padding: 16px;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.dp-mcell-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+.dp-mcell-title b {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+}
+.dp-mcell-chev {
+  flex: none;
+  opacity: 0.5;
+  transition: transform 0.2s;
+}
+.dp-mcell.is-open .dp-mcell-chev {
+  transform: rotate(180deg);
+}
+.dp-mcell-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.dp-mcell-net {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.6);
+}
+.dp-mcell-sub .dp-tag.is-wl {
+  padding: 4px 4px 4px 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.03);
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.8);
+}
+.dp-mcell-top small {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+}
+.dp-mcell-body {
+  margin: 0 16px;
+  padding: 16px 0;
+  border-top: 1px solid #f2f2f2;
+}
+.dp-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 8px 16px;
+  margin: 0;
+  padding-bottom: 8px;
+  font-size: 12px;
+  line-height: 18px;
+}
+.dp-grid dt {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+}
+.dp-grid dd {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.8);
+  text-align: right;
+}
+.dp-grid-addr {
+  display: block !important;
+  word-break: break-all;
+}
+.dp-addr-mid {
+  color: rgba(0, 0, 0, 0.4);
+}
+/* 26.7 × 16 switch from the Figma cell */
+.dp-switch {
+  position: relative;
+  width: 27px;
+  height: 16px;
+  margin: 1px 2px;
+  padding: 0;
+  border: 0;
+  border-radius: 11px;
+  background: rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.dp-switch span {
+  position: absolute;
+  top: 1.3px;
+  left: 1.3px;
+  width: 13.4px;
+  height: 13.4px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+}
+.dp-switch.is-on {
+  background: #00d690;
+}
+.dp-switch.is-on span {
+  transform: translateX(11px);
+}
+.dp-switch:disabled {
+  cursor: default;
+}
+.dp-switch.is-on:disabled {
+  background: #b0f2dd;
+}
+.dp-mcell-btns {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+}
+.dp-sbtn {
+  flex: 1;
+  height: 34px;
+  border: 1px solid rgba(0, 0, 0, 0.8);
+  border-radius: 24px;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.8);
+  cursor: pointer;
+}
+.dp-sbtn.is-danger {
+  border-color: #ff649b;
+  color: #ff649b;
+}
+/* Self custody declaration */
+.dp-declare .dp-grid {
+  padding: 16px 0;
+}
+.dp-agree {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 16px 0 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+  text-align: left;
+  cursor: pointer;
+}
+.dp-agree .dp-check {
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+}
+/* Disable withdrawals */
+.dp-disable {
+  align-items: center;
+  text-align: center;
+}
+.dp-disable img {
+  margin-top: 24px;
+}
+.dp-disable h2 {
+  margin: 16px 0 0;
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+}
+.dp-disable p {
+  margin: 24px 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.8);
+}
+.dp-disable .dp-leave-btns {
+  align-self: stretch;
+  padding-top: 16px;
+}
+.oc-btn.is-danger-outline {
+  border: 1.5px solid #ff649b;
+  background: #fff;
+  color: #ff649b;
+}
+/* Centred result toast */
+.dp-toast-c {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 60;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 154px;
+  padding: 12px 16px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.8);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+  color: #fff;
+  text-align: center;
+  pointer-events: none;
 }

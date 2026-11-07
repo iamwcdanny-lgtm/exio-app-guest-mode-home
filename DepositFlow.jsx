@@ -54,18 +54,21 @@ const EXIO_ADDR = {
 };
 // Whitelisted addresses belong to a network, not a token: one ERC20 address
 // serves ETH, USDT and USDC alike. A token lists every address on its networks.
+// Two whitelists: every address can receive deposits from (deposit whitelist);
+// withdrawals need ownership declared — WalletConnect / signature do that when
+// adding, otherwise the Self custody declaration in Manage. `withdraw` = on.
 const ADDRESSES = [
-  { id: "a1", label: "Ledger Nano X", net: "BTC", addr: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" },
-  { id: "a2", label: "Trezor Model T", net: "BTC", addr: "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq" },
-  { id: "a3", label: "OKX", net: "BTC", addr: "bc1qm34lsc65zpw79lxes69zkqmk6ee3ewf0j77s3h" },
-  { id: "a4", label: "Coinbase", net: "BTC", addr: "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy" },
-  { id: "a5", label: "Ledger Nano X", net: "ERC20", addr: "0x7a3B5c8D9e0F1a2b3C4d5E6f7A8b9C0d1E2fC91e" },
-  { id: "a6", label: "MetaMask", net: "ERC20", addr: "0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE" },
-  { id: "a7", label: "OKX", net: "Arbitrum", addr: "0x6cC5F688a315f3dC28A7781717a9A798a59fDA7b" },
-  { id: "a8", label: "Coinbase", net: "Base", addr: "0x71660c4005BA85c37ccec55d0C4493E66Fe775d3" },
-  { id: "a9", label: "Binance", net: "TRC20", addr: "TQ9mFz2Rk7Lb4Wn8Yc1Vd5Hs3Jt6Gp0kLp" },
-  { id: "a10", label: "OKX", net: "TRC20", addr: "TNXoiAJ3dct8Fjg4M9fkLFh9S2v9TXc32G" },
-  { id: "a11", label: "Trust Wallet", net: "TRC20", addr: "TYASr5UV6HEcXatwdFQfmLVUqQQQMUxHLS" },
+  { id: "a1", withdraw: true, label: "Ledger Nano X", net: "BTC", addr: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" },
+  { id: "a2", withdraw: false, label: "Trezor Model T", net: "BTC", addr: "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq" },
+  { id: "a3", withdraw: true, label: "OKX", net: "BTC", addr: "bc1qm34lsc65zpw79lxes69zkqmk6ee3ewf0j77s3h" },
+  { id: "a4", withdraw: false, label: "Coinbase", net: "BTC", addr: "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy" },
+  { id: "a5", withdraw: true, label: "Ledger Nano X", net: "ERC20", addr: "0x7a3B5c8D9e0F1a2b3C4d5E6f7A8b9C0d1E2fC91e" },
+  { id: "a6", withdraw: false, label: "MetaMask", net: "ERC20", addr: "0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE" },
+  { id: "a7", withdraw: true, label: "OKX", net: "Arbitrum", addr: "0x6cC5F688a315f3dC28A7781717a9A798a59fDA7b" },
+  { id: "a8", withdraw: true, label: "Coinbase", net: "Base", addr: "0x71660c4005BA85c37ccec55d0C4493E66Fe775d3" },
+  { id: "a9", withdraw: true, label: "Binance", net: "TRC20", addr: "TQ9mFz2Rk7Lb4Wn8Yc1Vd5Hs3Jt6Gp0kLp" },
+  { id: "a10", withdraw: false, label: "OKX", net: "TRC20", addr: "TNXoiAJ3dct8Fjg4M9fkLFh9S2v9TXc32G" },
+  { id: "a11", withdraw: true, label: "Trust Wallet", net: "TRC20", addr: "TYASr5UV6HEcXatwdFQfmLVUqQQQMUxHLS" },
 ];
 const BANKS = {
   USD: [
@@ -74,12 +77,31 @@ const BANKS = {
   ],
   HKD: [{ id: "b3", label: "HSBC Hong Kong", net: "bank", addr: "···· 4821" }],
 };
-// `added`: addresses whitelisted in this session (newest first).
-const listFor = (asset, added = []) => {
+// `book`: the address book as it stands (seed + added this session, toggles).
+const listFor = (asset, book = ADDRESSES) => {
   if (BANKS[asset]) return BANKS[asset];
   const nets = (NETWORKS[asset] || []).map(([k]) => k);
-  return [...added, ...ADDRESSES].filter((w) => nets.includes(w.net));
+  return book.filter((w) => nets.includes(w.net));
 };
+const ok12 = (
+  <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+    <path d="M1.5 6.3l3 2.9 6-6.2" fill="none" stroke="#00d690" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+const no12 = (
+  <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+    <path d="M2.5 2.5l7 7M9.5 2.5l-7 7" fill="none" stroke="#ff649b" strokeWidth="1.3" strokeLinecap="round" />
+  </svg>
+);
+// Deposit ✓ / Withdraw ✓✗ — which whitelists the address is on.
+const WlTags = ({ w }) => (
+  <>
+    <span className="dp-tag is-wl">Deposit{ok12}</span>
+    <span className="dp-tag is-wl" aria-label={`Withdraw ${w.withdraw ? "on" : "off"}`}>
+      Withdraw{w.withdraw ? ok12 : no12}
+    </span>
+  </>
+);
 const short = (a) => (a.length > 16 ? `${a.slice(0, 8)}…${a.slice(-6)}` : a);
 const dpOf = (c) => CCY[c]?.dp ?? 2;
 // A unique tail on the amount identifies a deposit from a new address / account.
@@ -367,9 +389,9 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta" }) =
 
 /* ---------- Step 10–11: whitelisted list ---------- */
 // Same page for deposit and withdraw: only what tapping a row does differs.
-const ListPage = ({ d, added = [], onBack, onPick, onAdd, onManage }) => {
+const ListPage = ({ d, book, onBack, onPick, onAdd, onManage }) => {
   const fiat = d.kind === "fiat";
-  const list = listFor(d.asset, added);
+  const list = listFor(d.asset, book);
   return (
     <div className="oc-screen oc-page dp-page is-list">
       <AppBar
@@ -400,6 +422,7 @@ const ListPage = ({ d, added = [], onBack, onPick, onAdd, onManage }) => {
                   <small>
                     {w.label}
                     <span className="dp-tag">{w.net}</span>
+                    <WlTags w={w} />
                     {w.isNew && <span className="dp-tag is-new">Just added</span>}
                   </small>
                 </span>
@@ -418,6 +441,159 @@ const ListPage = ({ d, added = [], onBack, onPick, onAdd, onManage }) => {
     </div>
   );
 };
+
+/* ---------- Manage whitelist address (Figma EXIO Mobile 18169:143919) ---------- */
+const shortAddr = (a) => (a.length > 18 ? `${a.slice(0, 10)}…${a.slice(-6)}` : a);
+// Full address with the middle dimmed, so the ends are easy to compare.
+const FullAddr = ({ a }) => (
+  <>
+    {a.slice(0, 6)}
+    <span className="dp-addr-mid">{a.slice(6, -6)}</span>
+    {a.slice(-6)}
+  </>
+);
+const Switch = ({ on, disabled, label, onClick }) => (
+  <button type="button" role="switch" aria-checked={on} aria-label={label} disabled={disabled} className={`dp-switch${on ? " is-on" : ""}`} onClick={onClick}>
+    <span />
+  </button>
+);
+const InfoIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+    <circle cx="8" cy="8" r="6.7" fill="#007dc0" />
+    <path d="M8 7.2v3.9" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
+    <circle cx="8" cy="5" r=".9" fill="#fff" />
+  </svg>
+);
+const PlusIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M12 3v18M3 12h18" stroke="rgba(0,0,0,0.8)" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+);
+
+const ManagePage = ({ book, onBack, onAdd, onWithdraw, say }) => {
+  const [open, setOpen] = useState(null);
+  return (
+    <div className="oc-screen oc-page dp-page is-manage">
+      <AppBar
+        title="Manage whitelist address"
+        onBack={onBack}
+        right={
+          <button type="button" className="dp-bar-icon" aria-label="Add address" onClick={onAdd}>
+            <PlusIcon />
+          </button>
+        }
+      />
+      <div className="oc-page-body dp-body">
+        <p className="dp-info">
+          <InfoIcon />
+          <span>To enable withdrawals for an address, tab to open the address details and turn on the ownership confirmation switch.</span>
+        </p>
+        <div className="dp-list">
+          {book.map((w) => {
+            const isOpen = open === w.id;
+            return (
+              <div key={w.id} className={`dp-mcell${isOpen ? " is-open" : ""}`}>
+                <button type="button" className="dp-mcell-top" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : w.id)}>
+                  <span className="dp-mcell-title">
+                    <b>{shortAddr(w.addr)}</b>
+                    <img src={`${IMG}/arrow-down.svg`} width="16" height="16" alt="" className="dp-mcell-chev" />
+                  </span>
+                  <span className="dp-mcell-sub">
+                    <span className="dp-mcell-net">{NET[w.net].name}</span>
+                    <WlTags w={w} />
+                  </span>
+                  <small>{w.label}</small>
+                </button>
+                {isOpen && (
+                  <div className="dp-mcell-body">
+                    <dl className="dp-grid">
+                      <dt>Address</dt>
+                      <dd className="dp-grid-addr">
+                        <FullAddr a={w.addr} />
+                      </dd>
+                      <dt>Network</dt>
+                      <dd>{NET[w.net].name}</dd>
+                      <dt>Deposit</dt>
+                      <dd>
+                        {/* Every whitelisted address can deposit; not switchable. */}
+                        <Switch on disabled label="Deposit" />
+                      </dd>
+                      <dt>Withdraw</dt>
+                      <dd>
+                        <Switch on={w.withdraw} label="Withdraw" onClick={() => onWithdraw(w)} />
+                      </dd>
+                      <dt>Remarks</dt>
+                      <dd>{w.label}</dd>
+                    </dl>
+                    <div className="dp-mcell-btns">
+                      <button type="button" className="dp-sbtn" onClick={() => say("Editing remarks isn’t in this demo")}>
+                        Edit remarks
+                      </button>
+                      <button type="button" className="dp-sbtn is-danger" onClick={() => say("Removing an address isn’t in this demo")}>
+                        Remove address
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Withdraw switch off → on: declare the wallet is self-custodied.
+const DeclareSheet = ({ w, open, onClose, onConfirm }) => {
+  const [agree, setAgree] = useState(false);
+  useEffect(() => {
+    if (open) setAgree(false);
+  }, [open]);
+  return (
+    <BaseSheet open={open} onClose={onClose} title="Self custody declaration" className="dp-declare">
+      {w && (
+        <dl className="dp-grid">
+          <dt>Address</dt>
+          <dd className="dp-grid-addr">
+            <FullAddr a={w.addr} />
+          </dd>
+          <dt>Network</dt>
+          <dd>{NET[w.net].name}</dd>
+          <dt>Remarks</dt>
+          <dd>{w.label}</dd>
+        </dl>
+      )}
+      <button type="button" role="checkbox" aria-checked={agree} className="dp-agree" tabIndex={open ? 0 : -1} onClick={() => setAgree((a) => !a)}>
+        <Check on={agree} />
+        <span>I hereby declare that this is my personal unhosted (self-custody) wallet, and I have full control over its private keys.</span>
+      </button>
+      <div className="dp-leave-btns">
+        <button type="button" className="oc-btn is-primary" disabled={!agree} tabIndex={open ? 0 : -1} onClick={onConfirm}>
+          Confirm &amp; continue
+        </button>
+      </div>
+    </BaseSheet>
+  );
+};
+
+// Withdraw switch on → off.
+const DisableSheet = ({ open, onClose, onConfirm }) => (
+  <PhoneLayer className="tks-layer">
+    <div className={`tks-scrim${open ? " is-open" : ""}`} onClick={onClose} aria-hidden="true" />
+    <div className={`tks-sheet dp-disable${open ? " is-open" : ""}`} role="dialog" aria-modal="true" aria-labelledby="dp-disable-title" aria-hidden={!open}>
+      <span className="tks-grab" aria-hidden="true" />
+      <img src={`${IMG}/result-warning.png`} width="120" height="120" alt="" />
+      <h2 id="dp-disable-title">Disable withdrawals for this address?</h2>
+      <p>Once disabled, this address cannot be used for withdrawals.</p>
+      <div className="dp-leave-btns">
+        <button type="button" className="oc-btn is-danger-outline" tabIndex={open ? 0 : -1} onClick={onConfirm}>
+          Disable withdrawals
+        </button>
+      </div>
+    </div>
+  </PhoneLayer>
+);
 
 /* ---------- Step 9 / 12: deposit details ---------- */
 const Qr = ({ text }) => {
@@ -1183,7 +1359,9 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
   const [stack, setStack] = useState([]); // pages over the token page: "list", "amount"
   const [detail, setDetail] = useState(null);
   const [leaving, setLeaving] = useState(false);
-  const [added, setAdded] = useState([]); // addresses whitelisted in this session, any network
+  const [book, setBook] = useState(ADDRESSES); // address book: seed + added this session, withdraw on/off
+  const [wdFor, setWdFor] = useState(null); // address whose Withdraw switch was tapped
+  const [done, setDone] = useState(""); // centred result toast (Figma "Address setting updated")
   const [wl, setWl] = useState({ remarks: "", addr: "", wallet: null, method: null });
   const [wapp, setWapp] = useState(null); // wallet app being "opened"
   const picked = useRef(false); // the New / Existing sheet closed by a choice, not a dismiss
@@ -1241,12 +1419,24 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
       label: wl.remarks.trim() || (wl.wallet ? WALLET[wl.wallet].name : "Wallet"),
       net: d.net,
       addr: wl.method === "connect" ? DEMO_ADDR[d.net] : wl.addr,
+      // Ownership proven by WalletConnect / signature: both whitelists.
+      withdraw: true,
       isNew: true,
     };
-    setAdded((a) => [w, ...a.map((x) => ({ ...x, isNew: false }))]);
+    setBook((b) => [w, ...b.map((x) => ({ ...x, isNew: false }))]);
     setTimeout(() => {
-      setStack(["list"]);
+      // Back to where Add started: Manage, else Select address.
+      setStack((s) => (s.includes("manage") ? s.slice(0, s.indexOf("manage") + 1) : ["list"]));
       say("Address added");
+    }, 280);
+  };
+  const setWithdraw = (on) => {
+    const id = wdFor.id;
+    setSheet(null);
+    setBook((b) => b.map((x) => (x.id === id ? { ...x, withdraw: on } : x)));
+    setTimeout(() => {
+      setDone("Address setting updated");
+      setTimeout(() => setDone(""), 1600);
     }, 280);
   };
   const slideOut = (sel, then) => {
@@ -1274,15 +1464,28 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         {stack.includes("list") && (
           <ListPage
             d={d}
-            added={added}
+            book={book}
             onBack={pop}
-            onManage={() => say("Address management isn’t in this demo")}
+            onManage={() => (fiat ? say("Bank account management isn’t in this demo") : push("manage"))}
             onPick={(w) => {
               if (!withdraw) return setDetail({ ...d, from: w });
+              if (w.withdraw === false) return say("Withdrawals are off for this address. Turn them on in Manage.");
               setD((x) => ({ ...x, to: w }));
               return push("wamount");
             }}
             onAdd={() => (fiat ? toAmount() : setSheet("method"))}
+          />
+        )}
+        {stack.includes("manage") && (
+          <ManagePage
+            book={book}
+            onBack={pop}
+            onAdd={() => setSheet("method")}
+            say={say}
+            onWithdraw={(w) => {
+              setWdFor(w);
+              setSheet(w.withdraw ? "disable" : "declare");
+            }}
           />
         )}
         {stack.includes("wamount") && (
@@ -1355,6 +1558,15 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             {toast}
           </div>
         )}
+        {done && (
+          <div className="dp-toast-c" role="status">
+            <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+              <circle cx="15" cy="15" r="13.5" fill="none" stroke="#fff" strokeWidth="1.5" />
+              <path d="M9.5 15.3l3.8 3.7 7.2-7.6" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            {done}
+          </div>
+        )}
       </PhoneLayer>
       <TokenSheet
         open={sheet === "source"}
@@ -1380,7 +1592,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
           {
             value: "existing",
             label: fiat ? "Whitelisted bank account" : "Existing address",
-            name: `${listFor(d.asset, added).length} whitelisted`,
+            name: `${listFor(d.asset, book).length} whitelisted`,
           },
         ]}
       />
@@ -1435,6 +1647,8 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
       />
       <HowSheet open={sheet === "how"} onClose={closeSheet("how")} />
       <SecuritySheet ls={labelStyle} open={sheet === "security"} onClose={closeSheet("security")} onSubmit={whitelist} />
+      <DeclareSheet w={wdFor} open={sheet === "declare"} onClose={closeSheet("declare")} onConfirm={() => setWithdraw(true)} />
+      <DisableSheet open={sheet === "disable"} onClose={closeSheet("disable")} onConfirm={() => setWithdraw(false)} />
       <LeaveSheet
         open={leaving}
         onStay={() => setLeaving(false)}

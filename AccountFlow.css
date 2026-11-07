@@ -26,7 +26,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #5ec8c8, #5fdc95);
+  background: linear-gradient(135deg, var(--grad-from), var(--grad-to));
   color: #fff;
   font-size: 18px;
   font-weight: 700;
@@ -42,7 +42,7 @@
   gap: 12px;
   padding: 16px 16px 24px;
 }
-.acc-user span {
+.acc-user > span:not(.acc-avatar) {
   display: flex;
   flex-direction: column;
 }
@@ -62,13 +62,19 @@
   color: rgba(0, 0, 0, 0.4);
 }
 .acc-pi {
+  /* Same as the RWA PI badge (.rw-badge.is-pi) */
+  display: inline-grid;
+  place-items: center;
+  min-width: 17px;
+  height: 18px;
   padding: 0 3px;
-  border-radius: 3px;
-  background: #fff4e5;
+  box-sizing: border-box;
+  border-radius: 4px;
+  background: #fff7ee;
   font-size: 10px;
   line-height: 14px;
-  font-weight: 600;
-  color: #fe9016;
+  font-weight: 700;
+  color: #f7a042;
 }
 
 /* PI review banner */
@@ -82,14 +88,7 @@
 .acc-banner-i {
   flex: none;
   display: grid;
-  place-items: center;
-  width: 14px;
-  height: 14px;
-  margin-top: 3px;
-  border-radius: 50%;
-  background: #3d8fe9;
-  color: #fff;
-  font: italic 700 10px/1 Georgia, serif;
+  margin-top: 2px;
 }
 .acc-banner > div {
   flex: 1;
@@ -128,7 +127,7 @@
   font-size: 12px;
   line-height: 18px;
   font-weight: 600;
-  color: #3d8fe9;
+  color: #019ff8;
 }
 
 /* Menu rows */
@@ -162,7 +161,7 @@
   font-size: 16px;
   line-height: 24px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.85);
+  color: var(--text-primary);
 }
 .acc-row-value {
   display: flex;
@@ -175,7 +174,8 @@
 }
 .acc-chev {
   flex: none;
-  color: rgba(0, 0, 0, 0.4);
+  transform: rotate(-90deg);
+  opacity: 0.6;
 }
 .acc-menu.is-security {
   padding-top: 20px;
@@ -204,11 +204,11 @@
   gap: 4px;
   padding: 2px 6px;
   border-radius: 6px;
-  background: rgba(0, 214, 144, 0.08);
+  background: rgba(0, 214, 144, 0.12);
   font-size: 12px;
   line-height: 18px;
-  font-weight: 600;
-  color: #00c27f;
+  font-weight: 700;
+  color: #00a874;
 }
 .acc-signout {
   align-self: center;
@@ -238,7 +238,7 @@
 .acc-last b {
   margin-left: 8px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--text-secondary);
 }
 
 /* Identity verification */
@@ -273,8 +273,8 @@
 .acc-card {
   margin: 0 16px;
   padding: 16px;
-  border: 1px solid #f2f2f2;
-  border-radius: 12px;
+  border: 1px solid var(--line-secondary);
+  border-radius: 16px;
 }
 .acc-card-head {
   display: flex;
@@ -336,8 +336,8 @@
   display: grid;
   margin: 0 16px;
   padding: 16px;
-  border: 1px solid #f2f2f2;
-  border-radius: 8px;
+  border: 1px solid var(--line-secondary);
+  border-radius: 16px;
 }
 .acc-box.is-2 {
   grid-template-columns: 1fr 1fr;
@@ -371,13 +371,6 @@
 }
 .acc-i {
   display: grid;
-  place-items: center;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.85);
-  color: #fff;
-  font: italic 700 8px/1 Georgia, serif;
 }
 .acc-foot-note {
   margin: 20px 16px 0;
@@ -387,7 +380,7 @@
   color: rgba(0, 0, 0, 0.4);
 }
 .acc-foot-note.is-dark {
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--text-secondary);
 }
 
 /* Professional investor */
@@ -413,7 +406,7 @@
   font-size: 14px;
   line-height: 20px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--text-secondary);
 }
 .acc-card.is-pi .oc-btn {
   width: 100%;

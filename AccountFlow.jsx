@@ -13,8 +13,8 @@ const USER = { name: "june2222", email: "as***@faf.com", initial: "J" };
 const PI_EXPIRY = "2027-01-28";
 
 /* ---------- Icons (24px outline, green accent like the app) ---------- */
-const G = "#4fd1a1";
-const K = "rgba(0,0,0,0.85)";
+const G = "#00d690"; // brand success
+const K = "rgba(0,0,0,0.8)"; // icon-primary-80
 const ic = (children) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={K} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     {children}
@@ -177,9 +177,14 @@ const BackIcon = () => (
     <path d="M15 5l-7 7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
-const Chev = () => (
-  <svg className="acc-chev" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-    <path d="M6 3.5L10.5 8 6 12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+// Same chevron as Select address (.dp-chev).
+const Chev = () => <img className="acc-chev" src={`${import.meta.env.BASE_URL}images/otc/arrow-down.svg`} width="12" height="12" alt="" />;
+// Same info glyph as the Manage alert.
+const InfoDot = ({ size = 16, color = "#019ff8" }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true">
+    <circle cx="8" cy="8" r="6.7" fill={color} />
+    <path d="M8 7.2v3.9" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
+    <circle cx="8" cy="5" r=".9" fill="#fff" />
   </svg>
 );
 const OkDot = () => (
@@ -233,8 +238,8 @@ const AccountPage = ({ onBack, go, todo, onWhitelist }) => {
         </div>
         {banner && (
           <div className="acc-banner">
-            <span className="acc-banner-i" aria-hidden="true">
-              i
+            <span className="acc-banner-i">
+              <InfoDot />
             </span>
             <div>
               <b>Professional Investor status review</b>
@@ -386,7 +391,10 @@ const InfoPage = ({ onBack }) => (
       <div className="acc-box is-2">
         <div>
           <small>
-            Position limit <span className="acc-i">i</span>
+            Position limit{" "}
+            <span className="acc-i">
+              <InfoDot size={12} color="rgba(0,0,0,0.8)" />
+            </span>
           </small>
           <b>
             14,999,999.85 <em>USD</em>

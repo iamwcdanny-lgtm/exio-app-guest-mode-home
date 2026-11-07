@@ -90,13 +90,13 @@ const CopyIcon = () => (
 );
 
 // slide=false: the back asks first (the page leaves only if the user confirms).
-const AppBar = ({ title, onBack, slide = true }) => (
+const AppBar = ({ title, onBack, slide = true, right = null }) => (
   <header className="oc-appbar">
     <button type="button" className="oc-back" aria-label="Back" onClick={(e) => (slide ? slideBack(e, onBack) : onBack())}>
       <BackIcon />
     </button>
     <h1>{title}</h1>
-    <span />
+    {right || <span />}
   </header>
 );
 
@@ -342,14 +342,24 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta" }) =
 };
 
 /* ---------- Step 10–11: whitelisted list ---------- */
-const ListPage = ({ d, added = [], onBack, onPick, onAdd }) => {
+const ListPage = ({ d, added = [], onBack, onPick, onAdd, withdraw = false, onManage }) => {
   const fiat = d.kind === "fiat";
   const list = [...added, ...(WHITELIST[d.asset] || [])];
   return (
     <div className="oc-screen oc-page dp-page is-list">
-      <AppBar title={fiat ? "Select bank account" : "Select wallet"} onBack={onBack} />
+      <AppBar
+        title={fiat ? "Select bank account" : withdraw ? "Select address" : "Select wallet"}
+        onBack={onBack}
+        right={
+          withdraw ? (
+            <button type="button" className="dp-bar-link" onClick={onManage}>
+              Manage
+            </button>
+          ) : null
+        }
+      />
       <div className="oc-page-body dp-body">
-        <p className="dp-lead">Choose where you’ll send {d.asset} from.</p>
+        <p className="dp-lead">{withdraw ? `Choose where to send ${d.asset}.` : `Choose where you’ll send ${d.asset} from.`}</p>
         <div className="dp-list">
           {list.map((w) => (
             <button key={w.id} type="button" className={`dp-cell${w.isNew ? " is-new" : ""}`} onClick={() => onPick(w)}>
@@ -377,7 +387,7 @@ const ListPage = ({ d, added = [], onBack, onPick, onAdd }) => {
       </div>
       <div className="oc-foot dp-foot">
         <button type="button" className="oc-btn is-outline" onClick={onAdd}>
-          {fiat ? "Add new bank account" : "Add new wallet"}
+          {withdraw ? (fiat ? "Add bank account" : "Add address") : fiat ? "Add new bank account" : "Add new wallet"}
         </button>
       </div>
     </div>
@@ -483,8 +493,160 @@ const DetailPage = ({ d, onDone, say }) => {
   );
 };
 
+/* ---------- Withdraw: amount, review, result ---------- */
+// Withdrawals leave the Custody account, so its balance is what's available.
+const WAmountPage = ({ d, onBack, onNext, ls = "ifta" }) => {
+  const c = d.asset;
+  const avail = useOtc().s.bal.custody[c] || 0;
+  const [amt, setAmt] = useState("");
+  const [focused, setFocused] = useState(false);
+  const ref = useRef(null);
+  const v = parseFloat(amt) || 0;
+  const over = v > avail;
+  const availEl = (
+    <span className="otc-avail">
+      Avail.
+      <b>{fmtCcy(avail, c)}</b>
+      <button type="button" className="otc-all" disabled={!avail} onMouseDown={(e) => e.preventDefault()} onClick={() => setAmt(clean(String(avail), dpOf(c)))}>
+        Max
+      </button>
+    </span>
+  );
+  const label = (
+    <label className="otc-label" htmlFor="wd-amt">
+      Withdraw amount
+    </label>
+  );
+  return (
+    <div className="oc-screen oc-page dp-page is-wamount">
+      <AppBar title={`Withdraw ${c}`} onBack={onBack} />
+      <div className={`oc-page-body dp-body otc otc-style-${ls}`}>
+        <div className="dp-route">
+          <span>To</span>
+          <b>{d.to.label}</b>
+          <em>{d.to.net === "bank" ? d.to.addr : short(d.to.addr)}</em>
+        </div>
+        <div className="otc-fields">
+          <div className={`otc-amount is-pay${ls !== "float" || focused || amt !== "" ? " is-up" : ""}${focused ? " is-focused" : ""}${over ? " is-error" : ""}`}>
+            {ls === "trad" && (
+              <div className="otc-amount-head">
+                {label}
+                {availEl}
+              </div>
+            )}
+            <div
+              className="otc-amount-box"
+              onMouseDown={(e) => {
+                if (e.target === ref.current || e.target.closest("button")) return;
+                e.preventDefault();
+                ref.current?.focus();
+              }}
+            >
+              {ls === "ifta" && (
+                <div className="otc-amount-head">
+                  {label}
+                  {availEl}
+                </div>
+              )}
+              <div className="otc-amount-row">
+                <input
+                  ref={ref}
+                  id="wd-amt"
+                  className="otc-input"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  placeholder={ls === "float" && !focused ? "" : "0"}
+                  aria-invalid={over || undefined}
+                  aria-describedby={over ? "wd-amt-note" : undefined}
+                  value={focused ? amt : group(amt)}
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setFocused(false)}
+                  onChange={(e) => setAmt(clean(e.target.value, dpOf(c)))}
+                  onKeyDown={(e) => e.key === "Enter" && v && !over && onNext(v)}
+                />
+                <span className="otc-chip is-static">
+                  <Icon c={c} size={20} />
+                  <b>{c}</b>
+                </span>
+              </div>
+              {ls === "float" && <div className="otc-amount-foot">{availEl}</div>}
+              {ls === "float" && label}
+            </div>
+          </div>
+          {over && (
+            <p id="wd-amt-note" className="otc-note" aria-live="polite">
+              Exceeds your available balance.
+            </p>
+          )}
+        </div>
+      </div>
+      <div className="oc-foot dp-foot">
+        <button type="button" className="oc-btn is-primary" disabled={!v || over} onClick={() => onNext(v)}>
+          Next
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const WReviewPage = ({ d, onBack, onConfirmed }) => {
+  const c = d.asset;
+  const bank = d.to.net === "bank";
+  return (
+    <div className="oc-screen oc-page dp-page is-wreview">
+      <AppBar title="Withdrawal request" onBack={onBack} />
+      <div className="oc-page-body dp-body">
+        <section className="dp-card">
+          <div className="dp-row">
+            <span>Asset</span>
+            <b>{c}</b>
+          </div>
+          {!bank && (
+            <div className="dp-row">
+              <span>Network</span>
+              <b>{NET[d.to.net].name}</b>
+            </div>
+          )}
+          <div className="dp-row is-to">
+            <span>To</span>
+            <b>
+              {d.to.label}
+              <small className={bank ? "" : "dp-addr-full"}>{d.to.addr}</small>
+            </b>
+          </div>
+          <div className="dp-row is-total">
+            <span>Withdraw amount</span>
+            <b>
+              {fmtCcy(d.amount, c)} {c}
+            </b>
+          </div>
+        </section>
+      </div>
+      <div className="oc-foot dp-foot">
+        <SlideToConfirm onDone={onConfirmed} />
+      </div>
+    </div>
+  );
+};
+
+const WResultPage = ({ onDone }) => (
+  <div className="oc-screen oc-page dp-page is-wresult">
+    <AppBar title="Withdraw" onBack={onDone} />
+    <div className="oc-page-body dp-body dp-result">
+      <img src={`${import.meta.env.BASE_URL}images/passkey/result-success.svg`} width="120" height="120" alt="" />
+      <h2>Withdrawal request submitted</h2>
+    </div>
+    <div className="oc-foot dp-foot">
+      <button type="button" className="oc-btn is-primary" onClick={onDone}>
+        Done
+      </button>
+    </div>
+  </div>
+);
+
 /* ---------- Token selection (page) ---------- */
-const TokenPage = ({ value, onBack, onPick }) => {
+const HEADS = { crypto: ["Crypto"], fiat: ["Fiat", "By bank transfer"] };
+const TokenPage = ({ value, onBack, onPick, title = "Deposit", heads = HEADS }) => {
   const [q, setQ] = useState("");
   // Deposits land in the Custody account, so each cell shows that balance.
   const bal = useOtc().s.bal.custody;
@@ -494,7 +656,7 @@ const TokenPage = ({ value, onBack, onPick }) => {
     .filter(([, , list]) => list.length);
   return (
     <div className="oc-screen oc-page dp-page is-token">
-      <AppBar title="Deposit" onBack={onBack} />
+      <AppBar title={title} onBack={onBack} />
       <div className="oc-page-body dp-body">
         <label className="dp-search">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -506,8 +668,8 @@ const TokenPage = ({ value, onBack, onPick }) => {
         {sections.map(([k, v, list]) => (
           <section key={k} className="dp-section" aria-labelledby={`dp-sec-${k}`}>
             <h2 id={`dp-sec-${k}`} className="dp-section-head">
-              {v.label}
-              {k === "fiat" && <span>By bank transfer</span>}
+              {heads[k][0]}
+              {heads[k][1] && <span>{heads[k][1]}</span>}
             </h2>
             <div className="tks-list dp-tokens">
               {list.map((c) => (
@@ -979,7 +1141,13 @@ const WalletApp = ({ k, onCancel, onConnect }) => {
 };
 
 /* ---------- The flow ---------- */
-export default function DepositFlow({ open, onClose, labelStyle = "ifta" }) {
+// Withdraw (2026-11-07) reuses the token page, the address list and the
+// add-address pages: token → Select address (Manage, Add address) → amount →
+// review + slide to confirm → submitted.
+const W_HEADS = { crypto: ["On-chain withdrawal"], fiat: ["Bank withdrawal"] };
+
+export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode = "deposit" }) {
+  const withdraw = mode === "withdraw";
   const [sheet, setSheet] = useState(null); // source | network
   const [d, setD] = useState({});
   const [tokenPage, setTokenPage] = useState(false);
@@ -1064,16 +1232,45 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta" }) {
           <TokenPage
             value={d.asset}
             onBack={() => setTokenPage(false)}
+            title={withdraw ? "Withdraw" : "Deposit"}
+            heads={withdraw ? W_HEADS : HEADS}
             onPick={(k, c) => {
               picked.current = false;
               setD({ kind: k, asset: c });
-              setSheet("source");
+              if (withdraw) setStack(["list"]);
+              else setSheet("source");
             }}
           />
         )}
         {stack.includes("list") && (
-          <ListPage d={d} added={added[d.asset]} onBack={pop} onPick={(w) => setDetail({ ...d, from: w })} onAdd={() => (fiat ? toAmount() : setSheet("method"))} />
+          <ListPage
+            d={d}
+            added={added[d.asset]}
+            withdraw={withdraw}
+            onBack={pop}
+            onManage={() => say("Address management isn’t in this demo")}
+            onPick={(w) => {
+              if (!withdraw) return setDetail({ ...d, from: w });
+              setD((x) => ({ ...x, to: w }));
+              return push("wamount");
+            }}
+            onAdd={() => (withdraw && fiat ? say("Adding a bank account isn’t in this demo") : fiat ? toAmount() : setSheet("method"))}
+          />
         )}
+        {stack.includes("wamount") && (
+          <WAmountPage
+            key={`${d.asset}-${d.to?.id}`}
+            ls={labelStyle}
+            d={d}
+            onBack={pop}
+            onNext={(v) => {
+              setD((x) => ({ ...x, amount: v }));
+              push("wreview");
+            }}
+          />
+        )}
+        {stack.includes("wreview") && <WReviewPage d={d} onBack={pop} onConfirmed={() => push("wdone")} />}
+        {stack.includes("wdone") && <WResultPage onDone={finish} />}
         {stack.includes("amount") && (
           <AmountPage
             key={d.asset}
@@ -1169,7 +1366,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta" }) {
       />
       <TokenSheet
         open={sheet === "method"}
-        title="Add new wallet"
+        title={withdraw ? "Add address" : "Add new wallet"}
         value={null}
         onPick={(m) => {
           picked.current = true;
@@ -1178,7 +1375,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta" }) {
         }}
         onClose={closeSheet("method")}
         options={[
-          { value: "small", icon: <MethodIcon k="small" />, label: "Small-amount verification", name: "Deposit with a small extra amount; whitelisted when it arrives" },
+          ...(withdraw ? [] : [{ value: "small", icon: <MethodIcon k="small" />, label: "Small-amount verification", name: "Deposit with a small extra amount; whitelisted when it arrives" }]),
           { value: "connect", icon: <MethodIcon k="connect" />, label: "WalletConnect", name: "Connect your wallet app to prove you own the address" },
           { value: "sign", icon: <MethodIcon k="sign" />, label: "Signature verification", name: "Sign a message in your wallet and paste the result" },
         ]}

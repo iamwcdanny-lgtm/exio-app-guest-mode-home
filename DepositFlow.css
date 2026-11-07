@@ -997,3 +997,53 @@ textarea.dp-tf-input {
   word-break: break-all;
   font-feature-settings: "lnum" 1, "tnum" 1;
 }
+
+/* ---------- Withdraw ---------- */
+/* App bar text link (Select address › Manage): both side columns widen so
+   the title stays centred and the link keeps the page's 16px margin. */
+.oc-appbar:has(.dp-bar-link) {
+  grid-template-columns: 72px 1fr 72px;
+}
+.dp-bar-link {
+  justify-self: end;
+  margin-right: 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+  color: #019ff8;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.dp-row.is-to {
+  align-items: flex-start;
+}
+.dp-row.is-to > b {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.dp-row.is-to small {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+}
+.dp-row.is-to small.dp-addr-full {
+  max-width: 220px;
+  word-break: break-all;
+}
+.dp-result {
+  align-items: center;
+  padding-top: 64px;
+  text-align: center;
+}
+.dp-result h2 {
+  margin: 8px 0 0;
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 700;
+}

@@ -479,12 +479,13 @@ const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, s
   return (
     <div className="oc-screen oc-page dp-page is-manage">
       <AppBar title="Manage whitelist address" onBack={onBack} />
-      <div className="dp-tabs" role="tablist">
+      {/* Two kinds only, so the app's segmented control (Trade's OTC / Order book). */}
+      <div className="tp-seg dp-seg" role="tablist" aria-label="Whitelist type" style={{ "--seg-i": bank ? 1 : 0, "--seg-n": 2 }}>
         {[
           ["crypto", "Crypto addresses"],
           ["bank", "Bank accounts"],
         ].map(([k, l]) => (
-          <button key={k} type="button" role="tab" aria-selected={tab === k} className={tab === k ? "is-on" : ""} onClick={() => setTab(k)}>
+          <button key={k} type="button" role="tab" aria-selected={tab === k} className={`tp-seg-item${tab === k ? " is-on" : ""}`} onClick={() => setTab(k)}>
             {l}
           </button>
         ))}

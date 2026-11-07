@@ -110,6 +110,9 @@
   color: rgba(0, 0, 0, 0.9);
 }
 .oc-back {
+  /* Buttons don't inherit text colour (iOS Safari defaults to system blue),
+     and some back arrows draw in currentColor. */
+  color: rgba(0, 0, 0, 0.8);
   width: 40px;
   height: 40px;
   display: grid;

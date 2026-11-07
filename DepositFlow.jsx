@@ -43,13 +43,31 @@ const EXIO_ADDR = {
   SOL: "8FzR3kWq2nVb6YtL9pXc4sMd7hJg1eUa5oKi2NwQbTzR",
 };
 const WHITELIST = {
-  BTC: [{ id: "w1", label: "Ledger Nano X", net: "BTC", addr: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" }],
-  ETH: [{ id: "w2", label: "Ledger Nano X", net: "ERC20", addr: "0x7a3B5c8D9e0F1a2b3C4d5E6f7A8b9C0d1E2fC91e" }],
+  BTC: [
+    { id: "w1", label: "Ledger Nano X", net: "BTC", addr: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" },
+    { id: "w6", label: "Trezor Model T", net: "BTC", addr: "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq" },
+    { id: "w7", label: "OKX", net: "BTC", addr: "bc1qm34lsc65zpw79lxes69zkqmk6ee3ewf0j77s3h" },
+    { id: "w8", label: "Coinbase", net: "BTC", addr: "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy" },
+  ],
+  ETH: [
+    { id: "w2", label: "Ledger Nano X", net: "ERC20", addr: "0x7a3B5c8D9e0F1a2b3C4d5E6f7A8b9C0d1E2fC91e" },
+    { id: "w9", label: "MetaMask", net: "ERC20", addr: "0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE" },
+    { id: "w10", label: "OKX", net: "ERC20", addr: "0x6cC5F688a315f3dC28A7781717a9A798a59fDA7b" },
+    { id: "w11", label: "Coinbase", net: "ERC20", addr: "0x71660c4005BA85c37ccec55d0C4493E66Fe775d3" },
+  ],
   USDT: [
     { id: "w3", label: "Ledger Nano X", net: "ERC20", addr: "0x7a3B5c8D9e0F1a2b3C4d5E6f7A8b9C0d1E2fC91e" },
     { id: "w4", label: "Binance", net: "TRC20", addr: "TQ9mFz2Rk7Lb4Wn8Yc1Vd5Hs3Jt6Gp0kLp" },
+    { id: "w12", label: "MetaMask", net: "ERC20", addr: "0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE" },
+    { id: "w13", label: "OKX", net: "TRC20", addr: "TNXoiAJ3dct8Fjg4M9fkLFh9S2v9TXc32G" },
+    { id: "w14", label: "Trust Wallet", net: "TRC20", addr: "TYASr5UV6HEcXatwdFQfmLVUqQQQMUxHLS" },
   ],
-  USDC: [{ id: "w5", label: "Ledger Nano X", net: "ERC20", addr: "0x7a3B5c8D9e0F1a2b3C4d5E6f7A8b9C0d1E2fC91e" }],
+  USDC: [
+    { id: "w5", label: "Ledger Nano X", net: "ERC20", addr: "0x7a3B5c8D9e0F1a2b3C4d5E6f7A8b9C0d1E2fC91e" },
+    { id: "w15", label: "MetaMask", net: "ERC20", addr: "0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE" },
+    { id: "w16", label: "Coinbase", net: "ERC20", addr: "0x71660c4005BA85c37ccec55d0C4493E66Fe775d3" },
+    { id: "w17", label: "OKX", net: "ERC20", addr: "0x6cC5F688a315f3dC28A7781717a9A798a59fDA7b" },
+  ],
   USD: [
     { id: "b1", label: "HSBC Hong Kong", net: "bank", addr: "···· 4821" },
     { id: "b2", label: "Bank of China (Hong Kong)", net: "bank", addr: "···· 0937" },

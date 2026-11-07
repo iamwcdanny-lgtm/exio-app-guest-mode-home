@@ -24,14 +24,22 @@ const KINDS = {
 };
 const NETWORKS = {
   BTC: [["BTC", "Bitcoin", "2 confirmations"]],
-  ETH: [["ERC20", "Ethereum (ERC20)", "12 confirmations"]],
+  // Arbitrum and Base are Ethereum layer 2s: same 0x address format as ERC20.
+  ETH: [
+    ["ERC20", "Ethereum (ERC20)", "12 confirmations"],
+    ["Arbitrum", "Arbitrum One", "20 confirmations"],
+    ["Base", "Base", "20 confirmations"],
+  ],
   USDT: [
     ["ERC20", "Ethereum (ERC20)", "12 confirmations"],
     ["TRC20", "Tron (TRC20)", "20 confirmations"],
+    ["Arbitrum", "Arbitrum One", "20 confirmations"],
   ],
   USDC: [
     ["ERC20", "Ethereum (ERC20)", "12 confirmations"],
     ["SOL", "Solana", "32 confirmations"],
+    ["Arbitrum", "Arbitrum One", "20 confirmations"],
+    ["Base", "Base", "20 confirmations"],
   ],
 };
 const NET = Object.fromEntries(Object.values(NETWORKS).flat().map(([k, name, conf]) => [k, { name, conf }]));
@@ -39,6 +47,8 @@ const NET = Object.fromEntries(Object.values(NETWORKS).flat().map(([k, name, con
 const EXIO_ADDR = {
   BTC: "bc1q8c6fshw2dlwun7ekn9qwf37cu2rn755upcp6el",
   ERC20: "0x4F3a9C21b7E05d6A8e1f2C3D4b5A6978e0dC1a2B",
+  Arbitrum: "0x4F3a9C21b7E05d6A8e1f2C3D4b5A6978e0dC1a2B",
+  Base: "0x4F3a9C21b7E05d6A8e1f2C3D4b5A6978e0dC1a2B",
   TRC20: "TXq7nQ2bV9wK3sL5mP8rD4fH6jC1yU0aZe",
   SOL: "8FzR3kWq2nVb6YtL9pXc4sMd7hJg1eUa5oKi2NwQbTzR",
 };
@@ -51,8 +61,8 @@ const ADDRESSES = [
   { id: "a4", label: "Coinbase", net: "BTC", addr: "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy" },
   { id: "a5", label: "Ledger Nano X", net: "ERC20", addr: "0x7a3B5c8D9e0F1a2b3C4d5E6f7A8b9C0d1E2fC91e" },
   { id: "a6", label: "MetaMask", net: "ERC20", addr: "0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE" },
-  { id: "a7", label: "OKX", net: "ERC20", addr: "0x6cC5F688a315f3dC28A7781717a9A798a59fDA7b" },
-  { id: "a8", label: "Coinbase", net: "ERC20", addr: "0x71660c4005BA85c37ccec55d0C4493E66Fe775d3" },
+  { id: "a7", label: "OKX", net: "Arbitrum", addr: "0x6cC5F688a315f3dC28A7781717a9A798a59fDA7b" },
+  { id: "a8", label: "Coinbase", net: "Base", addr: "0x71660c4005BA85c37ccec55d0C4493E66Fe775d3" },
   { id: "a9", label: "Binance", net: "TRC20", addr: "TQ9mFz2Rk7Lb4Wn8Yc1Vd5Hs3Jt6Gp0kLp" },
   { id: "a10", label: "OKX", net: "TRC20", addr: "TNXoiAJ3dct8Fjg4M9fkLFh9S2v9TXc32G" },
   { id: "a11", label: "Trust Wallet", net: "TRC20", addr: "TYASr5UV6HEcXatwdFQfmLVUqQQQMUxHLS" },
@@ -766,12 +776,16 @@ const WalletBadge = ({ k, size = 32 }) => (
 const DEMO_ADDR = {
   BTC: "bc1q9h7garjk7xg4ek3gf9xkqrz7dhpcm4nn2ul8qx",
   ERC20: "0x451ceE9936cE1F566DfA4b09E09e3485DC17a1de",
+  Arbitrum: "0x451ceE9936cE1F566DfA4b09E09e3485DC17a1de",
+  Base: "0x451ceE9936cE1F566DfA4b09E09e3485DC17a1de",
   TRC20: "TJ4r8qWm2Xc7Vb3Nk9Lp5Hd6Ys1FgPQa8z",
   SOL: "5YNmS1R9nNSCDzb5a7mMJ1dwK9uHeAAF4CmPEwKgVWr8",
 };
 const ADDR_RE = {
   BTC: /^(bc1[02-9ac-hj-np-z]{25,60}|[13][1-9A-HJ-NP-Za-km-z]{25,34})$/,
   ERC20: /^0x[0-9a-fA-F]{40}$/,
+  Arbitrum: /^0x[0-9a-fA-F]{40}$/,
+  Base: /^0x[0-9a-fA-F]{40}$/,
   TRC20: /^T[1-9A-HJ-NP-Za-km-z]{33}$/,
   SOL: /^[1-9A-HJ-NP-Za-km-z]{32,44}$/,
 };

@@ -77,6 +77,11 @@ const BANKS = {
   ],
   HKD: [{ id: "b3", label: "HSBC Hong Kong", net: "bank", addr: "···· 4821" }],
 };
+// The user's own-name bank accounts, once each (one account can hold several currencies).
+const MY_BANKS = [
+  { id: "b1", label: "HSBC Hong Kong", addr: "···· 4821", ccy: ["USD", "HKD"] },
+  { id: "b2", label: "Bank of China (Hong Kong)", addr: "···· 0937", ccy: ["USD"] },
+];
 // `book`: the address book as it stands (seed + added this session, toggles).
 const listFor = (asset, book = ADDRESSES) => {
   if (BANKS[asset]) return BANKS[asset];
@@ -466,12 +471,47 @@ const InfoIcon = () => (
 );
 
 // Full-screen page over Select address (like the add pages); Add address in the footer.
-const ManagePage = ({ book, onBack, onAdd, onWithdraw, say }) => {
+// Two tabs: crypto addresses and bank accounts. Opens on the tab that matches
+// where it was reached from (a fiat token's Select bank account → Bank accounts).
+const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, say }) => {
   const [open, setOpen] = useState(null);
+  const bank = tab === "bank";
   return (
     <div className="oc-screen oc-page dp-page is-manage">
       <AppBar title="Manage whitelist address" onBack={onBack} />
+      <div className="dp-tabs" role="tablist">
+        {[
+          ["crypto", "Crypto addresses"],
+          ["bank", "Bank accounts"],
+        ].map(([k, l]) => (
+          <button key={k} type="button" role="tab" aria-selected={tab === k} className={tab === k ? "is-on" : ""} onClick={() => setTab(k)}>
+            {l}
+          </button>
+        ))}
+      </div>
       <div className="oc-page-body dp-body">
+        {bank ? (
+          <div className="dp-list">
+            {MY_BANKS.map((b) => (
+              <div key={b.id} className="dp-mcell">
+                <div className="dp-mcell-top is-static">
+                  <span className="dp-mcell-title">
+                    <b>{b.label}</b>
+                  </span>
+                  <span className="dp-mcell-sub">
+                    <span className="dp-mcell-net">{b.addr}</span>
+                    {b.ccy.map((c) => (
+                      <span key={c} className="dp-tag is-wl">
+                        {c}
+                      </span>
+                    ))}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <>
         <p className="dp-info">
           <InfoIcon />
           <span>To enable withdrawals for an address, tab to open the address details and turn on the ownership confirmation switch.</span>
@@ -527,10 +567,12 @@ const ManagePage = ({ book, onBack, onAdd, onWithdraw, say }) => {
             );
           })}
         </div>
+          </>
+        )}
       </div>
       <div className="oc-foot dp-foot">
-        <button type="button" className="oc-btn is-outline" onClick={onAdd}>
-          Add address
+        <button type="button" className="oc-btn is-outline" onClick={bank ? onAddBank : onAdd}>
+          {bank ? "Add bank account" : "Add address"}
         </button>
       </div>
     </div>
@@ -1353,6 +1395,8 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
   const [detail, setDetail] = useState(null);
   const [leaving, setLeaving] = useState(false);
   const [book, setBook] = useState(ADDRESSES); // address book: seed + added this session, withdraw on/off
+  const [mTab, setMTab] = useState("crypto"); // Manage tab
+  const savedD = useRef(null); // token context to restore after Add bank account from a crypto context
   const [wdFor, setWdFor] = useState(null); // address whose Withdraw switch was tapped
   const [done, setDone] = useState(""); // centred result toast (Figma "Address setting updated")
   const [wl, setWl] = useState({ remarks: "", addr: "", wallet: null, method: null });
@@ -1372,7 +1416,12 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
       setStack([]);
       setDetail(null);
       setLeaving(false);
-      setTokenPage(true);
+      if (mode === "manage") {
+        // Account › Whitelist addresses: straight to Manage, no token chosen yet.
+        setD({ kind: "crypto", asset: "USDT" });
+        setMTab("crypto");
+        setStack(["manage"]);
+      } else setTokenPage(true);
     }
   }, [open]);
   const closeSheet = (name) => () => setSheet((s) => (s === name ? null : s));
@@ -1396,7 +1445,21 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
     setD((x) => ({ ...x, net: fiat ? "bank" : nets.length === 1 ? nets[0][0] : null }));
     setStack((s) => [...s.filter((x) => x !== "amount"), "amount"]);
   };
-  const pop = () => setStack((s) => s.slice(0, -1));
+  const pop = () => {
+    if (stack[stack.length - 1] === "amount" && savedD.current) {
+      setD(savedD.current);
+      savedD.current = null;
+    }
+    setStack((s) => s.slice(0, -1));
+  };
+  // Manage › Bank accounts › Add bank account: the first deposit from an own-name
+  // account whitelists it (same as Add bank account on Select bank account).
+  const addBank = () => {
+    if (fiat) return toAmount();
+    savedD.current = d;
+    setD({ kind: "fiat", asset: "HKD", net: "bank" });
+    return setStack((s) => [...s.filter((x) => x !== "amount"), "amount"]);
+  };
   const push = (pg) => setStack((s) => [...s.filter((x) => x !== pg), pg]);
   const startAdd = (method) => {
     const nets = NETWORKS[d.asset] || [];
@@ -1459,7 +1522,10 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             d={d}
             book={book}
             onBack={pop}
-            onManage={() => (fiat ? say("Bank account management isn’t in this demo") : push("manage"))}
+            onManage={() => {
+              setMTab(fiat ? "bank" : "crypto");
+              push("manage");
+            }}
             onPick={(w) => {
               if (!withdraw) return setDetail({ ...d, from: w });
               if (w.withdraw === false) return say("Withdrawals are off for this address. Turn them on in Manage.");
@@ -1472,6 +1538,9 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         {stack.includes("manage") && (
           <ManagePage
             book={book}
+            tab={mTab}
+            setTab={setMTab}
+            onAddBank={addBank}
             onBack={pop}
             onAdd={() => setSheet("method")}
             say={say}

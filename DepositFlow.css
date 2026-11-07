@@ -1320,3 +1320,41 @@ textarea.dp-tf-input {
   z-index: 70;
   pointer-events: none;
 }
+
+/* Manage tabs: Crypto addresses / Bank accounts */
+.dp-tabs {
+  flex: none;
+  display: flex;
+  gap: 24px;
+  padding: 0 16px;
+  border-bottom: 1px solid #f2f2f2;
+}
+.dp-tabs button {
+  position: relative;
+  padding: 10px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.4);
+}
+.dp-tabs button.is-on {
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+}
+.dp-tabs button.is-on::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  background: #00d690;
+  transform: translateX(-50%);
+}
+.dp-mcell-top.is-static {
+  cursor: default;
+}

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import DepositFlow from "./DepositFlow";
+import AccountFlow from "./AccountFlow";
 import "./LoggedInHome.css";
 
 // Logged-in Home, empty custody wallet (Figma: Home Custody NoAssets, 19497:35542).
@@ -26,7 +27,8 @@ const LoggedInHome = ({ welcome = "", labelStyle = "ifta" }) => {
   const [tab, setTab] = useState("custody");
   const [hideSmall, setHideSmall] = useState(true);
   const [toast, setToast] = useState("");
-  const [depositing, setDepositing] = useState(null); // null | "deposit" | "withdraw"
+  const [depositing, setDepositing] = useState(null); // null | "deposit" | "withdraw" | "manage"
+  const [account, setAccount] = useState(false);
   const toastTimer = useRef(null);
 
   const say = (text) => {
@@ -48,7 +50,7 @@ const LoggedInHome = ({ welcome = "", labelStyle = "ifta" }) => {
     <div className="lh">
       <div className="lh-scroll">
         <div className="lh-header">
-          <button type="button" className="lh-icon-btn" aria-label="Account" onClick={() => notHere("Account")}>
+          <button type="button" className="lh-icon-btn" aria-label="Account" onClick={() => setAccount(true)}>
             <img src={`${ICONS}/avatar.svg`} width="24" height="24" alt="" />
           </button>
           <div className="lh-header-actions">
@@ -192,6 +194,7 @@ const LoggedInHome = ({ welcome = "", labelStyle = "ifta" }) => {
       <div className={`lh-toast${toast ? " is-shown" : ""}`} role="status">
         {toast}
       </div>
+      <AccountFlow open={account} onClose={() => setAccount(false)} onWhitelist={() => setDepositing("manage")} />
       <DepositFlow open={Boolean(depositing)} mode={depositing || "deposit"} onClose={() => setDepositing(null)} labelStyle={labelStyle} />
     </div>
   );

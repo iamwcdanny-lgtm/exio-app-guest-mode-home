@@ -1,0 +1,483 @@
+/* Account pages (AccountFlow.jsx). Page shell from OTC (.oc-screen / .oc-appbar). */
+.acc-page {
+  color: rgba(0, 0, 0, 0.8);
+}
+.acc-bar .acc-logo {
+  justify-self: center;
+  display: block;
+}
+.acc-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(24px + var(--dc-bottom, 0px));
+}
+.acc-body.is-flush {
+  padding-bottom: var(--dc-bottom, 0px);
+}
+
+/* User header */
+.acc-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #5ec8c8, #5fdc95);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+}
+.acc-avatar.is-lg {
+  width: 64px;
+  height: 64px;
+  font-size: 26px;
+}
+.acc-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 16px 24px;
+}
+.acc-user span {
+  display: flex;
+  flex-direction: column;
+}
+.acc-user b {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+}
+.acc-user small {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+}
+.acc-pi {
+  padding: 0 3px;
+  border-radius: 3px;
+  background: #fff4e5;
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 600;
+  color: #fe9016;
+}
+
+/* PI review banner */
+.acc-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #e6f6ff;
+}
+.acc-banner-i {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  border-radius: 50%;
+  background: #3d8fe9;
+  color: #fff;
+  font: italic 700 10px/1 Georgia, serif;
+}
+.acc-banner > div {
+  flex: 1;
+}
+.acc-banner b {
+  display: block;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+}
+.acc-banner p {
+  margin: 2px 0 4px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.8);
+}
+.acc-banner strong {
+  font-weight: 700;
+}
+.acc-banner-x {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.acc-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+  color: #3d8fe9;
+}
+
+/* Menu rows */
+.acc-menu {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 0;
+}
+.acc-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+}
+.acc-row:active {
+  background: rgba(0, 0, 0, 0.03);
+}
+.acc-row-icon {
+  flex: none;
+  display: grid;
+}
+.acc-row-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+}
+.acc-row-value {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+}
+.acc-chev {
+  flex: none;
+  color: rgba(0, 0, 0, 0.4);
+}
+.acc-menu.is-security {
+  padding-top: 20px;
+}
+.acc-menu.is-security .acc-row {
+  min-height: 46px;
+}
+.acc-menu.is-plain .acc-row {
+  min-height: 50px;
+}
+.acc-menu.is-plain .acc-row-label {
+  font-weight: 500;
+}
+.acc-menu.is-groups {
+  padding: 0;
+}
+.acc-menu.is-groups > div {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
+  border-top: 1px solid #f2f2f2;
+}
+.acc-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(0, 214, 144, 0.08);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+  color: #00c27f;
+}
+.acc-signout {
+  align-self: center;
+  width: 154px;
+  height: 32px;
+  margin-top: auto;
+  border: 1px solid rgba(0, 0, 0, 0.8);
+  border-radius: 16px;
+  background: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.8);
+}
+
+/* Account security */
+.acc-last {
+  margin: 0;
+  padding: 16px;
+  border-bottom: 1px solid #f2f2f2;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+  text-align: center;
+}
+.acc-last b {
+  margin-left: 8px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+/* Identity verification */
+.acc-help {
+  justify-self: end;
+}
+.acc-id {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 16px 24px;
+}
+.acc-id .acc-avatar {
+  margin-bottom: 8px;
+}
+.acc-id b {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+}
+.acc-id small {
+  margin-bottom: 4px;
+  font-size: 12px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.4);
+}
+.acc-card {
+  margin: 0 16px;
+  padding: 16px;
+  border: 1px solid #f2f2f2;
+  border-radius: 12px;
+}
+.acc-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.acc-card-head h2 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+}
+.acc-eye {
+  display: grid;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.acc-edit {
+  margin-left: auto;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.2);
+}
+.acc-card-note {
+  margin: 12px 0 8px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.8);
+}
+.acc-kv {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px 12px;
+  margin: 16px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+.acc-kv dt {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+}
+.acc-kv dd {
+  margin: 0;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.8);
+}
+
+/* Account info */
+.acc-h3 {
+  margin: 12px 16px 12px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+}
+.acc-box {
+  display: grid;
+  margin: 0 16px;
+  padding: 16px;
+  border: 1px solid #f2f2f2;
+  border-radius: 8px;
+}
+.acc-box.is-2 {
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.acc-box > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.acc-box small {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+}
+.acc-box b {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.9);
+}
+.acc-box em {
+  margin-left: 4px;
+  font-style: normal;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+}
+.acc-i {
+  display: grid;
+  place-items: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  font: italic 700 8px/1 Georgia, serif;
+}
+.acc-foot-note {
+  margin: 20px 16px 0;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+}
+.acc-foot-note.is-dark {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+/* Professional investor */
+.acc-pi-lead {
+  margin: 12px 16px 16px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+}
+.acc-card.is-pi h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+}
+.acc-card.is-pi p {
+  margin: 0 0 8px 32px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.7);
+}
+.acc-card.is-pi .oc-btn {
+  width: 100%;
+  margin-top: 8px;
+}
+.acc-sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 16px 16px 0 0;
+}
+.acc-benefits {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  list-style: none;
+}
+.acc-benefits li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.8);
+}
+
+/* About */
+.acc-app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 0;
+}
+.acc-app-icon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff 40%, #c9d8ff 75%, #b9f0dc);
+}
+.acc-app small {
+  font-size: 12px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.acc-toast {
+  position: absolute;
+  left: 50%;
+  bottom: calc(96px + var(--dc-bottom, 0px));
+  z-index: 5;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 48px);
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+  text-align: center;
+  pointer-events: none;
+}

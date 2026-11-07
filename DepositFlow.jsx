@@ -464,26 +464,30 @@ const InfoIcon = () => (
     <circle cx="8" cy="5" r=".9" fill="#fff" />
   </svg>
 );
-const PlusIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M12 3v18M3 12h18" stroke="rgba(0,0,0,0.8)" strokeWidth="1.8" strokeLinecap="round" />
-  </svg>
-);
 
-const ManagePage = ({ book, onBack, onAdd, onWithdraw, say }) => {
+// Page sheet (iOS-style): rises over Select address, which steps back behind it.
+// Add address moved from the "+" in the bar to the sheet's footer.
+const ManageSheet = ({ show, book, onClose, onAdd, onWithdraw, say }) => {
   const [open, setOpen] = useState(null);
+  useEffect(() => {
+    if (show) setOpen(null);
+  }, [show]);
+  const tab = show ? 0 : -1;
   return (
-    <div className="oc-screen oc-page dp-page is-manage">
-      <AppBar
-        title="Manage whitelist address"
-        onBack={onBack}
-        right={
-          <button type="button" className="dp-bar-icon" aria-label="Add address" onClick={onAdd}>
-            <PlusIcon />
+    <PhoneLayer className="dp-ps-layer">
+      <div className={`dp-ps-scrim${show ? " is-open" : ""}`} onClick={onClose} aria-hidden="true" />
+      <div className={`dp-ps${show ? " is-open" : ""}`} role="dialog" aria-modal="true" aria-labelledby="dp-ps-title" aria-hidden={!show}>
+        <span className="tks-grab" aria-hidden="true" />
+        <header className="dp-ps-head">
+          <span />
+          <h2 id="dp-ps-title">Manage whitelist address</h2>
+          <button type="button" className="dp-ps-x" aria-label="Close" tabIndex={tab} onClick={onClose}>
+            <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" stroke="rgba(0,0,0,0.8)" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
           </button>
-        }
-      />
-      <div className="oc-page-body dp-body">
+        </header>
+      <div className="oc-page-body dp-body dp-ps-body">
         <p className="dp-info">
           <InfoIcon />
           <span>To enable withdrawals for an address, tab to open the address details and turn on the ownership confirmation switch.</span>
@@ -540,7 +544,13 @@ const ManagePage = ({ book, onBack, onAdd, onWithdraw, say }) => {
           })}
         </div>
       </div>
-    </div>
+        <div className="oc-foot dp-foot">
+          <button type="button" className="oc-btn is-outline" tabIndex={tab} onClick={onAdd}>
+            Add address
+          </button>
+        </div>
+      </div>
+    </PhoneLayer>
   );
 };
 
@@ -1360,6 +1370,18 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
   const [detail, setDetail] = useState(null);
   const [leaving, setLeaving] = useState(false);
   const [book, setBook] = useState(ADDRESSES); // address book: seed + added this session, withdraw on/off
+  const [manage, setManage] = useState(false); // Manage whitelist address page sheet
+  const fromManage = useRef(false);
+  // Add started from Manage: once back on Select address (added or backed
+  // out), the page sheet comes back.
+  useEffect(() => {
+    if (fromManage.current && stack.length === 1 && stack[0] === "list") {
+      fromManage.current = false;
+      const t = setTimeout(() => setManage(true), 120);
+      return () => clearTimeout(t);
+    }
+    return undefined;
+  }, [stack]);
   const [wdFor, setWdFor] = useState(null); // address whose Withdraw switch was tapped
   const [done, setDone] = useState(""); // centred result toast (Figma "Address setting updated")
   const [wl, setWl] = useState({ remarks: "", addr: "", wallet: null, method: null });
@@ -1376,6 +1398,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
     if (open) {
       setD({});
       setTokenPage(false);
+      setManage(false);
       setStack([]);
       setDetail(null);
       setLeaving(false);
@@ -1426,7 +1449,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
     setBook((b) => [w, ...b.map((x) => ({ ...x, isNew: false }))]);
     setTimeout(() => {
       // Back to where Add started: Manage, else Select address.
-      setStack((s) => (s.includes("manage") ? s.slice(0, s.indexOf("manage") + 1) : ["list"]));
+      setStack(["list"]);
       say("Address added");
     }, 280);
   };
@@ -1446,7 +1469,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
   if (!open) return null;
   return (
     <>
-      <PhoneLayer className="oc-layer dp-layer">
+      <PhoneLayer className={`oc-layer dp-layer${manage ? " is-behind" : ""}`}>
         {tokenPage && (
           <TokenPage
             value={d.asset}
@@ -1466,7 +1489,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             d={d}
             book={book}
             onBack={pop}
-            onManage={() => (fiat ? say("Bank account management isn’t in this demo") : push("manage"))}
+            onManage={() => (fiat ? say("Bank account management isn’t in this demo") : setManage(true))}
             onPick={(w) => {
               if (!withdraw) return setDetail({ ...d, from: w });
               if (w.withdraw === false) return say("Withdrawals are off for this address. Turn them on in Manage.");
@@ -1474,18 +1497,6 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
               return push("wamount");
             }}
             onAdd={() => (fiat ? toAmount() : setSheet("method"))}
-          />
-        )}
-        {stack.includes("manage") && (
-          <ManagePage
-            book={book}
-            onBack={pop}
-            onAdd={() => setSheet("method")}
-            say={say}
-            onWithdraw={(w) => {
-              setWdFor(w);
-              setSheet(w.withdraw ? "disable" : "declare");
-            }}
           />
         )}
         {stack.includes("wamount") && (
@@ -1553,21 +1564,18 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
           />
         )}
         {detail && <DetailPage d={detail} onDone={finish} say={say} />}
-        {toast && (
-          <div className="dp-toast" role="status">
-            {toast}
-          </div>
-        )}
-        {done && (
-          <div className="dp-toast-c" role="status">
-            <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
-              <circle cx="15" cy="15" r="13.5" fill="none" stroke="#fff" strokeWidth="1.5" />
-              <path d="M9.5 15.3l3.8 3.7 7.2-7.6" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            {done}
-          </div>
-        )}
       </PhoneLayer>
+      <ManageSheet
+        show={manage}
+        book={book}
+        onClose={() => setManage(false)}
+        onAdd={() => setSheet("method")}
+        say={say}
+        onWithdraw={(w) => {
+          setWdFor(w);
+          setSheet(w.withdraw ? "disable" : "declare");
+        }}
+      />
       <TokenSheet
         open={sheet === "source"}
         title="Deposit from"
@@ -1610,6 +1618,9 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         value={null}
         onPick={(m) => {
           picked.current = true;
+          // The add pages open full screen, so the page sheet steps aside.
+          fromManage.current = manage && m !== "small";
+          setManage(false);
           if (m === "small") toAmount();
           else startAdd(m);
         }}
@@ -1657,6 +1668,22 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
           slideOut(".dp-page.is-amount", pop);
         }}
       />
+      <PhoneLayer className="dp-toast-layer">
+        {toast && (
+          <div className="dp-toast" role="status">
+            {toast}
+          </div>
+        )}
+        {done && (
+          <div className="dp-toast-c" role="status">
+            <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+              <circle cx="15" cy="15" r="13.5" fill="none" stroke="#fff" strokeWidth="1.5" />
+              <path d="M9.5 15.3l3.8 3.7 7.2-7.6" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            {done}
+          </div>
+        )}
+      </PhoneLayer>
     </>
   );
 }

@@ -1057,18 +1057,6 @@ textarea.dp-tf-input {
   gap: 2px;
   padding: 0 4px 0 6px;
 }
-.dp-bar-icon {
-  justify-self: end;
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  margin-right: 4px;
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-}
 .dp-info {
   display: flex;
   align-items: flex-start;
@@ -1323,4 +1311,102 @@ textarea.dp-tf-input {
   color: #fff;
   text-align: center;
   pointer-events: none;
+}
+
+/* ---------- Manage whitelist address as a page sheet ---------- */
+/* Select address steps back (scaled, rounded) while the sheet covers it. */
+.dp-layer > .oc-screen {
+  transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), border-radius 0.32s;
+}
+.dp-layer.is-behind > .oc-screen:last-of-type {
+  transform: translateY(calc(var(--dc-top, 0px) - 8px)) scale(0.92);
+  transform-origin: top center;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.dp-ps-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 50; /* above the pages, below bottom sheets (60) */
+  pointer-events: none;
+}
+.dp-ps-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.dp-ps-scrim.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.dp-ps {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: calc(var(--dc-top, 0px) + 10px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px 12px 0 0;
+  background: #fff;
+  transform: translateY(100%);
+  transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: auto;
+  visibility: hidden;
+}
+.dp-ps.is-open {
+  transform: none;
+  visibility: visible;
+}
+.dp-ps:not(.is-open) {
+  transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s 0.32s;
+}
+.dp-ps-head {
+  flex: none;
+  display: grid;
+  grid-template-columns: 48px 1fr 48px;
+  align-items: center;
+  height: 48px;
+}
+.dp-ps-head h2 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.8);
+  text-align: center;
+}
+.dp-ps-x {
+  justify-self: end;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-right: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.dp-ps-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.dp-ps .oc-foot {
+  flex: none;
+}
+.dp-toast-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dp-ps,
+  .dp-layer > .oc-screen {
+    transition: none;
+  }
 }

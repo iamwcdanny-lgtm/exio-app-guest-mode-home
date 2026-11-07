@@ -1695,7 +1695,8 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         options={KINDS.crypto.assets.map((c) => ({ value: c, label: c, icon: <Icon c={c} />, name: CCY[c].name, tag: CCY[c].pi ? "PI" : undefined }))}
       />
       <HowSheet open={sheet === "how"} onClose={closeSheet("how")} />
-      <SecuritySheet ls={labelStyle} open={sheet === "security"} onClose={closeSheet("security")} onSubmit={whitelist} />
+      {/* Security codes are account-security, not trading: floating label (library Floating Input), like sign up / sign in. */}
+      <SecuritySheet ls="float" open={sheet === "security"} onClose={closeSheet("security")} onSubmit={whitelist} />
       <DeclareSheet w={wdFor} open={sheet === "declare"} onClose={closeSheet("declare")} onConfirm={() => setWithdraw(true)} />
       <DisableSheet open={sheet === "disable"} onClose={closeSheet("disable")} onConfirm={() => setWithdraw(false)} />
       <LeaveSheet

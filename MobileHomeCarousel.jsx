@@ -702,7 +702,7 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
   const [platform, setPlatform] = useState(() => readParam("platform", PLATFORMS, defaultPlatform()));
   const [bound, setBound] = useState(readBindings);
   const signinCheck = signinMethod(bound);
-  const [home, setHome] = useState(() => readParam("home", HOME_STATES, "guest"));
+  const [home, setHome] = useState(() => readParam("home", HOME_STATES, "member"));
   const [navStyle, setNavStyle] = useState(() => readParam("nav", NAV_STYLES, "classic"));
   const [rwaView, setRwaView] = useState(() => readParam("rwa", RWA_VIEWS, "current"));
   const [pdUser, setPdUserRaw] = useState(readPd);

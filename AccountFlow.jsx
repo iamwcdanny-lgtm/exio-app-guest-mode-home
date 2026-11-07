@@ -6,7 +6,7 @@ import "./AccountFlow.css";
 // Account pages (mock, 2026-11-07), from the live app's screens:
 // Account → Account security / Identity verification / Account info /
 // Professional investor / Settings / About, plus the new entrance
-// "Whitelist addresses" (crypto addresses + bank accounts), which opens the
+// "Addresses & bank accounts" (whitelisted crypto addresses + bank accounts), which opens the
 // same Manage whitelist address page as Select address › Manage.
 const LOGO = `${import.meta.env.BASE_URL}images/account/exio-logo.svg`;
 const USER = { name: "june2222", email: "as***@faf.com", initial: "J" };
@@ -260,7 +260,7 @@ const AccountPage = ({ onBack, go, todo, onWhitelist }) => {
         <nav className="acc-menu">
           <Row icon={I.security} label="Account security" chev={false} onClick={() => go("security")} />
           {/* New entrance: crypto addresses and bank accounts for deposits and withdrawals. */}
-          <Row icon={I.whitelist} label="Whitelist addresses" chev={false} onClick={onWhitelist} />
+          <Row icon={I.whitelist} label="Addresses & bank accounts" chev={false} onClick={onWhitelist} />
           <Row icon={I.verify} label="Verification" value={<Verified />} chev={false} onClick={() => go("verify")} />
           <Row icon={I.info} label="Account Info" chev={false} onClick={() => go("info")} />
           <Row icon={I.referral} label="Referral" chev={false} onClick={() => todo("Referral")} />

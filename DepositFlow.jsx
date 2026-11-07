@@ -42,37 +42,33 @@ const EXIO_ADDR = {
   TRC20: "TXq7nQ2bV9wK3sL5mP8rD4fH6jC1yU0aZe",
   SOL: "8FzR3kWq2nVb6YtL9pXc4sMd7hJg1eUa5oKi2NwQbTzR",
 };
-const WHITELIST = {
-  BTC: [
-    { id: "w1", label: "Ledger Nano X", net: "BTC", addr: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" },
-    { id: "w6", label: "Trezor Model T", net: "BTC", addr: "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq" },
-    { id: "w7", label: "OKX", net: "BTC", addr: "bc1qm34lsc65zpw79lxes69zkqmk6ee3ewf0j77s3h" },
-    { id: "w8", label: "Coinbase", net: "BTC", addr: "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy" },
-  ],
-  ETH: [
-    { id: "w2", label: "Ledger Nano X", net: "ERC20", addr: "0x7a3B5c8D9e0F1a2b3C4d5E6f7A8b9C0d1E2fC91e" },
-    { id: "w9", label: "MetaMask", net: "ERC20", addr: "0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE" },
-    { id: "w10", label: "OKX", net: "ERC20", addr: "0x6cC5F688a315f3dC28A7781717a9A798a59fDA7b" },
-    { id: "w11", label: "Coinbase", net: "ERC20", addr: "0x71660c4005BA85c37ccec55d0C4493E66Fe775d3" },
-  ],
-  USDT: [
-    { id: "w3", label: "Ledger Nano X", net: "ERC20", addr: "0x7a3B5c8D9e0F1a2b3C4d5E6f7A8b9C0d1E2fC91e" },
-    { id: "w4", label: "Binance", net: "TRC20", addr: "TQ9mFz2Rk7Lb4Wn8Yc1Vd5Hs3Jt6Gp0kLp" },
-    { id: "w12", label: "MetaMask", net: "ERC20", addr: "0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE" },
-    { id: "w13", label: "OKX", net: "TRC20", addr: "TNXoiAJ3dct8Fjg4M9fkLFh9S2v9TXc32G" },
-    { id: "w14", label: "Trust Wallet", net: "TRC20", addr: "TYASr5UV6HEcXatwdFQfmLVUqQQQMUxHLS" },
-  ],
-  USDC: [
-    { id: "w5", label: "Ledger Nano X", net: "ERC20", addr: "0x7a3B5c8D9e0F1a2b3C4d5E6f7A8b9C0d1E2fC91e" },
-    { id: "w15", label: "MetaMask", net: "ERC20", addr: "0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE" },
-    { id: "w16", label: "Coinbase", net: "ERC20", addr: "0x71660c4005BA85c37ccec55d0C4493E66Fe775d3" },
-    { id: "w17", label: "OKX", net: "ERC20", addr: "0x6cC5F688a315f3dC28A7781717a9A798a59fDA7b" },
-  ],
+// Whitelisted addresses belong to a network, not a token: one ERC20 address
+// serves ETH, USDT and USDC alike. A token lists every address on its networks.
+const ADDRESSES = [
+  { id: "a1", label: "Ledger Nano X", net: "BTC", addr: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" },
+  { id: "a2", label: "Trezor Model T", net: "BTC", addr: "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq" },
+  { id: "a3", label: "OKX", net: "BTC", addr: "bc1qm34lsc65zpw79lxes69zkqmk6ee3ewf0j77s3h" },
+  { id: "a4", label: "Coinbase", net: "BTC", addr: "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy" },
+  { id: "a5", label: "Ledger Nano X", net: "ERC20", addr: "0x7a3B5c8D9e0F1a2b3C4d5E6f7A8b9C0d1E2fC91e" },
+  { id: "a6", label: "MetaMask", net: "ERC20", addr: "0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE" },
+  { id: "a7", label: "OKX", net: "ERC20", addr: "0x6cC5F688a315f3dC28A7781717a9A798a59fDA7b" },
+  { id: "a8", label: "Coinbase", net: "ERC20", addr: "0x71660c4005BA85c37ccec55d0C4493E66Fe775d3" },
+  { id: "a9", label: "Binance", net: "TRC20", addr: "TQ9mFz2Rk7Lb4Wn8Yc1Vd5Hs3Jt6Gp0kLp" },
+  { id: "a10", label: "OKX", net: "TRC20", addr: "TNXoiAJ3dct8Fjg4M9fkLFh9S2v9TXc32G" },
+  { id: "a11", label: "Trust Wallet", net: "TRC20", addr: "TYASr5UV6HEcXatwdFQfmLVUqQQQMUxHLS" },
+];
+const BANKS = {
   USD: [
     { id: "b1", label: "HSBC Hong Kong", net: "bank", addr: "···· 4821" },
     { id: "b2", label: "Bank of China (Hong Kong)", net: "bank", addr: "···· 0937" },
   ],
   HKD: [{ id: "b3", label: "HSBC Hong Kong", net: "bank", addr: "···· 4821" }],
+};
+// `added`: addresses whitelisted in this session (newest first).
+const listFor = (asset, added = []) => {
+  if (BANKS[asset]) return BANKS[asset];
+  const nets = (NETWORKS[asset] || []).map(([k]) => k);
+  return [...added, ...ADDRESSES].filter((w) => nets.includes(w.net));
 };
 const short = (a) => (a.length > 16 ? `${a.slice(0, 8)}…${a.slice(-6)}` : a);
 const dpOf = (c) => CCY[c]?.dp ?? 2;
@@ -360,24 +356,25 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta" }) =
 };
 
 /* ---------- Step 10–11: whitelisted list ---------- */
-const ListPage = ({ d, added = [], onBack, onPick, onAdd, withdraw = false, onManage }) => {
+// Same page for deposit and withdraw: only what tapping a row does differs.
+const ListPage = ({ d, added = [], onBack, onPick, onAdd, onManage }) => {
   const fiat = d.kind === "fiat";
-  const list = [...added, ...(WHITELIST[d.asset] || [])];
+  const list = listFor(d.asset, added);
   return (
     <div className="oc-screen oc-page dp-page is-list">
       <AppBar
-        title={fiat ? "Select bank account" : withdraw ? "Select address" : "Select wallet"}
+        title={fiat ? "Select bank account" : "Select address"}
         onBack={onBack}
         right={
-          withdraw ? (
-            <button type="button" className="dp-bar-link" onClick={onManage}>
-              Manage
-            </button>
-          ) : null
+          <button type="button" className="dp-bar-link" onClick={onManage}>
+            Manage
+          </button>
         }
       />
       <div className="oc-page-body dp-body">
-        <p className="dp-lead">{withdraw ? `Choose where to send ${d.asset}.` : `Choose where you’ll send ${d.asset} from.`}</p>
+        <p className="dp-lead">
+          Your whitelisted {fiat ? "bank accounts" : "addresses"} for {d.asset}.
+        </p>
         <div className="dp-list">
           {list.map((w) => (
             <button key={w.id} type="button" className={`dp-cell${w.isNew ? " is-new" : ""}`} onClick={() => onPick(w)}>
@@ -405,7 +402,7 @@ const ListPage = ({ d, added = [], onBack, onPick, onAdd, withdraw = false, onMa
       </div>
       <div className="oc-foot dp-foot">
         <button type="button" className="oc-btn is-outline" onClick={onAdd}>
-          {withdraw ? (fiat ? "Add bank account" : "Add address") : fiat ? "Add new bank account" : "Add new wallet"}
+          {fiat ? "Add bank account" : "Add address"}
         </button>
       </div>
     </div>
@@ -1172,7 +1169,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
   const [stack, setStack] = useState([]); // pages over the token page: "list", "amount"
   const [detail, setDetail] = useState(null);
   const [leaving, setLeaving] = useState(false);
-  const [added, setAdded] = useState({}); // asset → wallets whitelisted in this session
+  const [added, setAdded] = useState([]); // addresses whitelisted in this session, any network
   const [wl, setWl] = useState({ remarks: "", addr: "", wallet: null, method: null });
   const [wapp, setWapp] = useState(null); // wallet app being "opened"
   const picked = useRef(false); // the New / Existing sheet closed by a choice, not a dismiss
@@ -1232,7 +1229,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
       addr: wl.method === "connect" ? DEMO_ADDR[d.net] : wl.addr,
       isNew: true,
     };
-    setAdded((a) => ({ ...a, [d.asset]: [w, ...(a[d.asset] || []).map((x) => ({ ...x, isNew: false }))] }));
+    setAdded((a) => [w, ...a.map((x) => ({ ...x, isNew: false }))]);
     setTimeout(() => {
       setStack(["list"]);
       say("Address added");
@@ -1263,8 +1260,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         {stack.includes("list") && (
           <ListPage
             d={d}
-            added={added[d.asset]}
-            withdraw={withdraw}
+            added={added}
             onBack={pop}
             onManage={() => say("Address management isn’t in this demo")}
             onPick={(w) => {
@@ -1272,7 +1268,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
               setD((x) => ({ ...x, to: w }));
               return push("wamount");
             }}
-            onAdd={() => (withdraw && fiat ? say("Adding a bank account isn’t in this demo") : fiat ? toAmount() : setSheet("method"))}
+            onAdd={() => (fiat ? toAmount() : setSheet("method"))}
           />
         )}
         {stack.includes("wamount") && (
@@ -1370,7 +1366,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
           {
             value: "existing",
             label: fiat ? "Whitelisted bank account" : "Existing address",
-            name: `${(WHITELIST[d.asset] || []).length} whitelisted`,
+            name: `${listFor(d.asset, added).length} whitelisted`,
           },
         ]}
       />
@@ -1384,7 +1380,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
       />
       <TokenSheet
         open={sheet === "method"}
-        title={withdraw ? "Add address" : "Add new wallet"}
+        title="Add address"
         value={null}
         onPick={(m) => {
           picked.current = true;
@@ -1393,7 +1389,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         }}
         onClose={closeSheet("method")}
         options={[
-          ...(withdraw ? [] : [{ value: "small", icon: <MethodIcon k="small" />, label: "Small-amount verification", name: "Deposit with a small extra amount; whitelisted when it arrives" }]),
+          { value: "small", icon: <MethodIcon k="small" />, label: "Small-amount verification", name: "Deposit with a small extra amount; whitelisted when it arrives" },
           { value: "connect", icon: <MethodIcon k="connect" />, label: "WalletConnect", name: "Connect your wallet app to prove you own the address" },
           { value: "sign", icon: <MethodIcon k="sign" />, label: "Signature verification", name: "Sign a message in your wallet and paste the result" },
         ]}

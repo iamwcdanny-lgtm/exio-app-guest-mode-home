@@ -441,7 +441,9 @@ const ListPage = ({ d, book, onBack, onPick, onAdd, onManage }) => {
               /* Same card as Manage whitelist address; full address as the title, right arrow to pick. */
               <button key={w.id} type="button" className={`dp-mcell dp-mcell-top is-pick${w.isNew ? " is-new" : ""}`} onClick={() => onPick(w)}>
                 <span className="dp-mcell-title">
-                  <b className="is-full">{w.addr}</b>
+                  <b className="is-full">
+                    <FullAddr a={w.addr} />
+                  </b>
                   <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-mcell-chev is-right" />
                 </span>
                 <span className="dp-mcell-sub">
@@ -461,7 +463,9 @@ const ListPage = ({ d, book, onBack, onPick, onAdd, onManage }) => {
               ) : (
                 /* Wallet: the full address is the title; name + network underneath */
                 <span className="dp-cell-text is-addr">
-                  <b className="dp-cell-addr">{w.addr}</b>
+                  <b className="dp-cell-addr">
+                    <FullAddr a={w.addr} />
+                  </b>
                   <small>
                     {w.label}
                     <span className="dp-tag">{w.net}</span>

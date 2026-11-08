@@ -1076,7 +1076,7 @@ textarea.dp-tf-input {
 }
 .dp-mcell {
   border: 1px solid #d9d9d9;
-  border-radius: 16px;
+  border-radius: 8px; /* same as the app's other cards */
   background: #fff;
 }
 .dp-mcell-top {

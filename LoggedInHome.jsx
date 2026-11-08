@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import DepositFlow from "./DepositFlow";
-import AccountFlow from "./AccountFlow";
+import AccountFlow, { Avatar } from "./AccountFlow";
 import "./LoggedInHome.css";
 
 // Logged-in Home, empty custody wallet (Figma: Home Custody NoAssets, 19497:35542).
@@ -50,8 +50,9 @@ const LoggedInHome = ({ welcome = "", labelStyle = "ifta" }) => {
     <div className="lh">
       <div className="lh-scroll">
         <div className="lh-header">
+          {/* The signed-in user's avatar, 28px like the guest header's account icon. */}
           <button type="button" className="lh-icon-btn" aria-label="Account" onClick={() => setAccount(true)}>
-            <img src={`${ICONS}/avatar.svg`} width="24" height="24" alt="" />
+            <Avatar sm />
           </button>
           <div className="lh-header-actions">
             <button type="button" className="lh-icon-btn" aria-label="Customer service" onClick={() => notHere("Customer service")}>

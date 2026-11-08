@@ -31,6 +31,12 @@
   font-size: 18px;
   font-weight: 700;
 }
+.acc-avatar.is-sm {
+  /* Home header: same 28px as the guest header's account icon */
+  width: 28px;
+  height: 28px;
+  font-size: 13px;
+}
 .acc-avatar.is-lg {
   width: 64px;
   height: 64px;

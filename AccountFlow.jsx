@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import PhoneLayer from "./PhoneLayer";
 import { slideBack } from "./backOut";
+import { USER } from "./user";
 import "./AccountFlow.css";
 
 // Account pages (mock, 2026-11-07), from the live app's screens:
@@ -9,7 +10,7 @@ import "./AccountFlow.css";
 // "Addresses & bank accounts" (whitelisted crypto addresses + bank accounts), which opens the
 // same Manage whitelist address page as Select address › Manage.
 const LOGO = `${import.meta.env.BASE_URL}images/account/exio-logo.svg`;
-const USER = { name: "june2222", email: "as***@faf.com", initial: "J" };
+
 const PI_EXPIRY = "2027-01-28";
 
 /* ---------- Icons (24px outline, green accent like the app) ---------- */
@@ -199,7 +200,7 @@ const Verified = ({ label = "Verified" }) => (
     {label}
   </span>
 );
-const Avatar = ({ lg }) => <span className={`acc-avatar${lg ? " is-lg" : ""}`}>{USER.initial}</span>;
+export const Avatar = ({ lg, sm }) => <span className={`acc-avatar${lg ? " is-lg" : ""}${sm ? " is-sm" : ""}`}>{USER.initial}</span>;
 const PiTag = () => <span className="acc-pi">PI</span>;
 
 const Bar = ({ title, onBack, right = <span /> }) => (

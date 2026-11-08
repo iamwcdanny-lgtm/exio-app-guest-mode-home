@@ -413,7 +413,22 @@ const ListPage = ({ d, book, onBack, onPick, onAdd, onManage }) => {
           Your whitelisted {fiat ? "bank accounts" : "addresses"} for {d.asset}.
         </p>
         <div className="dp-list">
-          {list.map((w) => (
+          {list.map((w) =>
+            w.net !== "bank" ? (
+              /* Same card as Manage whitelist address; full address as the title, right arrow to pick. */
+              <button key={w.id} type="button" className={`dp-mcell dp-mcell-top is-pick${w.isNew ? " is-new" : ""}`} onClick={() => onPick(w)}>
+                <span className="dp-mcell-title">
+                  <b className="is-full">{w.addr}</b>
+                  <img src={`${IMG}/arrow-down.svg`} width="16" height="16" alt="" className="dp-mcell-chev is-right" />
+                </span>
+                <span className="dp-mcell-sub">
+                  <span className="dp-mcell-net">{NET[w.net].name}</span>
+                  <WlTags w={w} />
+                  {w.isNew && <span className="dp-tag is-new">Just added</span>}
+                </span>
+                <small>{w.label}</small>
+              </button>
+            ) : (
             <button key={w.id} type="button" className={`dp-cell${w.isNew ? " is-new" : ""}`} onClick={() => onPick(w)}>
               {w.net === "bank" ? (
                 <span className="dp-cell-text">
@@ -434,7 +449,8 @@ const ListPage = ({ d, book, onBack, onPick, onAdd, onManage }) => {
               )}
               <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-chev" />
             </button>
-          ))}
+            ),
+          )}
           {!list.length && <p className="dp-empty">No whitelisted {fiat ? "bank accounts" : "addresses"} for {d.asset} yet.</p>}
         </div>
       </div>

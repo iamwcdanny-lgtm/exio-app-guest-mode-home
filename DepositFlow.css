@@ -1329,3 +1329,23 @@ textarea.dp-tf-input {
 .dp-mcell-top.is-static {
   cursor: default;
 }
+
+/* Select address uses the Manage card (.dp-mcell); differences: full address, right arrow. */
+.dp-mcell.dp-mcell-top.is-pick {
+  border: 1px solid #d9d9d9;
+}
+.dp-mcell-title b.is-full {
+  white-space: normal;
+  overflow: visible;
+  word-break: break-all;
+}
+.is-pick .dp-mcell-title {
+  align-items: flex-start;
+}
+.dp-mcell-chev.is-right {
+  margin-top: 4px;
+  transform: rotate(-90deg);
+}
+.dp-mcell.is-pick.is-new {
+  box-shadow: inset 0 0 0 1.5px #00d690;
+}

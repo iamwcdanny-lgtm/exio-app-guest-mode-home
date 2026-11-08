@@ -126,6 +126,21 @@ book Price / Quantity / Total, OTC, RWA Subscribe / Redeem) always use IFTA what
 Input style setting, because a floating label competes with the unit, currency chip and
 Max, and a label above adds height to dense trading forms.
 
+### Scroll-edge dividers (2026-11-09)
+
+App-wide rule for every scrolling area that has a top bar or a bottom (CTA) bar:
+
+1. A 1px divider (#f2f2f2) separates the scrolling content from the bar.
+2. It shows only while content is hidden on that side: the top divider once the content
+   scrolls under the top bar, the bottom divider until the content reaches its end. At the
+   top, at the end, or when everything fits, there is no divider.
+3. The same applies to top bars (app bars, sticky headers such as RWA+ and Manage whitelist)
+   and bottom bars (CTA bars, the chat input bar, sheet footers).
+
+One watcher (`scrollEdges.js` + `scrollEdges.css`) applies this everywhere, so pages don't wire
+it up. The divider is drawn inside the bar, so nothing shifts when it appears. Home-tab
+pages whose header scrolls away with the content (Home, Trade) have no bar, so no divider.
+
 ### RWA token detail (XAUm)
 
 Opening **XAUm** shows the full token detail from Figma (8517:601695): NAV and yield,

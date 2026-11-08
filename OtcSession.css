@@ -57,7 +57,7 @@
   align-items: center;
   gap: 10px;
   padding: calc(env(safe-area-inset-top, 0px) + var(--dc-top, 0px) + 8px) 16px 16px;
-  border-bottom: 1px solid #f2f2f2;
+  border-bottom: 1px solid transparent; /* scrollEdges */
 }
 .oc-av {
   flex: none;
@@ -135,7 +135,7 @@
   flex-direction: column;
   gap: 12px;
   padding: 12px 16px var(--cta-bottom, 16px);
-  border-top: 1px solid #f2f2f2;
+  border-top: 1px solid transparent; /* scrollEdges */
 }
 .oc-foot.is-row {
   flex-direction: row;
@@ -594,7 +594,7 @@
   display: flex;
   align-items: center;
   padding: 8px 16px var(--cta-bottom, 16px);
-  border-top: 1px solid #f2f2f2;
+  border-top: 1px solid transparent; /* scrollEdges */
   background: #fff;
 }
 .oc-inputbar input {
@@ -760,7 +760,7 @@
   flex-direction: column;
   gap: 16px;
   padding: 16px 16px var(--cta-bottom, 16px);
-  border-top: 1px solid #f2f2f2;
+  border-top: 1px solid transparent; /* scrollEdges */
 }
 .oc-sheet-foot.is-stack {
   border-top: 0;

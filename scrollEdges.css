@@ -1,0 +1,36 @@
+/* Scroll-edge dividers (scrollEdges.js). Classes are set by the watcher:
+   .sc-head / .sc-foot = a scroller's top / bottom bar; .is-sc-top / .is-sc-bottom = content
+   hidden on that side; .sc-bordered = the bar already reserves a 1px border (kept transparent). */
+:root {
+  --sc-line: #f2f2f2;
+}
+:where(.sc-bar) {
+  position: relative;
+}
+.sc-head:not(.sc-bordered)::after,
+.sc-foot:not(.sc-bordered)::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--sc-line);
+  opacity: 0;
+  pointer-events: none;
+}
+.sc-head:not(.sc-bordered)::after {
+  bottom: 0;
+}
+.sc-foot:not(.sc-bordered)::before {
+  top: 0;
+}
+.sc-head.is-sc-top::after,
+.sc-foot.is-sc-bottom::before {
+  opacity: 1;
+}
+.sc-head.sc-bordered.is-sc-top {
+  border-bottom-color: var(--sc-line);
+}
+.sc-foot.sc-bordered.is-sc-bottom {
+  border-top-color: var(--sc-line);
+}

@@ -1727,7 +1727,8 @@
 }
 .as-mail-head {
   padding: 4px 16px 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid transparent; /* scrollEdges */
+  --sc-line: rgba(0, 0, 0, 0.1);
 }
 .as-mail-head h2 {
   margin: 0 0 8px;

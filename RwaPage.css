@@ -49,9 +49,9 @@
   backdrop-filter: blur(10px);
   border-bottom: 1px solid transparent;
 }
-/* Divider shows only once the list scrolls under the header */
-.rw-head.is-stuck {
-  border-bottom-color: var(--rw-line);
+/* Divider under the header: scrollEdges (shows once the list scrolls) */
+.rw-head {
+  --sc-line: var(--rw-line);
 }
 .rw-tabs {
   display: flex;
@@ -508,7 +508,8 @@
   display: flex;
   gap: 8px;
   padding: 12px 16px var(--cta-bottom, 16px);
-  border-top: 1px solid var(--rw-line);
+  border-top: 1px solid transparent; /* scrollEdges */
+  --sc-line: var(--rw-line);
 }
 .rw-options {
   display: flex;
@@ -724,6 +725,6 @@
 .rw-layer .rw-sheet {
   pointer-events: auto;
 }
-.rw-wrap.is-card-solid .rw-head.is-stuck {
-  border-bottom-color: rgba(0, 0, 0, 0.06);
+.rw-wrap.is-card-solid .rw-head {
+  --sc-line: rgba(0, 0, 0, 0.06);
 }

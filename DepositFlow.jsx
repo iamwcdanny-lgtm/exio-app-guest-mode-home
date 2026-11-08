@@ -394,9 +394,31 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta" }) =
 
 /* ---------- Step 10–11: whitelisted list ---------- */
 // Same page for deposit and withdraw: only what tapping a row does differs.
+// Network filter over an address list: All + each network in the list (order of first
+// appearance). Hidden when the list has only one network. Same look as RWA+'s filter pills.
+const netsOf = (list) => [...new Set(list.map((w) => w.net))].filter((n) => NET[n]);
+const NetPills = ({ nets, value, onChange }) =>
+  nets.length < 2 ? null : (
+    <div className="dp-npills" role="radiogroup" aria-label="Network">
+      {[["all", "All"], ...nets.map((n) => [n, NET[n].name])].map(([k, l]) => (
+        <button key={k} type="button" role="radio" aria-checked={value === k} className={`dp-npill${value === k ? " is-on" : ""}`} onClick={() => onChange(k)}>
+          {l}
+        </button>
+      ))}
+    </div>
+  );
+const useNetFilter = (list) => {
+  const [net, setNet] = useState("all");
+  const nets = netsOf(list);
+  const v = nets.includes(net) ? net : "all"; // a network that's gone falls back to All
+  return { nets, net: v, setNet, shown: v === "all" ? list : list.filter((w) => w.net === v) };
+};
+
 const ListPage = ({ d, book, onBack, onPick, onAdd, onManage }) => {
   const fiat = d.kind === "fiat";
-  const list = listFor(d.asset, book);
+  const all = listFor(d.asset, book);
+  const nf = useNetFilter(fiat ? [] : all);
+  const list = fiat ? all : nf.shown;
   return (
     <div className="oc-screen oc-page dp-page is-list">
       <AppBar
@@ -412,6 +434,7 @@ const ListPage = ({ d, book, onBack, onPick, onAdd, onManage }) => {
         <p className="dp-lead">
           Your whitelisted {fiat ? "bank accounts" : "addresses"} for {d.asset}.
         </p>
+        {!fiat && <NetPills nets={nf.nets} value={nf.net} onChange={nf.setNet} />}
         <div className="dp-list">
           {list.map((w) =>
             w.net !== "bank" ? (
@@ -495,6 +518,7 @@ const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, s
   const headRef = useRef(null);
   const [headH, setHeadH] = useState(0); // the blurred header floats over the list
   const bank = tab === "bank";
+  const nf = useNetFilter(book);
   useLayoutEffect(() => {
     const el = headRef.current;
     if (!el) return;
@@ -547,8 +571,9 @@ const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, s
           <InfoIcon />
           <span>To enable withdrawals for an address, tab to open the address details and turn on the ownership confirmation switch.</span>
         </p>
+        <NetPills nets={nf.nets} value={nf.net} onChange={nf.setNet} />
         <div className="dp-list">
-          {book.map((w) => {
+          {nf.shown.map((w) => {
             const isOpen = open === w.id;
             return (
               <div key={w.id} className={`dp-mcell${isOpen ? " is-open" : ""}`}>

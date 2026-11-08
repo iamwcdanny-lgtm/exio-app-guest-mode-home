@@ -445,7 +445,36 @@ const ListPage = ({ d, book, withdraw, onBack, onPick, onDeclare, onAdd, onManag
   const fiat = d.kind === "fiat";
   const all = listFor(d.asset, book);
   const nf = useNetFilter(fiat ? [] : all);
-  const list = fiat ? all : nf.shown;
+  // Withdraw order: 0 ready → 1 needs the ownership declaration → 2 cooling down (soonest
+  // to unlock first). Ranks are taken when an address first shows (page opens, or it was
+  // just added) and kept, so cards don't jump when a countdown ends or after declaring.
+  const ranks = useRef({ asset: null, by: {} });
+  if (ranks.current.asset !== d.asset) ranks.current = { asset: d.asset, by: {} };
+  const rankOf = (w, i) => {
+    const by = ranks.current.by;
+    if (!by[w.id]) {
+      const t = Date.now();
+      by[w.id] = isCooling(w, t) ? [2, w.coolUntil] : w.withdraw === false ? [1, i] : [0, i];
+    }
+    return by[w.id];
+  };
+  const sorted = withdraw && !fiat ? all.map((w, i) => [w, rankOf(w, i)]).sort((a, b) => a[1][0] - b[1][0] || a[1][1] - b[1][1]).map(([w]) => w) : all;
+  const list = fiat ? all : nf.shown.slice().sort((a, b) => sorted.indexOf(a) - sorted.indexOf(b));
+  // A just-added address may land far down (it's cooling): bring it into view, highlighted.
+  const pageRef = useRef(null);
+  const newId = all.find((w) => w.isNew)?.id;
+  useEffect(() => {
+    if (!newId) return;
+    // Scroll the list only (scrollIntoView would also shift the phone frame around it).
+    const t = setTimeout(() => {
+      const body = pageRef.current?.querySelector(".oc-page-body");
+      const card = body?.querySelector(`[data-id="${newId}"]`);
+      if (!card) return;
+      const top = card.getBoundingClientRect().top - body.getBoundingClientRect().top + body.scrollTop;
+      body.scrollTo({ top: top - (body.clientHeight - card.offsetHeight) / 2, behavior: "smooth" });
+    }, 320);
+    return () => clearTimeout(t);
+  }, [newId]);
   // Tick each second while an address is cooling down (withdraw only); it unlocks at zero.
   const [now, setNow] = useState(Date.now());
   const ticking = withdraw && all.some((w) => isCooling(w, now));
@@ -455,7 +484,7 @@ const ListPage = ({ d, book, withdraw, onBack, onPick, onDeclare, onAdd, onManag
     return () => clearInterval(t);
   }, [ticking]);
   return (
-    <div className="oc-screen oc-page dp-page is-list">
+    <div ref={pageRef} className="oc-screen oc-page dp-page is-list">
       <AppBar
         title={fiat ? "Select bank account" : "Select address"}
         onBack={onBack}
@@ -481,7 +510,7 @@ const ListPage = ({ d, book, withdraw, onBack, onPick, onDeclare, onAdd, onManag
                 const noWd = withdraw && w.withdraw === false;
                 const blocked = cool || noWd;
                 return (
-                  <div key={w.id} className={`dp-mcell is-pick${w.isNew ? " is-new" : ""}${blocked ? " is-blocked" : ""}`}>
+                  <div key={w.id} data-id={w.id} className={`dp-mcell is-pick${w.isNew ? " is-new" : ""}${blocked ? " is-blocked" : ""}`}>
                     <button type="button" className="dp-mcell-top" onClick={() => onPick(w)}>
                       <span className="dp-mcell-title">
                         <b className="is-full">
@@ -523,7 +552,7 @@ const ListPage = ({ d, book, withdraw, onBack, onPick, onDeclare, onAdd, onManag
                 );
               })()
             ) : (
-            <button key={w.id} type="button" className={`dp-cell${w.isNew ? " is-new" : ""}`} onClick={() => onPick(w)}>
+            <button key={w.id} data-id={w.id} type="button" className={`dp-cell${w.isNew ? " is-new" : ""}`} onClick={() => onPick(w)}>
               {w.net === "bank" ? (
                 <span className="dp-cell-text">
                   <b>{w.label}</b>

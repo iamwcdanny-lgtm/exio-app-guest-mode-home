@@ -47,6 +47,11 @@
   background: rgba(255, 255, 255, 0.85);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
+  border-bottom: 1px solid transparent;
+}
+/* Divider shows only once the list scrolls under the header */
+.rw-head.is-stuck {
+  border-bottom-color: var(--rw-line);
 }
 .rw-tabs {
   display: flex;
@@ -718,4 +723,7 @@
 }
 .rw-layer .rw-sheet {
   pointer-events: auto;
+}
+.rw-wrap.is-card-solid .rw-head.is-stuck {
+  border-bottom-color: rgba(0, 0, 0, 0.06);
 }

@@ -177,6 +177,7 @@ const toggle = (arr, v) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...a
 export default function RwaPage({ labelStyle = "float", cardStyle = "border", pdUser = PD_DEFAULT, setPdUser = () => {}, onImmersive = () => {} }) {
   const [openSym, setOpenSym] = useState(null);
   const [toast, setToast] = useState("");
+  const [stuck, setStuck] = useState(false); // list scrolled → divider under the header
   const toastT = useRef(0);
   const say = (t) => {
     setToast(t);
@@ -248,8 +249,8 @@ export default function RwaPage({ labelStyle = "float", cardStyle = "border", pd
 
   return (
     <div className={`rw-wrap is-card-${cardStyle}`}>
-      <div className="rw" ref={scrollRef}>
-        <header className="rw-head">
+      <div className="rw" ref={scrollRef} onScroll={(e) => setStuck(e.currentTarget.scrollTop > 0)}>
+        <header className={`rw-head${stuck ? " is-stuck" : ""}`}>
           <div className="rw-tabs" role="tablist" aria-label="Product type">
             {TABS.map((t) => (
               <button

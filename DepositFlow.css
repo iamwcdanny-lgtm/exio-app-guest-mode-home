@@ -1104,14 +1104,16 @@ textarea.dp-tf-input {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 16px;
-  line-height: 24px;
+  /* Same type as the token cell: 14/20 Bold 90% over 12/18 Medium 60% */
+  font-size: 14px;
+  line-height: 20px;
   font-weight: 700;
   color: rgba(0, 0, 0, 0.9);
+  font-feature-settings: "lnum" 1, "tnum" 1;
 }
 .dp-mcell-chev {
   flex: none;
-  opacity: 0.5;
+  opacity: 0.6;
   transition: transform 0.2s;
 }
 .dp-mcell.is-open .dp-mcell-chev {
@@ -1124,9 +1126,9 @@ textarea.dp-tf-input {
   flex-wrap: wrap;
 }
 .dp-mcell-net {
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 600;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
   color: rgba(0, 0, 0, 0.6);
 }
 .dp-mcell-sub .dp-tag.is-wl {
@@ -1142,7 +1144,7 @@ textarea.dp-tf-input {
   font-size: 12px;
   line-height: 18px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(0, 0, 0, 0.6);
 }
 .dp-mcell-body {
   margin: 0 16px;

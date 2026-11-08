@@ -419,7 +419,7 @@ const ListPage = ({ d, book, onBack, onPick, onAdd, onManage }) => {
               <button key={w.id} type="button" className={`dp-mcell dp-mcell-top is-pick${w.isNew ? " is-new" : ""}`} onClick={() => onPick(w)}>
                 <span className="dp-mcell-title">
                   <b className="is-full">{w.addr}</b>
-                  <img src={`${IMG}/arrow-down.svg`} width="16" height="16" alt="" className="dp-mcell-chev is-right" />
+                  <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-mcell-chev is-right" />
                 </span>
                 <span className="dp-mcell-sub">
                   <span className="dp-mcell-net">{NET[w.net].name}</span>
@@ -555,7 +555,7 @@ const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, s
                 <button type="button" className="dp-mcell-top" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : w.id)}>
                   <span className="dp-mcell-title">
                     <b>{shortAddr(w.addr)}</b>
-                    <img src={`${IMG}/arrow-down.svg`} width="16" height="16" alt="" className="dp-mcell-chev" />
+                    <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-mcell-chev" />
                   </span>
                   <span className="dp-mcell-sub">
                     <span className="dp-mcell-net">{NET[w.net].name}</span>

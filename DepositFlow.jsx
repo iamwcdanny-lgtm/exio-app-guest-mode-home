@@ -491,11 +491,15 @@ const InfoIcon = () => (
 // where it was reached from (a fiat token's Select bank account → Bank accounts).
 const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, say }) => {
   const [open, setOpen] = useState(null);
+  const [stuck, setStuck] = useState(false); // body scrolled → divider under the control
+  const bodyRef = useRef(null);
   const bank = tab === "bank";
+  useEffect(() => setStuck((bodyRef.current?.scrollTop || 0) > 0), [tab]);
   return (
     <div className="oc-screen oc-page dp-page is-manage">
       <AppBar title="Manage whitelist address" onBack={onBack} />
       {/* Two kinds only, so the app's segmented control (Trade's OTC / Order book). */}
+      <div className={`dp-seg-wrap${stuck ? " is-stuck" : ""}`}>
       <div className="tp-seg dp-seg" role="tablist" aria-label="Whitelist type" style={{ "--seg-i": bank ? 1 : 0, "--seg-n": 2 }}>
         {[
           ["crypto", "Crypto addresses"],
@@ -506,7 +510,8 @@ const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, s
           </button>
         ))}
       </div>
-      <div className="oc-page-body dp-body">
+      </div>
+      <div ref={bodyRef} className="oc-page-body dp-body" onScroll={(e) => setStuck(e.currentTarget.scrollTop > 0)}>
         {bank ? (
           <div className="dp-list">
             {MY_BANKS.map((b) => (

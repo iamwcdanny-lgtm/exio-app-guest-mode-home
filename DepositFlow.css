@@ -1322,9 +1322,17 @@ textarea.dp-tf-input {
 }
 
 /* Manage: segmented control (styles from TradePage.css .tp-seg) */
-.dp-seg {
+.dp-seg-wrap {
   flex: none;
-  margin: 8px 16px 8px;
+  padding: 8px 16px;
+  border-bottom: 1px solid transparent;
+}
+/* Divider shows only once the content scrolls under the control */
+.dp-seg-wrap.is-stuck {
+  border-bottom-color: #f2f2f2;
+}
+.dp-seg {
+  margin: 0;
 }
 .dp-mcell-top.is-static {
   cursor: default;

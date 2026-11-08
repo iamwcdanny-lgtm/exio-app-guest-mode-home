@@ -1429,3 +1429,62 @@ textarea.dp-tf-input {
   box-shadow: none;
   color: rgba(0, 0, 0, 0.9);
 }
+
+/* Withdraw reminders inside an address cell (Figma 18740:137477 / 137492):
+   Alert, info (cool-down) or warning (declare ownership); 8px padding, radius 12,
+   20px icon + 12/18 SemiBold title, "Declare now" 12/18 Medium 60% underlined. */
+.dp-mcell.is-pick > .dp-mcell-top {
+  border-radius: inherit;
+}
+.dp-walerts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 16px 16px;
+}
+.dp-walert {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 12px;
+  background: #e6f6ff;
+}
+.dp-walert.is-warn {
+  background: #fff7ee;
+}
+.dp-walert-t {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+  color: #019ff8;
+}
+.dp-walert.is-warn .dp-walert-t {
+  color: #f7a042;
+}
+.dp-walert-t svg {
+  flex: none;
+  align-self: flex-start;
+  margin-top: -1px;
+}
+.dp-walert-link {
+  align-self: flex-start;
+  height: 20px;
+  margin-left: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+  text-decoration: underline;
+  text-decoration-thickness: 10%;
+  text-underline-position: from-font;
+  cursor: pointer;
+}

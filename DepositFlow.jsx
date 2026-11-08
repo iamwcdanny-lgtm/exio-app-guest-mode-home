@@ -63,8 +63,9 @@ const ADDRESSES = [
   { id: "a3", withdraw: true, label: "OKX", net: "BTC", addr: "bc1qm34lsc65zpw79lxes69zkqmk6ee3ewf0j77s3h" },
   { id: "a4", withdraw: false, label: "Coinbase", net: "BTC", addr: "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy" },
   { id: "a5", withdraw: true, label: "Ledger Nano X", net: "ERC20", addr: "0x7a3B5c8D9e0F1a2b3C4d5E6f7A8b9C0d1E2fC91e" },
-  { id: "a6", withdraw: false, label: "MetaMask", net: "ERC20", addr: "0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE" },
-  { id: "a7", withdraw: true, label: "OKX", net: "Arbitrum", addr: "0x6cC5F688a315f3dC28A7781717a9A798a59fDA7b" },
+  // a6 / a7 were added recently: still in the withdrawal cool-down (cool).
+  { id: "a6", withdraw: false, cool: true, label: "MetaMask", net: "ERC20", addr: "0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE" },
+  { id: "a7", withdraw: true, cool: true, label: "OKX", net: "Arbitrum", addr: "0x6cC5F688a315f3dC28A7781717a9A798a59fDA7b" },
   { id: "a8", withdraw: true, label: "Coinbase", net: "Base", addr: "0x71660c4005BA85c37ccec55d0C4493E66Fe775d3" },
   { id: "a9", withdraw: true, label: "Binance", net: "TRC20", addr: "TQ9mFz2Rk7Lb4Wn8Yc1Vd5Hs3Jt6Gp0kLp" },
   { id: "a10", withdraw: false, label: "OKX", net: "TRC20", addr: "TNXoiAJ3dct8Fjg4M9fkLFh9S2v9TXc32G" },
@@ -82,6 +83,8 @@ const MY_BANKS = [
   { id: "b1", label: "HSBC Hong Kong", addr: "···· 4821", ccy: ["USD", "HKD"] },
   { id: "b2", label: "Bank of China (Hong Kong)", addr: "···· 0937", ccy: ["USD"] },
 ];
+// A newly whitelisted address can't be withdrawn to until the cool-down has passed.
+const COOL_HOURS = 4;
 // `book`: the address book as it stands (seed + added this session, toggles).
 const listFor = (asset, book = ADDRESSES) => {
   if (BANKS[asset]) return BANKS[asset];
@@ -414,7 +417,22 @@ const useNetFilter = (list) => {
   return { nets, net: v, setNet, shown: v === "all" ? list : list.filter((w) => w.net === v) };
 };
 
-const ListPage = ({ d, book, onBack, onPick, onAdd, onManage }) => {
+// Withdraw reminders inside an address cell (Figma 18740:137477 / 18740:137492).
+const ClockIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <circle cx="10" cy="10" r="6.67" stroke="#019ff8" strokeWidth="1.33" />
+    <path d="M10 6.5V10l2.3 1.6" stroke="#019ff8" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+const WarnIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+    <circle cx="10" cy="10" r="6.67" fill="#f7a042" />
+    <path d="M10 6.6v4.2" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
+    <circle cx="10" cy="13.2" r=".9" fill="#fff" />
+  </svg>
+);
+
+const ListPage = ({ d, book, withdraw, onBack, onPick, onDeclare, onAdd, onManage }) => {
   const fiat = d.kind === "fiat";
   const all = listFor(d.asset, book);
   const nf = useNetFilter(fiat ? [] : all);
@@ -438,21 +456,55 @@ const ListPage = ({ d, book, onBack, onPick, onAdd, onManage }) => {
         <div className="dp-list">
           {list.map((w) =>
             w.net !== "bank" ? (
-              /* Same card as Manage whitelist address; full address as the title, right arrow to pick. */
-              <button key={w.id} type="button" className={`dp-mcell dp-mcell-top is-pick${w.isNew ? " is-new" : ""}`} onClick={() => onPick(w)}>
-                <span className="dp-mcell-title">
-                  <b className="is-full">
-                    <FullAddr a={w.addr} />
-                  </b>
-                  <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-mcell-chev is-right" />
-                </span>
-                <span className="dp-mcell-sub">
-                  {/* Picking for a deposit / withdrawal: network only, no whitelist tags */}
-                  <span className="dp-tag is-wl is-net">{NET[w.net].name}</span>
-                  {w.isNew && <span className="dp-tag is-new">Just added</span>}
-                </span>
-                <small>{w.label}</small>
-              </button>
+              /* Same card as Manage whitelist address; full address as the title, right arrow to pick.
+                 Withdrawing: reminders for a cooling-down address and / or one without the
+                 withdrawal whitelist (both can show); such a card has no arrow. */
+              (() => {
+                const cool = withdraw && w.cool;
+                const noWd = withdraw && w.withdraw === false;
+                const blocked = cool || noWd;
+                return (
+                  <div key={w.id} className={`dp-mcell is-pick${w.isNew ? " is-new" : ""}${blocked ? " is-blocked" : ""}`}>
+                    <button type="button" className="dp-mcell-top" onClick={() => onPick(w)}>
+                      <span className="dp-mcell-title">
+                        <b className="is-full">
+                          <FullAddr a={w.addr} />
+                        </b>
+                        {!blocked && <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-mcell-chev is-right" />}
+                      </span>
+                      <span className="dp-mcell-sub">
+                        {/* Picking for a deposit / withdrawal: network only, no whitelist tags */}
+                        <span className="dp-tag is-wl is-net">{NET[w.net].name}</span>
+                        {w.isNew && <span className="dp-tag is-new">Just added</span>}
+                      </span>
+                      <small>{w.label}</small>
+                    </button>
+                    {blocked && (
+                      <div className="dp-walerts">
+                        {cool && (
+                          <div className="dp-walert">
+                            <p className="dp-walert-t">
+                              <ClockIcon />
+                              Available for withdrawal {COOL_HOURS} hours after adding
+                            </p>
+                          </div>
+                        )}
+                        {noWd && (
+                          <div className="dp-walert is-warn">
+                            <p className="dp-walert-t">
+                              <WarnIcon />
+                              Declare the wallet ownership for withdrawal
+                            </p>
+                            <button type="button" className="dp-walert-link" onClick={() => onDeclare(w)}>
+                              Declare now
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()
             ) : (
             <button key={w.id} type="button" className={`dp-cell${w.isNew ? " is-new" : ""}`} onClick={() => onPick(w)}>
               {w.net === "bank" ? (
@@ -1540,6 +1592,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
       addr: wl.method === "connect" ? DEMO_ADDR[d.net] : wl.addr,
       // Ownership proven by WalletConnect / signature: both whitelists.
       withdraw: true,
+      cool: true, // newly whitelisted: withdrawal cool-down
       isNew: true,
     };
     setBook((b) => [w, ...b.map((x) => ({ ...x, isNew: false }))]);
@@ -1584,6 +1637,12 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
           <ListPage
             d={d}
             book={book}
+            withdraw={withdraw}
+            onDeclare={(w) => {
+              // Declare right here, no detour through Manage
+              setWdFor(w);
+              setSheet("declare");
+            }}
             onBack={pop}
             onManage={() => {
               setMTab(fiat ? "bank" : "crypto");
@@ -1591,7 +1650,8 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             }}
             onPick={(w) => {
               if (!withdraw) return setDetail({ ...d, from: w });
-              if (w.withdraw === false) return say("Withdrawals are off for this address. Turn them on in Manage.");
+              if (w.cool) return say(`Available for withdrawal ${COOL_HOURS} hours after adding`);
+              if (w.withdraw === false) return say("Declare the wallet ownership for withdrawal first");
               setD((x) => ({ ...x, to: w }));
               return push("wamount");
             }}

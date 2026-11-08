@@ -447,8 +447,8 @@ const ListPage = ({ d, book, onBack, onPick, onAdd, onManage }) => {
                   <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-mcell-chev is-right" />
                 </span>
                 <span className="dp-mcell-sub">
-                  <span className="dp-mcell-net">{NET[w.net].name}</span>
-                  <WlTags w={w} />
+                  {/* Picking for a deposit / withdrawal: network only, no whitelist tags */}
+                  <span className="dp-tag is-wl is-net">{NET[w.net].name}</span>
                   {w.isNew && <span className="dp-tag is-new">Just added</span>}
                 </span>
                 <small>{w.label}</small>
@@ -587,7 +587,7 @@ const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, s
                     <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-mcell-chev" />
                   </span>
                   <span className="dp-mcell-sub">
-                    <span className="dp-mcell-net">{NET[w.net].name}</span>
+                    <span className="dp-tag is-wl is-net">{NET[w.net].name}</span>
                     <WlTags w={w} />
                   </span>
                   <small>{w.label}</small>

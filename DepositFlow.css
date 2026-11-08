@@ -1162,6 +1162,10 @@ textarea.dp-tf-input {
   font-weight: 600;
   color: rgba(0, 0, 0, 0.8);
 }
+/* Network as a tag, same as the Deposit / Withdraw tags; no icon, so even padding */
+.dp-mcell-sub .dp-tag.is-wl.is-net {
+  padding: 4px 8px;
+}
 .dp-mcell-top small {
   font-size: 12px;
   line-height: 18px;

@@ -1324,7 +1324,7 @@ textarea.dp-tf-input {
 /* Manage: segmented control (styles from TradePage.css .tp-seg) */
 .dp-seg {
   flex: none;
-  margin: 8px 16px 0;
+  margin: 8px 16px 8px;
 }
 .dp-mcell-top.is-static {
   cursor: default;

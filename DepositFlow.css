@@ -1462,6 +1462,7 @@ textarea.dp-tf-input {
   line-height: 18px;
   font-weight: 600;
   color: #019ff8;
+  font-feature-settings: "lnum" 1, "tnum" 1; /* countdown digits don't jitter */
 }
 .dp-walert.is-warn .dp-walert-t {
   color: #f7a042;

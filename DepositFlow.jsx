@@ -63,9 +63,9 @@ const ADDRESSES = [
   { id: "a3", withdraw: true, label: "OKX", net: "BTC", addr: "bc1qm34lsc65zpw79lxes69zkqmk6ee3ewf0j77s3h" },
   { id: "a4", withdraw: false, label: "Coinbase", net: "BTC", addr: "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy" },
   { id: "a5", withdraw: true, label: "Ledger Nano X", net: "ERC20", addr: "0x7a3B5c8D9e0F1a2b3C4d5E6f7A8b9C0d1E2fC91e" },
-  // a6 / a7 were added recently: still in the withdrawal cool-down (cool).
-  { id: "a6", withdraw: false, cool: true, label: "MetaMask", net: "ERC20", addr: "0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE" },
-  { id: "a7", withdraw: true, cool: true, label: "OKX", net: "Arbitrum", addr: "0x6cC5F688a315f3dC28A7781717a9A798a59fDA7b" },
+  // a6 / a7 were added recently: still in the withdrawal cool-down (coolUntil, ms).
+  { id: "a6", withdraw: false, coolUntil: Date.now() + (2 * 3600 + 41 * 60 + 50) * 1000, label: "MetaMask", net: "ERC20", addr: "0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE" },
+  { id: "a7", withdraw: true, coolUntil: Date.now() + (37 * 60 + 12) * 1000, label: "OKX", net: "Arbitrum", addr: "0x6cC5F688a315f3dC28A7781717a9A798a59fDA7b" },
   { id: "a8", withdraw: true, label: "Coinbase", net: "Base", addr: "0x71660c4005BA85c37ccec55d0C4493E66Fe775d3" },
   { id: "a9", withdraw: true, label: "Binance", net: "TRC20", addr: "TQ9mFz2Rk7Lb4Wn8Yc1Vd5Hs3Jt6Gp0kLp" },
   { id: "a10", withdraw: false, label: "OKX", net: "TRC20", addr: "TNXoiAJ3dct8Fjg4M9fkLFh9S2v9TXc32G" },
@@ -85,6 +85,15 @@ const MY_BANKS = [
 ];
 // A newly whitelisted address can't be withdrawn to until the cool-down has passed.
 const COOL_HOURS = 4;
+const isCooling = (w, now = Date.now()) => (w.coolUntil || 0) > now;
+// Time left as "2h 41m 50s" / "37m 12s" / "8s"
+const fmtLeft = (ms) => {
+  const t = Math.max(0, Math.ceil(ms / 1000));
+  const h = Math.floor(t / 3600);
+  const m = Math.floor((t % 3600) / 60);
+  const sec = t % 60;
+  return h ? `${h}h ${m}m ${sec}s` : m ? `${m}m ${sec}s` : `${sec}s`;
+};
 // `book`: the address book as it stands (seed + added this session, toggles).
 const listFor = (asset, book = ADDRESSES) => {
   if (BANKS[asset]) return BANKS[asset];
@@ -437,6 +446,14 @@ const ListPage = ({ d, book, withdraw, onBack, onPick, onDeclare, onAdd, onManag
   const all = listFor(d.asset, book);
   const nf = useNetFilter(fiat ? [] : all);
   const list = fiat ? all : nf.shown;
+  // Tick each second while an address is cooling down (withdraw only); it unlocks at zero.
+  const [now, setNow] = useState(Date.now());
+  const ticking = withdraw && all.some((w) => isCooling(w, now));
+  useEffect(() => {
+    if (!ticking) return undefined;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [ticking]);
   return (
     <div className="oc-screen oc-page dp-page is-list">
       <AppBar
@@ -460,7 +477,7 @@ const ListPage = ({ d, book, withdraw, onBack, onPick, onDeclare, onAdd, onManag
                  Withdrawing: reminders for a cooling-down address and / or one without the
                  withdrawal whitelist (both can show); such a card has no arrow. */
               (() => {
-                const cool = withdraw && w.cool;
+                const cool = withdraw && isCooling(w, now);
                 const noWd = withdraw && w.withdraw === false;
                 const blocked = cool || noWd;
                 return (
@@ -485,7 +502,7 @@ const ListPage = ({ d, book, withdraw, onBack, onPick, onDeclare, onAdd, onManag
                           <div className="dp-walert">
                             <p className="dp-walert-t">
                               <ClockIcon />
-                              Available for withdrawal {COOL_HOURS} hours after adding
+                              Available for withdrawal in {fmtLeft(w.coolUntil - now)}
                             </p>
                           </div>
                         )}
@@ -1592,7 +1609,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
       addr: wl.method === "connect" ? DEMO_ADDR[d.net] : wl.addr,
       // Ownership proven by WalletConnect / signature: both whitelists.
       withdraw: true,
-      cool: true, // newly whitelisted: withdrawal cool-down
+      coolUntil: Date.now() + COOL_HOURS * 3600e3, // newly whitelisted: withdrawal cool-down
       isNew: true,
     };
     setBook((b) => [w, ...b.map((x) => ({ ...x, isNew: false }))]);
@@ -1650,7 +1667,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             }}
             onPick={(w) => {
               if (!withdraw) return setDetail({ ...d, from: w });
-              if (w.cool) return say(`Available for withdrawal ${COOL_HOURS} hours after adding`);
+              if (isCooling(w)) return say(`Available for withdrawal in ${fmtLeft(w.coolUntil - Date.now())}`);
               if (w.withdraw === false) return say("Declare the wallet ownership for withdrawal first");
               setD((x) => ({ ...x, to: w }));
               return push("wamount");

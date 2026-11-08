@@ -1238,7 +1238,7 @@ textarea.dp-tf-input {
 }
 .dp-mcell-btns {
   display: flex;
-  gap: 16px;
+  gap: 8px;
   margin-top: 16px;
 }
 .dp-sbtn {

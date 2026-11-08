@@ -1114,10 +1114,32 @@ textarea.dp-tf-input {
 .dp-mcell-chev {
   flex: none;
   opacity: 0.6;
-  transition: transform 0.2s;
+  transition: transform 0.25s ease;
 }
 .dp-mcell.is-open .dp-mcell-chev {
   transform: rotate(180deg);
+}
+/* Expand / collapse: the details row animates its height (0fr ↔ 1fr), with the
+   chevron turning over the same 0.25s. */
+.dp-mcell-exp {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.25s ease, opacity 0.2s ease;
+}
+.dp-mcell.is-open .dp-mcell-exp {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.dp-mcell-exp-in {
+  min-height: 0;
+  overflow: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dp-mcell-exp,
+  .dp-mcell-chev {
+    transition: none;
+  }
 }
 .dp-mcell-sub {
   display: flex;

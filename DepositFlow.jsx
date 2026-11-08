@@ -588,7 +588,9 @@ const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, s
                   </span>
                   <small>{w.label}</small>
                 </button>
-                {isOpen && (
+                {/* Always mounted so open and close can animate (grid row 0fr ↔ 1fr); inert while closed. */}
+                <div className="dp-mcell-exp" inert={isOpen ? undefined : ""} aria-hidden={!isOpen}>
+                  <div className="dp-mcell-exp-in">
                   <div className="dp-mcell-body">
                     <dl className="dp-grid">
                       <dt>Address</dt>
@@ -618,7 +620,8 @@ const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, s
                       </button>
                     </div>
                   </div>
-                )}
+                  </div>
+                </div>
               </div>
             );
           })}

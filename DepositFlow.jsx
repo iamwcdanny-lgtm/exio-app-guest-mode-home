@@ -520,11 +520,14 @@ const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, 
                         </b>
                         {!blocked && <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-mcell-chev is-right" />}
                       </span>
-                      <span className="dp-mcell-sub">
-                        {/* Picking for a deposit / withdrawal: network only, no whitelist tags */}
-                        <span className="dp-tag is-wl is-net">{NET[w.net].name}</span>
-                        {w.isNew && <span className="dp-tag is-new">Just added</span>}
-                      </span>
+                      {/* Picking for a deposit / withdrawal: network only, no whitelist tags.
+                          Split network: the network was picked on the page before, so no tag. */}
+                      {(!split || w.isNew) && (
+                        <span className="dp-mcell-sub">
+                          {!split && <span className="dp-tag is-wl is-net">{NET[w.net].name}</span>}
+                          {w.isNew && <span className="dp-tag is-new">Just added</span>}
+                        </span>
+                      )}
                       <small>{w.label}</small>
                     </button>
                     {blocked && (

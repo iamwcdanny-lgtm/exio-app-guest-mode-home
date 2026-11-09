@@ -141,6 +141,13 @@
   width: 18px;
   height: 18px;
 }
+/* Arrow at the end of a row that leads to a next step (same as the token list's) */
+.tks-chev {
+  flex: none;
+  margin-left: auto;
+  transform: rotate(-90deg);
+  opacity: 0.6;
+}
 /* The chip that opens the sheet. */
 button.otc-chip {
   border: 0;

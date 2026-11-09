@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import PhoneLayer from "./PhoneLayer";
 import "./TokenSheet.css";
 
@@ -21,7 +21,20 @@ export const ChipCaret = () => (
   </svg>
 );
 
-export default function TokenSheet({ open, title = "Select currency", options, value, onPick, onClose, balanceLabel = "Avail.", note }) {
+export default function TokenSheet({ open: openProp, title = "Select currency", options, value, onPick, onClose, balanceLabel = "Avail.", note, chevron }) {
+  // Paint closed first, then open: a sheet that mounts already open (Deposit / Withdraw's
+  // first step) would otherwise appear without its slide-up.
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!openProp) {
+      setOpen(false);
+      return undefined;
+    }
+    let id = requestAnimationFrame(() => {
+      id = requestAnimationFrame(() => setOpen(true));
+    });
+    return () => cancelAnimationFrame(id);
+  }, [openProp]);
   useEffect(() => {
     if (!open) return undefined;
     const k = (e) => e.key === "Escape" && onClose();
@@ -69,7 +82,12 @@ export default function TokenSheet({ open, title = "Select currency", options, v
                   <small>{balanceLabel}</small>
                 </span>
               )}
-              <span className="tks-check">{o.value === value && <Check />}</span>
+              {/* chevron: rows that lead to a next step show an arrow instead of the tick slot */}
+              {chevron ? (
+                <img className="tks-chev" src={chevron} width="12" height="12" alt="" />
+              ) : (
+                <span className="tks-check">{o.value === value && <Check />}</span>
+              )}
             </button>
           ))}
         </div>

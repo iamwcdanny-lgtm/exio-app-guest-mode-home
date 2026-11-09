@@ -1802,6 +1802,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
       <TokenSheet
         open={sheet === "way"}
         title={withdraw ? "Withdraw" : "Deposit"}
+        chevron={`${IMG}/arrow-down.svg`}
         value={null}
         onPick={(k) => {
           picked.current = true;

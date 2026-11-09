@@ -1101,6 +1101,26 @@ const TokenPage = ({ value, kind, onBack, onPick, title = "Deposit", heads = HEA
   );
 };
 
+/* ---------- Select network (page; split network setting) ---------- */
+const NetPage = ({ d, onBack, onPick }) => (
+  <div className="oc-screen oc-page dp-page is-net">
+    <AppBar title="Select network" onBack={onBack} />
+    <div className="oc-page-body dp-body">
+      <div className="tks-list dp-tokens">
+        {(NETWORKS[d.asset] || []).map(([k, name, conf]) => (
+          <button key={k} type="button" className={`tks-row${k === d.net ? " is-on" : ""}`} onClick={() => onPick(k)}>
+            <span className="tks-text">
+              <b>{name}</b>
+              <small>Arrives after {conf}</small>
+            </span>
+            <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-chev" />
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
 /* ---------- Leave? ---------- */
 const LeaveSheet = ({ open, onStay, onLeave }) => (
   <PhoneLayer className="tks-layer">
@@ -1639,7 +1659,8 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
   const startAdd = (method) => {
     const nets = NETWORKS[d.asset] || [];
     setWl({ remarks: "", addr: "", wallet: null, method });
-    setD((x) => ({ ...x, net: nets[0]?.[0] ?? null }));
+    // Split network: keep the network already picked, so the new address lands in that list.
+    setD((x) => ({ ...x, net: split && x.net ? x.net : nets[0]?.[0] ?? null }));
     push(method === "connect" ? "connect" : "addr");
   };
   // Security passed: the address joins the list, back to Select wallet.
@@ -1694,14 +1715,29 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             onPick={(k, c) => {
               picked.current = false;
               const nets = NETWORKS[c] || [];
-              // Split: crypto with more than one network asks for the network first.
-              if (split && k === "crypto" && nets.length > 1) {
-                setD({ kind: k, asset: c });
-                return setSheet("netpick");
+              // Split: crypto goes Select network (page) → Select address, deposit and withdraw
+              // alike; a token with one network skips the network page.
+              if (split && k === "crypto") {
+                if (nets.length > 1) {
+                  setD({ kind: k, asset: c });
+                  return setStack(["net"]);
+                }
+                setD({ kind: k, asset: c, net: nets[0]?.[0] });
+                return setStack(["list"]);
               }
-              setD({ kind: k, asset: c, ...(split && k === "crypto" && nets[0] ? { net: nets[0][0] } : {}) });
+              setD({ kind: k, asset: c });
               if (withdraw) setStack(["list"]);
               else setSheet("source");
+            }}
+          />
+        )}
+        {stack.includes("net") && (
+          <NetPage
+            d={d}
+            onBack={pop}
+            onPick={(n) => {
+              setD((x) => ({ ...x, net: n }));
+              push("list");
             }}
           />
         )}
@@ -1839,24 +1875,6 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
                 { value: "crypto", label: "Crypto" },
               ]
         }
-      />
-      <TokenSheet
-        open={sheet === "netpick"}
-        title="Select network"
-        value={null}
-        chevron={`${IMG}/arrow-down.svg`}
-        onPick={(n) => {
-          picked.current = true;
-          setD((x) => ({ ...x, net: n }));
-          if (withdraw) setStack(["list"]);
-          else setTimeout(() => setSheet("source"), 120); // let this sheet start closing first
-        }}
-        onClose={() => {
-          if (!picked.current) setD((x) => ({ kind: x.kind })); // dismissed: no token chosen
-          picked.current = false;
-          setSheet((s) => (s === "netpick" ? null : s));
-        }}
-        options={(NETWORKS[d.asset] || []).map(([k, name, conf]) => ({ value: k, label: name, name: `Arrives after ${conf}` }))}
       />
       <TokenSheet
         open={sheet === "source"}

@@ -22,7 +22,7 @@ const TABS = [
   { key: "otc", label: "OTC", wallet: "OTC" },
 ];
 
-const LoggedInHome = ({ welcome = "", labelStyle = "ifta" }) => {
+const LoggedInHome = ({ welcome = "", labelStyle = "ifta", netFlow = "mix" }) => {
   const [hidden, setHidden] = useState(false);
   const [tab, setTab] = useState("custody");
   const [hideSmall, setHideSmall] = useState(true);
@@ -197,7 +197,7 @@ const LoggedInHome = ({ welcome = "", labelStyle = "ifta" }) => {
       </div>
       <AccountFlow open={account} onClose={() => setAccount(false)} onWhitelist={() => setDepositing("manage")} />
       {/* Deposit / withdraw / add address / manage always use IFTA fields (like Trade), whatever the prototype's Input style switch says. */}
-      <DepositFlow open={Boolean(depositing)} mode={depositing || "deposit"} onClose={() => setDepositing(null)} labelStyle="ifta" />
+      <DepositFlow open={Boolean(depositing)} mode={depositing || "deposit"} onClose={() => setDepositing(null)} labelStyle="ifta" netFlow={netFlow} />
     </div>
   );
 };

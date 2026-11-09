@@ -258,7 +258,7 @@ const Picker = ({ label, open, onOpen, children, ls = "ifta", fixed = false }) =
   );
 };
 
-const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta" }) => {
+const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta", netFixed = false }) => {
   const c = d.asset;
   const fiat = d.kind === "fiat";
   const [amt, setAmt] = useState("");
@@ -293,7 +293,7 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta" }) =
       <AppBar title={`Deposit ${c}`} onBack={(e) => onBack(amt !== "" || locked)} slide={false} />
       <div className={`oc-page-body dp-body otc otc-style-${ls}`}>
         {!fiat && (
-          <Picker ls={ls} label="Network" open={sheet === "network"} onOpen={onPickNet}>
+          <Picker ls={ls} label="Network" open={sheet === "network"} onOpen={onPickNet} fixed={netFixed}>
             <b className={noNet ? "is-placeholder" : ""}>{noNet ? "Select network" : NET[d.net].name}</b>
           </Picker>
         )}
@@ -441,9 +441,10 @@ const WarnIcon = () => (
   </svg>
 );
 
-const ListPage = ({ d, book, withdraw, onBack, onPick, onDeclare, onAdd, onManage }) => {
+const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, onManage }) => {
   const fiat = d.kind === "fiat";
-  const all = listFor(d.asset, book);
+  // Split network: the network was picked before this page, so only its addresses show.
+  const all = listFor(d.asset, book).filter((w) => !split || fiat || w.net === d.net);
   const nf = useNetFilter(fiat ? [] : all);
   // Withdraw order: 0 ready → 1 needs the ownership declaration → 2 cooling down (soonest
   // to unlock first). Ranks are taken when an address first shows (page opens, or it was
@@ -496,9 +497,10 @@ const ListPage = ({ d, book, withdraw, onBack, onPick, onDeclare, onAdd, onManag
       />
       <div className="oc-page-body dp-body">
         <p className="dp-lead">
-          Your whitelisted {fiat ? "bank accounts" : "addresses"} for {d.asset}.
+          Your whitelisted {fiat ? "bank accounts" : "addresses"} for {d.asset}
+          {split && !fiat && d.net ? ` on ${NET[d.net].name}` : ""}.
         </p>
-        {!fiat && <NetPills nets={nf.nets} value={nf.net} onChange={nf.setNet} />}
+        {!fiat && !split && <NetPills nets={nf.nets} value={nf.net} onChange={nf.setNet} />}
         <div className="dp-list">
           {list.map((w) =>
             w.net !== "bank" ? (
@@ -1549,8 +1551,12 @@ const WalletApp = ({ k, onCancel, onConnect }) => {
 // review + slide to confirm → submitted.
 const W_HEADS = { crypto: ["On-chain withdrawal"], fiat: ["Bank withdrawal"] };
 
-export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode = "deposit" }) {
+// netFlow (demo setting): "mix" = network handled inside the address list (pills) / the
+// new-address page; "split" = pick the network right after the token, then addresses or
+// New address for that network only.
+export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode = "deposit", netFlow = "mix" }) {
   const withdraw = mode === "withdraw";
+  const split = netFlow === "split";
   const [sheet, setSheet] = useState(null); // way | source | network
   const [way, setWay] = useState(null); // first step: "fiat" | "crypto"
   const [d, setD] = useState({});
@@ -1611,7 +1617,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
   // The New-address page: network preset when the token has only one.
   const toAmount = () => {
     const nets = NETWORKS[d.asset] || [];
-    setD((x) => ({ ...x, net: fiat ? "bank" : nets.length === 1 ? nets[0][0] : null }));
+    setD((x) => ({ ...x, net: fiat ? "bank" : split && x.net ? x.net : nets.length === 1 ? nets[0][0] : null }));
     setStack((s) => [...s.filter((x) => x !== "amount"), "amount"]);
   };
   const pop = () => {
@@ -1687,7 +1693,13 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             heads={withdraw ? W_HEADS : HEADS}
             onPick={(k, c) => {
               picked.current = false;
-              setD({ kind: k, asset: c });
+              const nets = NETWORKS[c] || [];
+              // Split: crypto with more than one network asks for the network first.
+              if (split && k === "crypto" && nets.length > 1) {
+                setD({ kind: k, asset: c });
+                return setSheet("netpick");
+              }
+              setD({ kind: k, asset: c, ...(split && k === "crypto" && nets[0] ? { net: nets[0][0] } : {}) });
               if (withdraw) setStack(["list"]);
               else setSheet("source");
             }}
@@ -1698,6 +1710,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             d={d}
             book={book}
             withdraw={withdraw}
+            split={split}
             onDeclare={(w) => {
               // Declare right here, no detour through Manage
               setWdFor(w);
@@ -1754,6 +1767,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             d={d}
             sheet={sheet}
             onPickNet={() => setSheet("network")}
+            netFixed={split}
             onBack={(dirty) => (dirty ? setLeaving(true) : slideOut(".dp-page.is-amount", pop))}
             onConfirmed={(r) => setDetail({ ...d, ...r, from: null })}
           />
@@ -1827,6 +1841,24 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         }
       />
       <TokenSheet
+        open={sheet === "netpick"}
+        title="Select network"
+        value={null}
+        chevron={`${IMG}/arrow-down.svg`}
+        onPick={(n) => {
+          picked.current = true;
+          setD((x) => ({ ...x, net: n }));
+          if (withdraw) setStack(["list"]);
+          else setTimeout(() => setSheet("source"), 120); // let this sheet start closing first
+        }}
+        onClose={() => {
+          if (!picked.current) setD((x) => ({ kind: x.kind })); // dismissed: no token chosen
+          picked.current = false;
+          setSheet((s) => (s === "netpick" ? null : s));
+        }}
+        options={(NETWORKS[d.asset] || []).map(([k, name, conf]) => ({ value: k, label: name, name: `Arrives after ${conf}` }))}
+      />
+      <TokenSheet
         open={sheet === "source"}
         title="Deposit from"
         value={null}
@@ -1850,7 +1882,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
           {
             value: "existing",
             label: fiat ? "Whitelisted bank account" : "Existing address",
-            name: `${listFor(d.asset, book).length} whitelisted`,
+            name: `${listFor(d.asset, book).filter((w) => !split || fiat || w.net === d.net).length} whitelisted`,
           },
         ]}
       />

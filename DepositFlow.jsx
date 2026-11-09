@@ -1043,12 +1043,14 @@ const WResultPage = ({ onDone }) => (
 
 /* ---------- Token selection (page) ---------- */
 const HEADS = { crypto: ["Crypto"], fiat: ["Fiat", "By bank transfer"] };
-const TokenPage = ({ value, onBack, onPick, title = "Deposit", heads = HEADS }) => {
+const TokenPage = ({ value, kind, onBack, onPick, title = "Deposit", heads = HEADS }) => {
   const [q, setQ] = useState("");
   // Deposits land in the Custody account, so each cell shows that balance.
   const bal = useOtc().s.bal.custody;
   const term = q.trim().toLowerCase();
+  // Only the kind picked in the first sheet (Fiat / Crypto, Bank / On-chain).
   const sections = Object.entries(KINDS)
+    .filter(([k]) => !kind || k === kind)
     .map(([k, v]) => [k, v, v.assets.filter((c) => (c + CCY[c].name).toLowerCase().includes(term))])
     .filter(([, , list]) => list.length);
   return (
@@ -1549,7 +1551,8 @@ const W_HEADS = { crypto: ["On-chain withdrawal"], fiat: ["Bank withdrawal"] };
 
 export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode = "deposit" }) {
   const withdraw = mode === "withdraw";
-  const [sheet, setSheet] = useState(null); // source | network
+  const [sheet, setSheet] = useState(null); // way | source | network
+  const [way, setWay] = useState(null); // first step: "fiat" | "crypto"
   const [d, setD] = useState({});
   const [tokenPage, setTokenPage] = useState(false);
   const [stack, setStack] = useState([]); // pages over the token page: "list", "amount"
@@ -1582,7 +1585,12 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         setD({ kind: "crypto", asset: "USDT" });
         setMTab("crypto");
         setStack(["manage"]);
-      } else setTokenPage(true);
+      } else {
+        // First step: how (Fiat / Crypto, Bank / On-chain) as a sheet over Home, then the token.
+        setWay(null);
+        picked.current = false;
+        setSheet("way");
+      }
     }
   }, [open]);
   const closeSheet = (name) => () => setSheet((s) => (s === name ? null : s));
@@ -1668,7 +1676,13 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         {tokenPage && (
           <TokenPage
             value={d.asset}
-            onBack={() => setTokenPage(false)}
+            kind={way}
+            onBack={() => {
+              // Back to the first step's sheet
+              setTokenPage(false);
+              picked.current = false;
+              setSheet("way");
+            }}
             title={withdraw ? "Withdraw" : "Deposit"}
             heads={withdraw ? W_HEADS : HEADS}
             onPick={(k, c) => {
@@ -1785,6 +1799,32 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         )}
         {detail && <DetailPage d={detail} onDone={finish} say={say} />}
       </PhoneLayer>
+      <TokenSheet
+        open={sheet === "way"}
+        title={withdraw ? "Withdraw" : "Deposit"}
+        value={null}
+        onPick={(k) => {
+          picked.current = true;
+          setWay(k);
+          setD({});
+          setTokenPage(true);
+        }}
+        onClose={() => {
+          picked.current = false;
+          setSheet((s) => (s === "way" ? null : s)); // dismissed without a choice: the flow ends
+        }}
+        options={
+          withdraw
+            ? [
+                { value: "fiat", label: "Bank withdrawal" },
+                { value: "crypto", label: "On-chain withdrawal" },
+              ]
+            : [
+                { value: "fiat", label: "Fiat" },
+                { value: "crypto", label: "Crypto" },
+              ]
+        }
+      />
       <TokenSheet
         open={sheet === "source"}
         title="Deposit from"

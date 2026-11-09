@@ -690,7 +690,8 @@ const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, s
                     <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-mcell-chev" />
                   </span>
                   <span className="dp-mcell-sub">
-                    <span className="dp-tag is-wl is-net">{NET[w.net].name}</span>
+                    {/* Network tag only under "All": a network pill already says which network */}
+                    {nf.net === "all" && <span className="dp-tag is-wl is-net">{NET[w.net].name}</span>}
                     <WlTags w={w} />
                   </span>
                   <small>{w.label}</small>

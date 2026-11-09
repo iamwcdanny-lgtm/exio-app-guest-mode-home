@@ -1048,7 +1048,7 @@ const WResultPage = ({ onDone }) => (
 );
 
 /* ---------- Token selection (page) ---------- */
-const HEADS = { crypto: ["Crypto"], fiat: ["Fiat", "By bank transfer"] };
+const HEADS = { crypto: ["On-chain deposit"], fiat: ["Bank deposit"] };
 const TokenPage = ({ value, kind, onBack, onPick, title = "Deposit", heads = HEADS }) => {
   const [q, setQ] = useState("");
   // Deposits land in the Custody account, so each cell shows that balance.
@@ -1871,12 +1871,12 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         options={
           withdraw
             ? [
-                { value: "fiat", label: "Bank withdrawal" },
-                { value: "crypto", label: "On-chain withdrawal" },
+                { value: "fiat", label: "Bank withdrawal", name: "USD or HKD to your bank account" },
+                { value: "crypto", label: "On-chain withdrawal", name: "Crypto to a whitelisted wallet address" },
               ]
             : [
-                { value: "fiat", label: "Fiat" },
-                { value: "crypto", label: "Crypto" },
+                { value: "fiat", label: "Bank deposit", name: "USD or HKD by bank transfer" },
+                { value: "crypto", label: "On-chain deposit", name: "Crypto from your wallet or another exchange" },
               ]
         }
       />

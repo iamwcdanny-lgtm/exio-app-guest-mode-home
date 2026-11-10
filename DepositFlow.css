@@ -1828,3 +1828,8 @@ textarea.dp-tf-input {
 .dp-ps .oc-appbar {
   padding-top: 0;
 }
+
+/* Page sheet close button sits top right */
+.oc-back.is-close {
+  justify-self: end;
+}

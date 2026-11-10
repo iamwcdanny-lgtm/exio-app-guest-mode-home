@@ -159,15 +159,24 @@ const XIcon = () => (
     <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="rgba(0,0,0,0.8)" strokeWidth="2" strokeLinecap="round" />
   </svg>
 );
-const AppBar = ({ title, onBack, slide = true, right = null, close = false }) => (
-  <header className="oc-appbar">
-    <button type="button" className="oc-back" aria-label={close ? "Close" : "Back"} onClick={(e) => (slide && !close ? slideBack(e, onBack) : onBack())}>
-      {close ? <XIcon /> : <BackIcon />}
-    </button>
-    <h1>{title}</h1>
-    {right || <span />}
-  </header>
-);
+const AppBar = ({ title, onBack, slide = true, right = null, close = false }) =>
+  close ? (
+    <header className="oc-appbar">
+      <span />
+      <h1>{title}</h1>
+      <button type="button" className="oc-back is-close" aria-label="Close" onClick={() => onBack()}>
+        <XIcon />
+      </button>
+    </header>
+  ) : (
+    <header className="oc-appbar">
+      <button type="button" className="oc-back" aria-label="Back" onClick={(e) => (slide ? slideBack(e, onBack) : onBack())}>
+        <BackIcon />
+      </button>
+      <h1>{title}</h1>
+      {right || <span />}
+    </header>
+  );
 
 /* ---------- Slide to confirm ---------- */
 const SlideToConfirm = ({ label = "Slide to confirm", onDone }) => {

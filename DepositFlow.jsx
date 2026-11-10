@@ -2231,8 +2231,10 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
               // alike; a token with one network skips the network page.
               if (split && k === "crypto") {
                 if (nets.length > 1) {
+                  // Network as a bottom sheet over the token list (Figma Xirry)
                   setD({ kind: k, asset: c });
-                  return setStack(["net"]);
+                  picked.current = false;
+                  return setSheet("netpick");
                 }
                 setD({ kind: k, asset: c, net: nets[0]?.[0] });
                 return setStack([withdraw ? "list" : "send"]);
@@ -2417,6 +2419,23 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
                 { value: "fiat", icon: <span className="dp-opt-tile is-sm"><BankGlyph /></span>, label: "Bank deposit", name: "Deposit fiat from your bank account" },
               ]
         }
+      />
+      <TokenSheet
+        open={sheet === "netpick"}
+        title="Select a network"
+        note={withdraw ? "Use the same network as the receiving wallet." : "Use the same network in your sending wallet."}
+        value={null}
+        chevron={`${IMG}/arrow-down.svg`}
+        onPick={(n) => {
+          picked.current = true;
+          setD((x) => ({ ...x, net: n }));
+          setStack([withdraw ? "list" : "send"]);
+        }}
+        onClose={() => {
+          picked.current = false;
+          setSheet((s) => (s === "netpick" ? null : s)); // dismissed: back on the token list
+        }}
+        options={(NETWORKS[d.asset] || []).map(([k, name, conf]) => ({ value: k, label: name, name: withdraw ? undefined : `Credited after ${conf}` }))}
       />
       <TokenSheet
         open={sheet === "source"}

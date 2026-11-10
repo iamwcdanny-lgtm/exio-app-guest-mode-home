@@ -170,6 +170,11 @@ const NET_FLOWS = [
   { key: "mix", short: "Mix network" },
   { key: "split", short: "Split network" },
 ];
+// Split-network withdraw: with a withdrawal password the password comes before passkey.
+const WD_PWS = [
+  { key: "set", short: "Set" },
+  { key: "none", short: "Not set" },
+];
 const HOME_STATES = [
   { key: "guest", short: "Guest" },
   { key: "member", short: "Logged in" },
@@ -330,7 +335,7 @@ const Bindings = ({ bound, onToggle }) => (
 );
 
 // Demo settings live in a drawer from the right edge at every screen size.
-const ProtoControls = ({ home, onHome, rwaView, onRwaView, pdUser, onPdUser, showPd, cardStyle, onCardStyle, navStyle, onNavStyle, labelStyle, onLabelStyle, platform, onPlatform, bound, onToggleBinding, netFlow, onNetFlow }) => {
+const ProtoControls = ({ home, onHome, rwaView, onRwaView, pdUser, onPdUser, showPd, cardStyle, onCardStyle, navStyle, onNavStyle, labelStyle, onLabelStyle, platform, onPlatform, bound, onToggleBinding, netFlow, onNetFlow, wdPw, onWdPw }) => {
   // On a phone the settings live in a drawer from the right edge, opened by a
   // small tab, so the demo gets the whole screen. Wider screens keep the panel.
   const [open, setOpen] = useState(false);
@@ -374,6 +379,7 @@ const ProtoControls = ({ home, onHome, rwaView, onRwaView, pdUser, onPdUser, sho
         <Segmented label="Bottom nav" options={NAV_STYLES} value={navStyle} onChange={onNavStyle} />
         <Segmented label="Input style" options={LABEL_STYLES} value={labelStyle} onChange={onLabelStyle} />
         <Segmented label="Deposit / Withdraw" options={NET_FLOWS} value={netFlow} onChange={onNetFlow} />
+        {netFlow === "split" && <Segmented label="Withdrawal password" options={WD_PWS} value={wdPw} onChange={onWdPw} />}
         <Segmented label="Sheet" options={PLATFORMS} value={platform} onChange={onPlatform} />
         <Bindings bound={bound} onToggle={onToggleBinding} />
         <p className="as-proto-note">Tap Login or Sign up to see it. Switching works with the sheet open too.</p>
@@ -711,6 +717,7 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
   const [home, setHome] = useState(() => readParam("home", HOME_STATES, "member"));
   const [navStyle, setNavStyle] = useState(() => readParam("nav", NAV_STYLES, "classic"));
   const [netFlow, setNetFlow] = useState(() => readParam("net", NET_FLOWS, "mix"));
+  const [wdPw, setWdPw] = useState(() => readParam("wdpw", WD_PWS, "set"));
   const [rwaView, setRwaView] = useState(() => readParam("rwa", RWA_VIEWS, "current"));
   const [pdUser, setPdUserRaw] = useState(readPd);
   const setPdUser = (u) => {
@@ -1008,6 +1015,11 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
           setNetFlow(v);
           writeParam("net", v);
         }}
+        wdPw={wdPw}
+        onWdPw={(v) => {
+          setWdPw(v);
+          writeParam("wdpw", v);
+        }}
         bound={bound}
         onToggleBinding={(k) => {
           const next = { ...bound, [k]: !bound[k] };
@@ -1023,7 +1035,7 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
           ) : tab === "rwa" ? (
             rwaView === "asset" ? <RwaExplore labelStyle={labelStyle} /> : <RwaPage labelStyle={labelStyle} cardStyle={cardStyle} pdUser={pdUser} setPdUser={setPdUser} onImmersive={setImmersive} />
           ) : home === "member" ? (
-            <LoggedInHome key={welcome.n} welcome={welcome.text} labelStyle={labelStyle} netFlow={netFlow} />
+            <LoggedInHome key={welcome.n} welcome={welcome.text} labelStyle={labelStyle} netFlow={netFlow} wdPw={wdPw} />
           ) : (
           <>
           <Header />

@@ -441,6 +441,196 @@ const WarnIcon = () => (
   </svg>
 );
 
+/* ---------- Split network screens (Figma Xirry 3195:8428 deposit, 3218:7390 withdraw) ---------- */
+// Grey card naming the asset and its network, at the top of each step after the network.
+const AssetCard = ({ c, net }) => (
+  <div className="dp-asset">
+    <Icon c={c} />
+    <span>
+      <b>{c}</b>
+      {net && NET[net] && <small>{NET[net].name}</small>}
+    </span>
+  </div>
+);
+const SecHead = ({ title, sub }) => (
+  <div className="dp-sechead">
+    <h2>{title}</h2>
+    {sub && <p>{sub}</p>}
+  </div>
+);
+const WalletGlyph = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <rect x="2.5" y="5" width="15" height="11" rx="2.2" stroke="rgba(0,0,0,0.8)" strokeWidth="1.5" />
+    <path d="M5 5V4.2a1.2 1.2 0 0 1 1.5-1.16L14 5" stroke="rgba(0,0,0,0.8)" strokeWidth="1.5" strokeLinejoin="round" />
+    <path d="M17.5 9h-3a1.5 1.5 0 0 0 0 3h3" stroke="rgba(0,0,0,0.8)" strokeWidth="1.5" />
+  </svg>
+);
+const PlusGlyph = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <path d="M10 4.5v11M4.5 10h11" stroke="#00a874" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+);
+const BankGlyph = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <path d="M3 7.5L10 3.5l7 4M4 16.5h12M5 8.5v6M8.3 8.5v6M11.7 8.5v6M15 8.5v6" stroke="rgba(0,0,0,0.8)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+const CryptoGlyph = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <path d="M10 2.8l6.2 3.6v7.2L10 17.2l-6.2-3.6V6.4z" stroke="#00a874" strokeWidth="1.5" strokeLinejoin="round" />
+    <path d="M3.8 6.4L10 10l6.2-3.6M10 10v7.2" stroke="#00a874" strokeWidth="1.5" strokeLinejoin="round" />
+  </svg>
+);
+const Chev = () => <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-chev" />;
+
+// Deposit · Select a sending address: saved addresses on this network, then "Use a new address".
+const SendAddrPage = ({ d, book, onBack, onPick, onNew, onManage }) => {
+  const list = listFor(d.asset, book).filter((w) => w.net === d.net);
+  return (
+    <div className="oc-screen oc-page dp-page is-send">
+      <AppBar
+        title="Select a sending address"
+        onBack={onBack}
+        right={
+          <button type="button" className="dp-bar-link" onClick={onManage}>
+            Manage
+          </button>
+        }
+      />
+      <div className="oc-page-body dp-body">
+        <AssetCard c={d.asset} net={d.net} />
+        <SecHead title="Saved addresses" sub={`Approved for ${NET[d.net].name}.`} />
+        <div className="dp-opts">
+          {list.map((w) => (
+            <button key={w.id} type="button" className={`dp-opt${w.isNew ? " is-new" : ""}`} onClick={() => onPick(w)}>
+              <span className="dp-opt-tile">
+                <WalletGlyph />
+              </span>
+              <span className="dp-opt-text">
+                <b>{w.label}</b>
+                <small>{short(w.addr)}</small>
+              </span>
+              <Chev />
+            </button>
+          ))}
+          {!list.length && <p className="dp-empty">No saved addresses on {NET[d.net].name} yet.</p>}
+          <hr className="dp-opt-div" />
+          <button type="button" className="dp-opt is-new-addr" onClick={onNew}>
+            <span className="dp-opt-tile">
+              <PlusGlyph />
+            </span>
+            <span className="dp-opt-text">
+              <b>Use a new address</b>
+              <small>Verify with a small additional amount</small>
+            </span>
+            <Chev />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Deposit · new address · amount (Figma "Enter amount"): the network is already set.
+const SAmountPage = ({ d, onBack, onNext, ls = "ifta" }) => {
+  const c = d.asset;
+  const [amt, setAmt] = useState("");
+  const [focused, setFocused] = useState(false);
+  const ref = useRef(null);
+  const v = parseFloat(amt) || 0;
+  return (
+    <div className="oc-screen oc-page dp-page is-samount">
+      <AppBar title={`Deposit ${c}`} onBack={() => onBack(amt !== "")} slide={false} />
+      <div className={`oc-page-body dp-body otc otc-style-${ls}`}>
+        <AssetCard c={c} net={d.net} />
+        <h2 className="dp-h2">Amount you want to deposit</h2>
+        <div className="otc-fields">
+          <div className={`otc-amount is-pay is-up is-bare${focused ? " is-focused" : ""}`}>
+            <div
+              className="otc-amount-box"
+              onMouseDown={(e) => {
+                if (e.target === ref.current) return;
+                e.preventDefault();
+                ref.current?.focus();
+              }}
+            >
+              <div className="otc-amount-row">
+                <input
+                  ref={ref}
+                  id="dp-samt"
+                  className="otc-input"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  placeholder="0"
+                  aria-label="Amount you want to deposit"
+                  value={focused ? amt : group(amt)}
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setFocused(false)}
+                  onChange={(e) => setAmt(clean(e.target.value, dpOf(c)))}
+                  onKeyDown={(e) => e.key === "Enter" && v && onNext(v)}
+                />
+                <span className="otc-chip is-static">
+                  <Icon c={c} size={20} />
+                  <b>{c}</b>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p className="dp-help">We’ll add a small amount to verify your new address.</p>
+      </div>
+      <div className="oc-foot dp-foot">
+        <button type="button" className="oc-btn is-primary" disabled={!v} onClick={() => onNext(v)}>
+          Review total
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Deposit · Small amount verification: the exact total to send, slide to see the QR code.
+const SVerifyPage = ({ d, onBack, onConfirmed }) => {
+  const c = d.asset;
+  const ver = useRef(makeVer(c)).current;
+  const tdp = Math.max(dpOf(c), verDp(c));
+  const total = d.amount + ver;
+  return (
+    <div className="oc-screen oc-page dp-page is-sverify">
+      <AppBar title="Small amount verification" onBack={onBack} />
+      <div className="oc-page-body dp-body">
+        <AssetCard c={c} net={d.net} />
+        <div className="dp-intro">
+          <h2>Review your deposit total</h2>
+          <p>To verify your new address, send the exact total shown below.</p>
+        </div>
+      </div>
+      <div className="dp-confirm">
+        <div className="dp-confirm-sum">
+          <div className="dp-row">
+            <span>Deposit amount</span>
+            <b>
+              {fmtDp(d.amount, dpOf(c))} {c}
+            </b>
+          </div>
+          <div className="dp-row">
+            <span>Verification amount</span>
+            <b>
+              + {fmtDp(ver, verDp(c))} {c}
+            </b>
+          </div>
+          <hr />
+          <span className="dp-confirm-k">Exact total to send</span>
+          <b className="dp-confirm-v">
+            {fmtDp(total, tdp)} {c}
+          </b>
+          <p className="dp-confirm-hint">Confirm this total to view your deposit QR code.</p>
+        </div>
+        <SlideToConfirm onDone={() => onConfirmed({ ver, total, tdp })} />
+      </div>
+    </div>
+  );
+};
+
 const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, onManage }) => {
   const fiat = d.kind === "fiat";
   // Split network: the network was picked before this page, so only its addresses show.
@@ -487,7 +677,7 @@ const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, 
   return (
     <div ref={pageRef} className="oc-screen oc-page dp-page is-list">
       <AppBar
-        title={fiat ? "Select bank account" : "Select address"}
+        title={fiat ? "Select bank account" : split ? "Select a withdrawal address" : "Select address"}
         onBack={onBack}
         right={
           <button type="button" className="dp-bar-link" onClick={onManage}>
@@ -496,10 +686,17 @@ const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, 
         }
       />
       <div className="oc-page-body dp-body">
-        <p className="dp-lead">
-          Your whitelisted {fiat ? "bank accounts" : "addresses"} for {d.asset}
-          {split && !fiat && d.net ? ` on ${NET[d.net].name}` : ""}.
-        </p>
+        {split && !fiat ? (
+          <>
+            <AssetCard c={d.asset} net={d.net} />
+            <SecHead title="Whitelisted addresses" sub="Select the wallet that will receive your withdrawal." />
+          </>
+        ) : (
+          <p className="dp-lead">
+            Your whitelisted {fiat ? "bank accounts" : "addresses"} for {d.asset}
+            {split && !fiat && d.net ? ` on ${NET[d.net].name}` : ""}.
+          </p>
+        )}
         {!fiat && !split && <NetPills nets={nf.nets} value={nf.net} onChange={nf.setNet} />}
         <div className="dp-list">
           {list.map((w) =>
@@ -513,7 +710,26 @@ const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, 
                 const blocked = cool || noWd;
                 return (
                   <div key={w.id} data-id={w.id} className={`dp-mcell is-pick${w.isNew ? " is-new" : ""}${blocked ? " is-blocked" : ""}`}>
-                    <button type="button" className="dp-mcell-top" onClick={() => onPick(w)}>
+                    <button type="button" className={`dp-mcell-top${split ? " is-label" : ""}`} onClick={() => onPick(w)}>
+                      {/* Split (Figma Xirry 3218:7390): wallet name first, full address under it */}
+                      {split && (
+                        <>
+                          <span className="dp-mcell-title">
+                            <b>{w.label}</b>
+                            {!blocked && <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-mcell-chev is-right" />}
+                          </span>
+                          <small className="dp-mcell-addr">
+                            <FullAddr a={w.addr} />
+                          </small>
+                          {w.isNew && (
+                            <span className="dp-mcell-sub">
+                              <span className="dp-tag is-new">Just added</span>
+                            </span>
+                          )}
+                        </>
+                      )}
+                      {!split && (
+                      <>
                       <span className="dp-mcell-title">
                         <b className="is-full">
                           <FullAddr a={w.addr} />
@@ -522,13 +738,13 @@ const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, 
                       </span>
                       {/* Picking for a deposit / withdrawal: network only, no whitelist tags.
                           Split network: the network was picked on the page before, so no tag. */}
-                      {(!split || w.isNew) && (
-                        <span className="dp-mcell-sub">
-                          {!split && <span className="dp-tag is-wl is-net">{NET[w.net].name}</span>}
-                          {w.isNew && <span className="dp-tag is-new">Just added</span>}
-                        </span>
-                      )}
+                      <span className="dp-mcell-sub">
+                        <span className="dp-tag is-wl is-net">{NET[w.net].name}</span>
+                        {w.isNew && <span className="dp-tag is-new">Just added</span>}
+                      </span>
                       <small>{w.label}</small>
+                      </>
+                      )}
                     </button>
                     {blocked && (
                       <div className="dp-walerts">
@@ -810,7 +1026,7 @@ const Qr = ({ text }) => {
   return <div className="dp-qr" role="img" aria-label="Deposit address QR code" dangerouslySetInnerHTML={{ __html: svg }} />;
 };
 
-const DetailPage = ({ d, onDone, say }) => {
+const DetailPage = ({ d, onDone, say, split = false }) => {
   const c = d.asset;
   const fiat = d.kind === "fiat";
   const fromNew = !d.from;
@@ -835,6 +1051,47 @@ const DetailPage = ({ d, onDone, say }) => {
     </div>
   );
   const amountStr = d.total != null ? `${fmtDp(d.total, d.tdp)} ${c}` : null;
+  // Split network, crypto (Figma Xirry "Deposit QR"): its own wording and rows.
+  if (split && !fiat)
+    return (
+      <div className="oc-screen oc-page dp-page is-detail">
+        <AppBar title={`${c} deposit address`} onBack={onDone} />
+        <div className="oc-page-body dp-body">
+          {fromNew ? (
+            <div className="dp-exact">
+              <span>Exact total to send</span>
+              <b>{amountStr}</b>
+              <small>
+                Includes {fmtDp(d.ver, verDp(c))} {c} for address verification.
+              </small>
+            </div>
+          ) : (
+            <div className="dp-note">
+              Send any amount of {c}. Use only {d.from.label} ({short(d.from.addr)}) on {NET[net].name}.
+            </div>
+          )}
+          <section className="dp-card is-qr">
+            <Qr text={addr} />
+            <span className="dp-tag is-lg">{NET[net].name}</span>
+            <p className="dp-addr">{addr}</p>
+            <button type="button" className="oc-btn is-outline is-sm dp-copy-btn" onClick={() => copy("Deposit address", addr)}>
+              Copy deposit address
+            </button>
+          </section>
+          <section className="dp-card">
+            <Row k="Asset" v={c} />
+            <Row k="Network" v={NET[net].name} />
+            <Row k="Sending address" v={fromNew ? "New address" : d.from.label} />
+            {!fromNew && <Row k="Credited to" v="Custody account" />}
+          </section>
+        </div>
+        <div className="oc-foot dp-foot">
+          <button type="button" className="oc-btn is-primary" onClick={onDone}>
+            Done
+          </button>
+        </div>
+      </div>
+    );
   return (
     <div className="oc-screen oc-page dp-page is-detail">
       <AppBar title={`Deposit ${c}`} onBack={onDone} />
@@ -898,7 +1155,7 @@ const DetailPage = ({ d, onDone, say }) => {
 
 /* ---------- Withdraw: amount, review, result ---------- */
 // Withdrawals leave the Custody account, so its balance is what's available.
-const WAmountPage = ({ d, onBack, onNext, ls = "ifta" }) => {
+const WAmountPage = ({ d, onBack, onNext, ls = "ifta", split = false }) => {
   const c = d.asset;
   const avail = useOtc().s.bal.custody[c] || 0;
   const [amt, setAmt] = useState("");
@@ -917,9 +1174,82 @@ const WAmountPage = ({ d, onBack, onNext, ls = "ifta" }) => {
   );
   const label = (
     <label className="otc-label" htmlFor="wd-amt">
-      Withdraw amount
+      {split ? "Amount you want to withdraw" : "Withdraw amount"}
     </label>
   );
+  // Split (Figma Xirry "Withdraw ETH"): To card, amount, Available + Max, Network, Review withdrawal.
+  if (split && d.to.net !== "bank")
+    return (
+      <div className="oc-screen oc-page dp-page is-wamount">
+        <AppBar title={`Withdraw ${c}`} onBack={onBack} />
+        <div className={`oc-page-body dp-body otc otc-style-${ls}`}>
+          <div className="dp-to">
+            <span>To</span>
+            <b>{d.to.label}</b>
+            <small>
+              <FullAddr a={d.to.addr} />
+            </small>
+          </div>
+          <div className="otc-fields">
+            <div className={`otc-amount is-pay is-up${focused ? " is-focused" : ""}${over ? " is-error" : ""}`}>
+              <div
+                className="otc-amount-box"
+                onMouseDown={(e) => {
+                  if (e.target === ref.current || e.target.closest("button")) return;
+                  e.preventDefault();
+                  ref.current?.focus();
+                }}
+              >
+                <div className="otc-amount-head">{label}</div>
+                <div className="otc-amount-row">
+                  <input
+                    ref={ref}
+                    id="wd-amt"
+                    className="otc-input"
+                    inputMode="decimal"
+                    autoComplete="off"
+                    placeholder="0"
+                    aria-invalid={over || undefined}
+                    value={focused ? amt : group(amt)}
+                    onFocus={() => setFocused(true)}
+                    onBlur={() => setFocused(false)}
+                    onChange={(e) => setAmt(clean(e.target.value, dpOf(c)))}
+                    onKeyDown={(e) => e.key === "Enter" && v && !over && onNext(v)}
+                  />
+                  <span className="otc-chip is-static">
+                    <Icon c={c} size={20} />
+                    <b>{c}</b>
+                  </span>
+                </div>
+              </div>
+            </div>
+            {over && (
+              <p className="otc-note" aria-live="polite">
+                Exceeds your available balance.
+              </p>
+            )}
+          </div>
+          <div className="dp-row is-avail">
+            <span>Available to withdraw</span>
+            <b>
+              {fmtCcy(avail, c)} {c}
+              <button type="button" className="otc-all" disabled={!avail} onClick={() => setAmt(clean(String(avail), dpOf(c)))}>
+                Max
+              </button>
+            </b>
+          </div>
+          <div className="dp-row">
+            <span>Network</span>
+            <b>{NET[d.to.net].name}</b>
+          </div>
+        </div>
+        <div className="oc-foot dp-foot">
+          <button type="button" className="oc-btn is-primary" disabled={!v || over} onClick={() => onNext(v)}>
+            Review withdrawal
+          </button>
+        </div>
+      </div>
+    );
   return (
     <div className="oc-screen oc-page dp-page is-wamount">
       <AppBar title={`Withdraw ${c}`} onBack={onBack} />
@@ -992,9 +1322,28 @@ const WAmountPage = ({ d, onBack, onNext, ls = "ifta" }) => {
   );
 };
 
-const WReviewPage = ({ d, onBack, onConfirmed }) => {
+const WReviewPage = ({ d, onBack, onConfirmed, split = false }) => {
   const c = d.asset;
   const bank = d.to.net === "bank";
+  if (split && !bank)
+    return (
+      <div className="oc-screen oc-page dp-page is-wreview">
+        <AppBar title="Review withdrawal" onBack={onBack} />
+        <div className="oc-page-body dp-body">
+          <WSummary d={d} />
+        </div>
+        <div className="dp-confirm">
+          <div className="dp-confirm-sum">
+            <span className="dp-confirm-k">Withdrawal amount</span>
+            <b className="dp-confirm-v">
+              {fmtCcy(d.amount, c)} {c}
+            </b>
+            <p className="dp-confirm-hint">Verify your identity after you confirm.</p>
+          </div>
+          <SlideToConfirm onDone={onConfirmed} />
+        </div>
+      </div>
+    );
   return (
     <div className="oc-screen oc-page dp-page is-wreview">
       <AppBar title="Withdrawal request" onBack={onBack} />
@@ -1032,12 +1381,166 @@ const WReviewPage = ({ d, onBack, onConfirmed }) => {
   );
 };
 
-const WResultPage = ({ onDone }) => (
+// Asset / Network / To card (split review, verification and result).
+const WSummary = ({ d, amount = false }) => (
+  <section className="dp-card">
+    {amount ? (
+      <div className="dp-row">
+        <span>Amount</span>
+        <b>
+          {fmtCcy(d.amount, d.asset)} {d.asset}
+        </b>
+      </div>
+    ) : (
+      <div className="dp-row">
+        <span>Asset</span>
+        <b>{d.asset}</b>
+      </div>
+    )}
+    <div className="dp-row">
+      <span>Network</span>
+      <b>{NET[d.to.net].name}</b>
+    </div>
+    <div className="dp-row is-to">
+      <span>To</span>
+      <b>
+        {d.to.label}
+        <small className="dp-addr-full">{d.to.addr}</small>
+      </b>
+    </div>
+  </section>
+);
+
+const PasskeyArt = () => (
+  <svg width="72" height="72" viewBox="0 0 72 72" fill="none" aria-hidden="true">
+    <circle cx="31" cy="22" r="10" stroke="rgba(0,0,0,0.85)" strokeWidth="4.5" />
+    <path d="M12 58c0-10.5 8.5-19 19-19 4 0 7.7 1.2 10.8 3.4" stroke="rgba(0,0,0,0.85)" strokeWidth="4.5" strokeLinecap="round" />
+    <circle cx="50" cy="44" r="7" fill="#00c08b" />
+    <path d="M50 51v11M50 57h4" stroke="#00c08b" strokeWidth="4" strokeLinecap="round" />
+    <circle cx="50" cy="44" r="2.2" fill="#fff" />
+  </svg>
+);
+
+// Withdraw · verification (split). With a withdrawal password: password, then passkey
+// (default); without one: straight to passkey. "Try another method": password + SMS +
+// authenticator. Passkey is simulated: Start verification waits briefly, then passes.
+const WVerifyPage = ({ d, hasPw, onBack, onVerified, ls = "ifta" }) => {
+  const [step, setStep] = useState(null); // pw | passkey | other
+  const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [sms, setSms] = useState("");
+  const [ga, setGa] = useState("");
+  const [sent, setSent] = useState(0);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setStep(hasPw ? "pw" : "passkey"), 60); // slide the first sheet up
+    return () => clearTimeout(t);
+  }, []);
+  useEffect(() => {
+    if (!sent) return undefined;
+    const t = setTimeout(() => setSent((x) => x - 1), 1000);
+    return () => clearTimeout(t);
+  }, [sent]);
+  const digits = (v) => v.replace(/\D/g, "").slice(0, 6);
+  const start = () => {
+    setBusy(true);
+    setTimeout(() => {
+      setBusy(false);
+      setStep(null);
+      setTimeout(onVerified, 280);
+    }, 1200);
+  };
+  const other = () => {
+    setStep(null);
+    setTimeout(() => setStep("other"), 300);
+  };
+  const okOther = pw2.length >= 6 && sms.length === 6 && ga.length === 6;
+  const tab = (on) => (on ? 0 : -1);
+  return (
+    <div className="oc-screen oc-page dp-page is-wverify">
+      <AppBar title="Verify withdrawal" onBack={onBack} />
+      <div className="oc-page-body dp-body">
+        <WSummary d={d} amount />
+      </div>
+      <BaseSheet open={step === "pw"} onClose={onBack} title="Security verification" className="dp-sec">
+        <div className={`dp-sec-body dp-form is-${ls}`}>
+          <TextField ls={ls} id="wv-pw" label="Withdrawal password" value={pw} onChange={setPw} placeholder="Enter your withdrawal password" inputProps={{ type: "password", tabIndex: tab(step === "pw") }} />
+        </div>
+        <div className="dp-leave-btns">
+          <button type="button" className="oc-btn is-primary" disabled={!pw} tabIndex={tab(step === "pw")} onClick={() => { setStep(null); setTimeout(() => setStep("passkey"), 300); }}>
+            Verify with passkey
+          </button>
+          <button type="button" className="dp-text-btn" tabIndex={tab(step === "pw")} onClick={other}>
+            Try another method
+          </button>
+        </div>
+      </BaseSheet>
+      <BaseSheet open={step === "passkey"} onClose={onBack} title="" className="dp-pk">
+        <div className="dp-pk-body">
+          <PasskeyArt />
+          <h2>Verify with passkey</h2>
+          <p>Follow the prompts on your device to verify this withdrawal.</p>
+        </div>
+        <div className="dp-leave-btns">
+          <button type="button" className="oc-btn is-primary" disabled={busy} tabIndex={tab(step === "passkey")} onClick={start}>
+            {busy ? "Verifying…" : "Start verification"}
+          </button>
+          <button type="button" className="dp-text-btn" disabled={busy} tabIndex={tab(step === "passkey")} onClick={other}>
+            Try another method
+          </button>
+        </div>
+      </BaseSheet>
+      <BaseSheet open={step === "other"} onClose={onBack} title="Security verification" className="dp-sec">
+        <div className={`dp-sec-body dp-form is-${ls}`}>
+          <TextField ls={ls} id="wv-pw2" label="Withdrawal password" value={pw2} onChange={setPw2} placeholder="Enter your withdrawal password" inputProps={{ type: "password", tabIndex: tab(step === "other") }} />
+          <TextField
+            ls={ls}
+            id="wv-sms"
+            label="SMS verification code"
+            hint={sent ? "Code sent to +852 ••••••21." : "Send a code to +852 ••••••21."}
+            value={sms}
+            onChange={(v) => setSms(digits(v))}
+            placeholder="Enter 6-digit code"
+            inputProps={{ inputMode: "numeric", autoComplete: "one-time-code", tabIndex: tab(step === "other") }}
+            action={
+              <button type="button" className="dp-paste" disabled={sent > 0} tabIndex={tab(step === "other")} onClick={() => setSent(60)}>
+                {sent ? `Resend in ${sent}s` : "Send code"}
+              </button>
+            }
+          />
+          <TextField
+            ls={ls}
+            id="wv-ga"
+            label="Authenticator code"
+            hint="Enter the 6-digit code from your authenticator app."
+            value={ga}
+            onChange={(v) => setGa(digits(v))}
+            placeholder="Enter 6-digit code"
+            inputProps={{ inputMode: "numeric", tabIndex: tab(step === "other") }}
+            action={
+              <button type="button" className="dp-paste" tabIndex={tab(step === "other")} onClick={() => setGa("735204")}>
+                Paste
+              </button>
+            }
+          />
+        </div>
+        <div className="dp-leave-btns">
+          <button type="button" className="oc-btn is-primary" disabled={!okOther} tabIndex={tab(step === "other")} onClick={() => { setStep(null); setTimeout(onVerified, 280); }}>
+            Submit withdrawal
+          </button>
+        </div>
+      </BaseSheet>
+    </div>
+  );
+};
+
+const WResultPage = ({ onDone, d, split = false }) => (
   <div className="oc-screen oc-page dp-page is-wresult">
     <AppBar title="Withdraw" onBack={onDone} />
     <div className="oc-page-body dp-body dp-result">
       <img src={`${import.meta.env.BASE_URL}images/passkey/result-success.svg`} width="120" height="120" alt="" />
       <h2>Withdrawal request submitted</h2>
+      {split && d?.to && d.to.net !== "bank" && <WSummary d={d} amount />}
     </div>
     <div className="oc-foot dp-foot">
       <button type="button" className="oc-btn is-primary" onClick={onDone}>
@@ -1049,7 +1552,7 @@ const WResultPage = ({ onDone }) => (
 
 /* ---------- Token selection (page) ---------- */
 const HEADS = { crypto: ["On-chain deposit"], fiat: ["Bank deposit"] };
-const TokenPage = ({ value, kind, onBack, onPick, title = "Deposit", heads = HEADS }) => {
+const TokenPage = ({ value, kind, onBack, onPick, title = "Deposit", heads = HEADS, split = false, withdraw = false }) => {
   const [q, setQ] = useState("");
   // Deposits land in the Custody account, so each cell shows that balance.
   const bal = useOtc().s.bal.custody;
@@ -1059,22 +1562,48 @@ const TokenPage = ({ value, kind, onBack, onPick, title = "Deposit", heads = HEA
     .filter(([k]) => !kind || k === kind)
     .map(([k, v]) => [k, v, v.assets.filter((c) => (c + CCY[c].name).toLowerCase().includes(term))])
     .filter(([, , list]) => list.length);
+  // Split · fiat deposit (Figma "Deposit fiat"): a currency list, no search or balances.
+  if (split && !withdraw && kind === "fiat")
+    return (
+      <div className="oc-screen oc-page dp-page is-token">
+        <AppBar title="Deposit fiat" onBack={onBack} />
+        <div className="oc-page-body dp-body">
+          <SecHead title="Select a currency" sub="Choose the currency of your bank transfer." />
+          <div className="dp-opts">
+            {KINDS.fiat.assets.map((c) => (
+              <button key={c} type="button" className="dp-opt" onClick={() => onPick("fiat", c)}>
+                <span className="dp-opt-tile">
+                  <BankGlyph />
+                </span>
+                <span className="dp-opt-text">
+                  <b>{c}</b>
+                  <small>{CCY[c].name}</small>
+                </span>
+                <Chev />
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  const sTitle = split && kind === "crypto" ? (withdraw ? "Withdraw" : "Select crypto") : title;
+  const sHead = split && kind === "crypto" ? (withdraw ? "Assets you hold" : "Available assets") : null;
   return (
     <div className="oc-screen oc-page dp-page is-token">
-      <AppBar title={title} onBack={onBack} />
+      <AppBar title={sTitle} onBack={onBack} />
       <div className="oc-page-body dp-body">
         <label className="dp-search">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <circle cx="7" cy="7" r="5" stroke="rgba(0,0,0,0.4)" strokeWidth="1.5" />
             <path d="M11 11l3 3" stroke="rgba(0,0,0,0.4)" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search token or currency" aria-label="Search" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={split ? "Search by name or symbol" : "Search token or currency"} aria-label="Search" />
         </label>
         {sections.map(([k, v, list]) => (
           <section key={k} className="dp-section" aria-labelledby={`dp-sec-${k}`}>
             <h2 id={`dp-sec-${k}`} className="dp-section-head">
-              {heads[k][0]}
-              {heads[k][1] && <span>{heads[k][1]}</span>}
+              {sHead || heads[k][0]}
+              {!sHead && heads[k][1] && <span>{heads[k][1]}</span>}
             </h2>
             <div className="tks-list dp-tokens">
               {list.map((c) => (
@@ -1106,16 +1635,18 @@ const TokenPage = ({ value, kind, onBack, onPick, title = "Deposit", heads = HEA
 };
 
 /* ---------- Select network (page; split network setting) ---------- */
-const NetPage = ({ d, onBack, onPick }) => (
+const NetPage = ({ d, onBack, onPick, withdraw = false }) => (
   <div className="oc-screen oc-page dp-page is-net">
-    <AppBar title="Select network" onBack={onBack} />
+    <AppBar title="Select a network" onBack={onBack} />
     <div className="oc-page-body dp-body">
+      <AssetCard c={d.asset} />
+      <p className="dp-lead">{withdraw ? "Use the same network as the receiving wallet." : "Use the same network in your sending wallet."}</p>
       <div className="tks-list dp-tokens">
         {(NETWORKS[d.asset] || []).map(([k, name, conf]) => (
           <button key={k} type="button" className={`tks-row${k === d.net ? " is-on" : ""}`} onClick={() => onPick(k)}>
             <span className="tks-text">
               <b>{name}</b>
-              <small>Arrives after {conf}</small>
+              {!withdraw && <small>Credited after {conf}</small>}
             </span>
             <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-chev" />
           </button>
@@ -1578,7 +2109,7 @@ const W_HEADS = { crypto: ["On-chain withdrawal"], fiat: ["Bank withdrawal"] };
 // netFlow (demo setting): "mix" = network handled inside the address list (pills) / the
 // new-address page; "split" = pick the network right after the token, then addresses or
 // New address for that network only.
-export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode = "deposit", netFlow = "mix" }) {
+export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode = "deposit", netFlow = "mix", wdPw = "set" }) {
   const withdraw = mode === "withdraw";
   const split = netFlow === "split";
   const [sheet, setSheet] = useState(null); // way | source | network
@@ -1683,7 +2214,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
     setBook((b) => [w, ...b.map((x) => ({ ...x, isNew: false }))]);
     setTimeout(() => {
       // Back to where Add started: Manage, else Select address.
-      setStack((s) => (s.includes("manage") ? s.slice(0, s.indexOf("manage") + 1) : ["list"]));
+      setStack((s) => (s.includes("manage") ? s.slice(0, s.indexOf("manage") + 1) : s.includes("list") ? s.slice(0, s.indexOf("list") + 1) : ["list"]));
       say("Address added");
     }, 280);
   };
@@ -1716,6 +2247,8 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             }}
             title={withdraw ? "Withdraw" : "Deposit"}
             heads={withdraw ? W_HEADS : HEADS}
+            split={split}
+            withdraw={withdraw}
             onPick={(k, c) => {
               picked.current = false;
               const nets = NETWORKS[c] || [];
@@ -1727,7 +2260,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
                   return setStack(["net"]);
                 }
                 setD({ kind: k, asset: c, net: nets[0]?.[0] });
-                return setStack(["list"]);
+                return setStack([withdraw ? "list" : "send"]);
               }
               setD({ kind: k, asset: c });
               if (withdraw) setStack(["list"]);
@@ -1738,13 +2271,40 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         {stack.includes("net") && (
           <NetPage
             d={d}
+            withdraw={withdraw}
             onBack={pop}
             onPick={(n) => {
               setD((x) => ({ ...x, net: n }));
-              push("list");
+              push(withdraw ? "list" : "send");
             }}
           />
         )}
+        {stack.includes("send") && (
+          <SendAddrPage
+            d={d}
+            book={book}
+            onBack={pop}
+            onManage={() => {
+              setMTab("crypto");
+              push("manage");
+            }}
+            onPick={(w) => setDetail({ ...d, from: w })}
+            onNew={() => push("samount")}
+          />
+        )}
+        {stack.includes("samount") && (
+          <SAmountPage
+            key={`${d.asset}-${d.net}`}
+            ls={labelStyle}
+            d={d}
+            onBack={(dirty) => (dirty ? setLeaving(true) : slideOut(".dp-page.is-samount", pop))}
+            onNext={(v) => {
+              setD((x) => ({ ...x, amount: v }));
+              push("sverify");
+            }}
+          />
+        )}
+        {stack.includes("sverify") && <SVerifyPage d={d} onBack={pop} onConfirmed={(r) => setDetail({ ...d, ...r, from: null })} />}
         {stack.includes("list") && (
           <ListPage
             d={d}
@@ -1789,6 +2349,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         {stack.includes("wamount") && (
           <WAmountPage
             key={`${d.asset}-${d.to?.id}`}
+            split={split}
             ls={labelStyle}
             d={d}
             onBack={pop}
@@ -1798,8 +2359,9 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             }}
           />
         )}
-        {stack.includes("wreview") && <WReviewPage d={d} onBack={pop} onConfirmed={() => push("wdone")} />}
-        {stack.includes("wdone") && <WResultPage onDone={finish} />}
+        {stack.includes("wreview") && <WReviewPage d={d} split={split} onBack={pop} onConfirmed={() => push(split && d.to?.net !== "bank" ? "wverify" : "wdone")} />}
+        {stack.includes("wverify") && <WVerifyPage d={d} ls={labelStyle} hasPw={wdPw === "set"} onBack={pop} onVerified={() => push("wdone")} />}
+        {stack.includes("wdone") && <WResultPage onDone={finish} d={d} split={split} />}
         {stack.includes("amount") && (
           <AmountPage
             key={d.asset}
@@ -1851,11 +2413,11 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             }}
           />
         )}
-        {detail && <DetailPage d={detail} onDone={finish} say={say} />}
+        {detail && <DetailPage d={detail} onDone={finish} say={say} split={split} />}
       </PhoneLayer>
       <TokenSheet
         open={sheet === "way"}
-        title={withdraw ? "Withdraw" : "Deposit"}
+        title={withdraw ? "Withdraw" : split ? "Choose a deposit method" : "Deposit"}
         chevron={`${IMG}/arrow-down.svg`}
         value={null}
         onPick={(k) => {
@@ -1874,10 +2436,15 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
                 { value: "fiat", label: "Bank withdrawal", name: "USD or HKD to your bank account" },
                 { value: "crypto", label: "On-chain withdrawal", name: "Crypto to a whitelisted wallet address" },
               ]
-            : [
-                { value: "fiat", label: "Bank deposit", name: "USD or HKD by bank transfer" },
-                { value: "crypto", label: "On-chain deposit", name: "Crypto from your wallet or another exchange" },
-              ]
+            : split
+              ? [
+                  { value: "crypto", icon: <span className="dp-opt-tile is-sm is-green"><CryptoGlyph /></span>, label: "Deposit crypto", name: "From a crypto wallet" },
+                  { value: "fiat", icon: <span className="dp-opt-tile is-sm"><BankGlyph /></span>, label: "Deposit fiat", name: "From a bank account" },
+                ]
+              : [
+                  { value: "fiat", label: "Bank deposit", name: "USD or HKD by bank transfer" },
+                  { value: "crypto", label: "On-chain deposit", name: "Crypto from your wallet or another exchange" },
+                ]
         }
       />
       <TokenSheet
@@ -1967,7 +2534,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         onStay={() => setLeaving(false)}
         onLeave={() => {
           setLeaving(false);
-          slideOut(".dp-page.is-amount", pop);
+          slideOut(".dp-page.is-amount, .dp-page.is-samount", pop);
         }}
       />
       <PhoneLayer className="dp-toast-layer">

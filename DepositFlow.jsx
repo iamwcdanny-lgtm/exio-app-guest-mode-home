@@ -498,7 +498,7 @@ const AddrCellBody = ({ w, split, chev = true }) => (
 );
 
 // Deposit · Select a sending address: saved addresses on this network, then "Use a new address".
-const SendAddrPage = ({ d, book, onBack, onPick, onNew, onManage }) => {
+const SendAddrPage = ({ d, book, onBack, onPick, onAdd, onManage }) => {
   const list = listFor(d.asset, book).filter((w) => w.net === d.net);
   return (
     <div className="oc-screen oc-page dp-page is-send">
@@ -522,118 +522,12 @@ const SendAddrPage = ({ d, book, onBack, onPick, onNew, onManage }) => {
             </div>
           ))}
           {!list.length && <p className="dp-empty">No saved addresses on {NET[d.net].name} yet.</p>}
-          <hr className="dp-opt-div" />
-          <button type="button" className="dp-opt is-new-addr" onClick={onNew}>
-            <span className="dp-opt-tile">
-              <PlusGlyph />
-            </span>
-            <span className="dp-opt-text">
-              <b>Use a new address</b>
-              <small>Verify with a small additional amount</small>
-            </span>
-            <Chev />
-          </button>
         </div>
-      </div>
-    </div>
-  );
-};
-
-// Deposit · new address · amount (Figma "Enter amount"): the network is already set.
-const SAmountPage = ({ d, onBack, onNext, ls = "ifta" }) => {
-  const c = d.asset;
-  const [amt, setAmt] = useState("");
-  const [focused, setFocused] = useState(false);
-  const ref = useRef(null);
-  const v = parseFloat(amt) || 0;
-  return (
-    <div className="oc-screen oc-page dp-page is-samount">
-      <AppBar title={`Deposit ${c}`} onBack={() => onBack(amt !== "")} slide={false} />
-      <div className={`oc-page-body dp-body otc otc-style-${ls}`}>
-        <AssetCard c={c} net={d.net} />
-        <h2 className="dp-h2">Amount you want to deposit</h2>
-        <div className="otc-fields">
-          <div className={`otc-amount is-pay is-up is-bare${focused ? " is-focused" : ""}`}>
-            <div
-              className="otc-amount-box"
-              onMouseDown={(e) => {
-                if (e.target === ref.current) return;
-                e.preventDefault();
-                ref.current?.focus();
-              }}
-            >
-              <div className="otc-amount-row">
-                <input
-                  ref={ref}
-                  id="dp-samt"
-                  className="otc-input"
-                  inputMode="decimal"
-                  autoComplete="off"
-                  placeholder="0"
-                  aria-label="Amount you want to deposit"
-                  value={focused ? amt : group(amt)}
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => setFocused(false)}
-                  onChange={(e) => setAmt(clean(e.target.value, dpOf(c)))}
-                  onKeyDown={(e) => e.key === "Enter" && v && onNext(v)}
-                />
-                <span className="otc-chip is-static">
-                  <Icon c={c} size={20} />
-                  <b>{c}</b>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <p className="dp-help">We’ll add a small amount to verify your new address.</p>
       </div>
       <div className="oc-foot dp-foot">
-        <button type="button" className="oc-btn is-primary" disabled={!v} onClick={() => onNext(v)}>
-          Review total
+        <button type="button" className="oc-btn is-outline" onClick={onAdd}>
+          Add address
         </button>
-      </div>
-    </div>
-  );
-};
-
-// Deposit · Small amount verification: the exact total to send, slide to see the QR code.
-const SVerifyPage = ({ d, onBack, onConfirmed }) => {
-  const c = d.asset;
-  const ver = useRef(makeVer(c)).current;
-  const tdp = Math.max(dpOf(c), verDp(c));
-  const total = d.amount + ver;
-  return (
-    <div className="oc-screen oc-page dp-page is-sverify">
-      <AppBar title="Small amount verification" onBack={onBack} />
-      <div className="oc-page-body dp-body">
-        <AssetCard c={c} net={d.net} />
-        <div className="dp-intro">
-          <h2>Review your deposit total</h2>
-          <p>To verify your new address, send the exact total shown below.</p>
-        </div>
-      </div>
-      <div className="dp-confirm">
-        <div className="dp-confirm-sum">
-          <div className="dp-row">
-            <span>Deposit amount</span>
-            <b>
-              {fmtDp(d.amount, dpOf(c))} {c}
-            </b>
-          </div>
-          <div className="dp-row">
-            <span>Verification amount</span>
-            <b>
-              + {fmtDp(ver, verDp(c))} {c}
-            </b>
-          </div>
-          <hr />
-          <span className="dp-confirm-k">Exact total to send</span>
-          <b className="dp-confirm-v">
-            {fmtDp(total, tdp)} {c}
-          </b>
-          <p className="dp-confirm-hint">Confirm this total to view your deposit QR code.</p>
-        </div>
-        <SlideToConfirm onDone={() => onConfirmed({ ver, total, tdp })} />
       </div>
     </div>
   );
@@ -1026,7 +920,7 @@ const DetailPage = ({ d, onDone, say, split = false }) => {
   );
   const amountStr = d.total != null ? `${fmtDp(d.total, d.tdp)} ${c}` : null;
   // Split network, crypto (Figma Xirry "Deposit QR"): its own wording and rows.
-  if (split && !fiat)
+  if (split && !fiat && !fromNew)
     return (
       <div className="oc-screen oc-page dp-page is-detail">
         <AppBar title={`${c} deposit address`} onBack={onDone} />
@@ -2187,7 +2081,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
     setBook((b) => [w, ...b.map((x) => ({ ...x, isNew: false }))]);
     setTimeout(() => {
       // Back to where Add started: Manage, else Select address.
-      setStack((s) => (s.includes("manage") ? s.slice(0, s.indexOf("manage") + 1) : s.includes("list") ? s.slice(0, s.indexOf("list") + 1) : ["list"]));
+      setStack((s) => (s.includes("manage") ? s.slice(0, s.indexOf("manage") + 1) : s.includes("list") ? s.slice(0, s.indexOf("list") + 1) : s.includes("send") ? s.slice(0, s.indexOf("send") + 1) : ["list"]));
       say("Address added");
     }, 280);
   };
@@ -2264,22 +2158,9 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
               push("manage");
             }}
             onPick={(w) => setDetail({ ...d, from: w })}
-            onNew={() => push("samount")}
+            onAdd={() => setSheet("method")}
           />
         )}
-        {stack.includes("samount") && (
-          <SAmountPage
-            key={`${d.asset}-${d.net}`}
-            ls={labelStyle}
-            d={d}
-            onBack={(dirty) => (dirty ? setLeaving(true) : slideOut(".dp-page.is-samount", pop))}
-            onNext={(v) => {
-              setD((x) => ({ ...x, amount: v }));
-              push("sverify");
-            }}
-          />
-        )}
-        {stack.includes("sverify") && <SVerifyPage d={d} onBack={pop} onConfirmed={(r) => setDetail({ ...d, ...r, from: null })} />}
         {stack.includes("list") && (
           <ListPage
             d={d}
@@ -2482,9 +2363,9 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         }}
         onClose={closeSheet("method")}
         options={[
-          { value: "small", icon: <MethodIcon k="small" />, label: "Small-amount verification", name: "Deposit with a small extra amount; whitelisted when it arrives" },
-          { value: "connect", icon: <MethodIcon k="connect" />, label: "WalletConnect", name: "Connect your wallet app to prove you own the address" },
-          { value: "sign", icon: <MethodIcon k="sign" />, label: "Signature verification", name: "Sign a message in your wallet and paste the result" },
+          { value: "small", icon: <MethodIcon k="small" />, label: "Directly deposit from new address", name: "Deposit with a small extra amount; whitelisted when it arrives" },
+          { value: "connect", icon: <MethodIcon k="connect" />, label: "Connect to wallet", name: "Connect your wallet app to prove you own the address" },
+          { value: "sign", icon: <MethodIcon k="sign" />, label: "Manual signature", name: "Sign a message in your wallet and paste the result" },
         ]}
       />
       <TokenSheet

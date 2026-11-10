@@ -894,7 +894,7 @@ const Qr = ({ text }) => {
   return <div className="dp-qr" role="img" aria-label="Deposit address QR code" dangerouslySetInnerHTML={{ __html: svg }} />;
 };
 
-const DetailPage = ({ d, onDone, say, split = false }) => {
+const DetailPage = ({ d, onDone, onBack, say, split = false }) => {
   const c = d.asset;
   const fiat = d.kind === "fiat";
   const fromNew = !d.from;
@@ -923,7 +923,7 @@ const DetailPage = ({ d, onDone, say, split = false }) => {
   if (split && !fiat && !fromNew)
     return (
       <div className="oc-screen oc-page dp-page is-detail">
-        <AppBar title={`${c} deposit address`} onBack={onDone} />
+        <AppBar title={`${c} deposit address`} onBack={onBack || onDone} />
         <div className="oc-page-body dp-body">
           {fromNew ? (
             <div className="dp-exact">
@@ -962,7 +962,7 @@ const DetailPage = ({ d, onDone, say, split = false }) => {
     );
   return (
     <div className="oc-screen oc-page dp-page is-detail">
-      <AppBar title={`Deposit ${c}`} onBack={onDone} />
+      <AppBar title={`Deposit ${c}`} onBack={onBack || onDone} />
       <div className="oc-page-body dp-body">
         <div className="dp-note">
           {fromNew ? (
@@ -1708,11 +1708,11 @@ const WlHead = ({ d, ls, sheet, onPickAsset, onPickNet }) => (
   </>
 );
 
-const ConnectPage = ({ d, ls, sheet, onPickAsset, onPickNet, onBack, onConnect, remarks, setRemarks }) => {
+const ConnectPage = ({ d, ls, sheet, onPickAsset, onPickNet, onBack, onConnect, remarks, setRemarks, slide = true }) => {
   const [agree, setAgree] = useState(false);
   return (
     <div className="oc-screen oc-page dp-page is-connect">
-      <AppBar title="Add whitelist address" onBack={onBack} />
+      <AppBar title="Add whitelist address" onBack={onBack} slide={slide} />
       <div className={`oc-page-body dp-body dp-form is-${ls} otc-style-${ls}`}>
         <WlHead d={d} ls={ls} sheet={sheet} onPickAsset={onPickAsset} onPickNet={onPickNet} />
         <TextField ls={ls} id="dp-wc-remarks" label="Remarks (optional)" value={remarks} onChange={setRemarks} placeholder="e.g. My MetaMask" inputProps={{ maxLength: 30 }} />
@@ -1732,13 +1732,13 @@ const ConnectPage = ({ d, ls, sheet, onPickAsset, onPickNet, onBack, onConnect, 
   );
 };
 
-const AddrPage = ({ d, ls, sheet, onPickAsset, onPickNet, onBack, onNext, remarks, setRemarks, addr, setAddr }) => {
+const AddrPage = ({ d, ls, sheet, onPickAsset, onPickNet, onBack, onNext, remarks, setRemarks, addr, setAddr, slide = true }) => {
   const [touched, setTouched] = useState(false);
   const ok = d.net && ADDR_RE[d.net].test(addr.trim());
   const err = touched && addr && d.net && !ok ? `Enter a valid ${NET[d.net].name} address` : "";
   return (
     <div className="oc-screen oc-page dp-page is-addr">
-      <AppBar title="Add whitelist address" onBack={onBack} />
+      <AppBar title="Add whitelist address" onBack={onBack} slide={slide} />
       <div className={`oc-page-body dp-body dp-form is-${ls} otc-style-${ls}`}>
         <WlHead d={d} ls={ls} sheet={sheet} onPickAsset={onPickAsset} onPickNet={onPickNet} />
         <TextField
@@ -1967,6 +1967,51 @@ const WalletApp = ({ k, onCancel, onConnect }) => {
   );
 };
 
+/* ---------- Add address as a page sheet (2026-11-11) ----------
+   The three add methods (small amount, wallet, signature) open in an iOS page sheet over
+   the address list, like sign-up and the OTC chat: the app behind shrinks into a card
+   (.mhc-phone.as-open, --as-p). Android: full screen. The sheet keeps its last pages while
+   it slides down. */
+const ADD_PAGES = ["amount", "connect", "addr", "sign"];
+const AddSheet = ({ open, children }) => {
+  const [shown, setShown] = useState(open);
+  const ref = useRef(null);
+  const phone = () => ref.current?.closest(".mhc-phone") || document.querySelector(".mhc-phone");
+  const setP = (p) => phone()?.style.setProperty("--as-p", String(p));
+  useEffect(() => {
+    if (open) setShown(true);
+  }, [open]);
+  useEffect(() => {
+    const ph = phone();
+    if (!ph || !shown) return undefined;
+    if (open) {
+      ph.classList.add("as-open");
+      setP(0);
+      const r = requestAnimationFrame(() => requestAnimationFrame(() => setP(1)));
+      return () => cancelAnimationFrame(r);
+    }
+    setP(0);
+    const t = setTimeout(() => {
+      ph.classList.remove("as-open");
+      ph.style.removeProperty("--as-p");
+      setShown(false);
+    }, 450);
+    return () => clearTimeout(t);
+  }, [open, shown]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!shown) return null;
+  return (
+    <>
+      <div className="oc-ps-scrim" aria-hidden="true" />
+      <div className="oc-ps dp-ps" ref={ref} role="dialog" aria-modal="true" aria-label="Add address">
+        <div className="oc-ps-grip">
+          <span className="oc-grab" aria-hidden="true" />
+        </div>
+        <div className="dp-ps-stage">{children}</div>
+      </div>
+    </>
+  );
+};
+
 /* ---------- The flow ---------- */
 // Withdraw (2026-11-07) reuses the token page, the address list and the
 // add-address pages: token → Select address (Manage, Add address) → amount →
@@ -1993,6 +2038,8 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
   const [done, setDone] = useState(""); // centred result toast (Figma "Address setting updated")
   const [wl, setWl] = useState({ remarks: "", addr: "", wallet: null, method: null });
   const [wapp, setWapp] = useState(null); // wallet app being "opened"
+  const [adding, setAdding] = useState(false); // Add address pages are in the page sheet
+  const lastAdd = useRef(null);
   const picked = useRef(false); // the New / Existing sheet closed by a choice, not a dismiss
   const [toast, setToast] = useState("");
   const tt = useRef(null);
@@ -2008,6 +2055,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
       setStack([]);
       setDetail(null);
       setLeaving(false);
+      setAdding(false);
       if (mode === "manage") {
         // Account › Whitelist addresses: straight to Manage, no token chosen yet.
         setD({ kind: "crypto", asset: "USDT" });
@@ -2031,6 +2079,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
     return undefined;
   }, [open, sheet, tokenPage, stack, detail]);
   const finish = () => {
+    setAdding(false);
     setDetail(null);
     setStack([]);
     setTokenPage(false);
@@ -2058,6 +2107,10 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
     return setStack((s) => [...s.filter((x) => x !== "amount"), "amount"]);
   };
   const push = (pg) => setStack((s) => [...s.filter((x) => x !== pg), pg]);
+  const closeAdd = () => {
+    setAdding(false);
+    setStack((s) => s.filter((x) => !ADD_PAGES.includes(x)));
+  };
   const startAdd = (method) => {
     const nets = NETWORKS[d.asset] || [];
     setWl({ remarks: "", addr: "", wallet: null, method });
@@ -2079,9 +2132,13 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
       isNew: true,
     };
     setBook((b) => [w, ...b.map((x) => ({ ...x, isNew: false }))]);
+    const fromManage = stack.includes("manage");
     setTimeout(() => {
-      // Back to where Add started: Manage, else Select address.
+      // Sheet slides down to where Add started: Manage, else Select address. Deposit
+      // carries on to the new address's deposit QR page (back: the list, address added).
+      setAdding(false);
       setStack((s) => (s.includes("manage") ? s.slice(0, s.indexOf("manage") + 1) : s.includes("list") ? s.slice(0, s.indexOf("list") + 1) : s.includes("send") ? s.slice(0, s.indexOf("send") + 1) : ["list"]));
+      if (!withdraw && !fromManage) setDetail({ ...d, from: w });
       say("Address added");
     }, 280);
   };
@@ -2099,6 +2156,60 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
     setTimeout(then, 240);
   };
   if (!open) return null;
+  const amountPage = (
+          <AmountPage
+            key={d.asset}
+            ls={labelStyle}
+            d={d}
+            sheet={sheet}
+            onPickNet={() => setSheet("network")}
+            netFixed={split}
+            onBack={(dirty) => (dirty ? setLeaving(true) : adding ? closeAdd() : slideOut(".dp-page.is-amount", pop))}
+            onConfirmed={(r) => {
+              // From the sheet: it slides down onto the deposit QR page
+              if (adding) closeAdd();
+              setDetail({ ...d, ...r, from: null });
+            }}
+          />
+  );
+  const sheetOpen = adding && stack.some((x) => ADD_PAGES.includes(x));
+  const addPages = (
+    <>
+      {stack.includes("amount") && amountPage}
+        {stack.includes("connect") && (
+          <ConnectPage
+            d={d}
+            ls={labelStyle}
+            sheet={sheet}
+            onPickAsset={() => setSheet("asset")}
+            onPickNet={() => setSheet("network")}
+            onBack={closeAdd}
+            slide={false}
+            onConnect={() => setSheet("wallets")}
+            remarks={wl.remarks}
+            setRemarks={(v) => setWl((x) => ({ ...x, remarks: v }))}
+          />
+        )}
+        {stack.includes("addr") && (
+          <AddrPage
+            d={d}
+            ls={labelStyle}
+            sheet={sheet}
+            onPickAsset={() => setSheet("asset")}
+            onPickNet={() => setSheet("network")}
+            onBack={closeAdd}
+            slide={false}
+            onNext={() => push("sign")}
+            remarks={wl.remarks}
+            setRemarks={(v) => setWl((x) => ({ ...x, remarks: v }))}
+            addr={wl.addr}
+            setAddr={(v) => setWl((x) => ({ ...x, addr: v }))}
+          />
+        )}
+        {stack.includes("sign") && <SignPage addr={wl.addr} onBack={pop} onHow={() => setSheet("how")} onSubmit={() => setSheet("security")} say={say} />}
+    </>
+  );
+  if (sheetOpen) lastAdd.current = addPages;
   return (
     <>
       <PhoneLayer className="oc-layer dp-layer">
@@ -2218,47 +2329,14 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         {stack.includes("wreview") && <WReviewPage d={d} split={split} onBack={pop} onConfirmed={() => push(split && d.to?.net !== "bank" ? "wverify" : "wdone")} />}
         {stack.includes("wverify") && <WVerifyPage d={d} ls={labelStyle} hasPw={wdPw === "set"} onBack={pop} onVerified={() => push("wdone")} />}
         {stack.includes("wdone") && <WResultPage onDone={finish} d={d} split={split} />}
-        {stack.includes("amount") && (
-          <AmountPage
-            key={d.asset}
-            ls={labelStyle}
-            d={d}
-            sheet={sheet}
-            onPickNet={() => setSheet("network")}
-            netFixed={split}
-            onBack={(dirty) => (dirty ? setLeaving(true) : slideOut(".dp-page.is-amount", pop))}
-            onConfirmed={(r) => setDetail({ ...d, ...r, from: null })}
-          />
-        )}
-        {stack.includes("connect") && (
-          <ConnectPage
-            d={d}
-            ls={labelStyle}
-            sheet={sheet}
-            onPickAsset={() => setSheet("asset")}
-            onPickNet={() => setSheet("network")}
-            onBack={pop}
-            onConnect={() => setSheet("wallets")}
-            remarks={wl.remarks}
-            setRemarks={(v) => setWl((x) => ({ ...x, remarks: v }))}
-          />
-        )}
-        {stack.includes("addr") && (
-          <AddrPage
-            d={d}
-            ls={labelStyle}
-            sheet={sheet}
-            onPickAsset={() => setSheet("asset")}
-            onPickNet={() => setSheet("network")}
-            onBack={pop}
-            onNext={() => push("sign")}
-            remarks={wl.remarks}
-            setRemarks={(v) => setWl((x) => ({ ...x, remarks: v }))}
-            addr={wl.addr}
-            setAddr={(v) => setWl((x) => ({ ...x, addr: v }))}
-          />
-        )}
-        {stack.includes("sign") && <SignPage addr={wl.addr} onBack={pop} onHow={() => setSheet("how")} onSubmit={() => setSheet("security")} say={say} />}
+        {stack.includes("amount") && !adding && amountPage}
+        {detail && <DetailPage d={detail} onDone={finish} onBack={() => setDetail(null)} say={say} split={split} />}
+      </PhoneLayer>
+      <PhoneLayer className="oc-layer dp-ps-layer">
+        <AddSheet open={sheetOpen}>{sheetOpen ? addPages : lastAdd.current}</AddSheet>
+      </PhoneLayer>
+      {/* The simulated wallet app takes the whole screen, over the sheet */}
+      <PhoneLayer className="oc-layer dp-wapp-layer">
         {wapp && (
           <WalletApp
             k={wapp}
@@ -2269,7 +2347,6 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             }}
           />
         )}
-        {detail && <DetailPage d={detail} onDone={finish} say={say} split={split} />}
       </PhoneLayer>
       <TokenSheet
         open={sheet === "way"}
@@ -2358,6 +2435,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         value={null}
         onPick={(m) => {
           picked.current = true;
+          setAdding(true); // the add pages open in the page sheet
           if (m === "small") toAmount();
           else startAdd(m);
         }}

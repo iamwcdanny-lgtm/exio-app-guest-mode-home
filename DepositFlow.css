@@ -1809,3 +1809,22 @@ textarea.dp-tf-input {
   right: 16px;
   margin: -6px 0 0;
 }
+
+/* Add address page sheet (AddSheet): reuses the OTC chat's page sheet (.oc-ps); the add
+   pages fill its stage, and their bar no longer clears the status bar. */
+.dp-ps-layer > *,
+.dp-wapp-layer > * {
+  pointer-events: auto;
+  text-align: left;
+}
+.dp-ps-layer > .oc-ps-scrim {
+  pointer-events: auto;
+}
+.dp-ps-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.dp-ps .oc-appbar {
+  padding-top: 0;
+}

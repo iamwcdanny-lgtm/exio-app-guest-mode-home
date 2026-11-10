@@ -458,13 +458,6 @@ const SecHead = ({ title, sub }) => (
     {sub && <p>{sub}</p>}
   </div>
 );
-const WalletGlyph = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-    <rect x="2.5" y="5" width="15" height="11" rx="2.2" stroke="rgba(0,0,0,0.8)" strokeWidth="1.5" />
-    <path d="M5 5V4.2a1.2 1.2 0 0 1 1.5-1.16L14 5" stroke="rgba(0,0,0,0.8)" strokeWidth="1.5" strokeLinejoin="round" />
-    <path d="M17.5 9h-3a1.5 1.5 0 0 0 0 3h3" stroke="rgba(0,0,0,0.8)" strokeWidth="1.5" />
-  </svg>
-);
 const PlusGlyph = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
     <path d="M10 4.5v11M4.5 10h11" stroke="#00a874" strokeWidth="1.8" strokeLinecap="round" />
@@ -482,6 +475,26 @@ const CryptoGlyph = () => (
   </svg>
 );
 const Chev = () => <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-chev" />;
+
+// Address cell (Select a sending / withdrawal address): full address as the title (first and
+// last 6 dark), network tag only in Mix network (Split: the list is one network), then the label.
+const AddrCellBody = ({ w, split, chev = true }) => (
+  <>
+    <span className="dp-mcell-title">
+      <b className="is-full">
+        <FullAddr a={w.addr} />
+      </b>
+      {chev && <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-mcell-chev is-right" />}
+    </span>
+    {(!split || w.isNew) && (
+      <span className="dp-mcell-sub">
+        {!split && <span className="dp-tag is-wl is-net">{NET[w.net].name}</span>}
+        {w.isNew && <span className="dp-tag is-new">Just added</span>}
+      </span>
+    )}
+    <small>{w.label}</small>
+  </>
+);
 
 // Deposit · Select a sending address: saved addresses on this network, then "Use a new address".
 const SendAddrPage = ({ d, book, onBack, onPick, onNew, onManage }) => {
@@ -502,16 +515,11 @@ const SendAddrPage = ({ d, book, onBack, onPick, onNew, onManage }) => {
         <SecHead title="Saved addresses" sub={`Approved for ${NET[d.net].name}.`} />
         <div className="dp-opts">
           {list.map((w) => (
-            <button key={w.id} type="button" className={`dp-opt${w.isNew ? " is-new" : ""}`} onClick={() => onPick(w)}>
-              <span className="dp-opt-tile">
-                <WalletGlyph />
-              </span>
-              <span className="dp-opt-text">
-                <b>{w.label}</b>
-                <small>{short(w.addr)}</small>
-              </span>
-              <Chev />
-            </button>
+            <div key={w.id} className={`dp-mcell is-pick${w.isNew ? " is-new" : ""}`}>
+              <button type="button" className="dp-mcell-top" onClick={() => onPick(w)}>
+                <AddrCellBody w={w} split />
+              </button>
+            </div>
           ))}
           {!list.length && <p className="dp-empty">No saved addresses on {NET[d.net].name} yet.</p>}
           <hr className="dp-opt-div" />
@@ -710,41 +718,8 @@ const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, 
                 const blocked = cool || noWd;
                 return (
                   <div key={w.id} data-id={w.id} className={`dp-mcell is-pick${w.isNew ? " is-new" : ""}${blocked ? " is-blocked" : ""}`}>
-                    <button type="button" className={`dp-mcell-top${split ? " is-label" : ""}`} onClick={() => onPick(w)}>
-                      {/* Split (Figma Xirry 3218:7390): wallet name first, full address under it */}
-                      {split && (
-                        <>
-                          <span className="dp-mcell-title">
-                            <b>{w.label}</b>
-                            {!blocked && <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-mcell-chev is-right" />}
-                          </span>
-                          <small className="dp-mcell-addr">
-                            <FullAddr a={w.addr} />
-                          </small>
-                          {w.isNew && (
-                            <span className="dp-mcell-sub">
-                              <span className="dp-tag is-new">Just added</span>
-                            </span>
-                          )}
-                        </>
-                      )}
-                      {!split && (
-                      <>
-                      <span className="dp-mcell-title">
-                        <b className="is-full">
-                          <FullAddr a={w.addr} />
-                        </b>
-                        {!blocked && <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-mcell-chev is-right" />}
-                      </span>
-                      {/* Picking for a deposit / withdrawal: network only, no whitelist tags.
-                          Split network: the network was picked on the page before, so no tag. */}
-                      <span className="dp-mcell-sub">
-                        <span className="dp-tag is-wl is-net">{NET[w.net].name}</span>
-                        {w.isNew && <span className="dp-tag is-new">Just added</span>}
-                      </span>
-                      <small>{w.label}</small>
-                      </>
-                      )}
+                    <button type="button" className="dp-mcell-top" onClick={() => onPick(w)}>
+                      <AddrCellBody w={w} split={split} chev={!blocked} />
                     </button>
                     {blocked && (
                       <div className="dp-walerts">

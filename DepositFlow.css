@@ -1739,13 +1739,6 @@ textarea.dp-tf-input {
 .dp-page.is-wamount .dp-row > b {
   font-size: 12px;
 }
-/* Withdrawal address card (split): name first, full address under it */
-.dp-mcell-top.is-label .dp-mcell-addr {
-  font-size: 12px;
-  line-height: 18px;
-  font-weight: 500;
-  word-break: break-all;
-}
 /* Verification sheets */
 .dp-text-btn {
   align-self: center;

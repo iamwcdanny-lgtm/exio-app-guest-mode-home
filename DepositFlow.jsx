@@ -2435,9 +2435,12 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         value={null}
         onPick={(m) => {
           picked.current = true;
-          setAdding(true); // the add pages open in the page sheet
-          if (m === "small") toAmount();
-          else startAdd(m);
+          // the bottom sheet slides away first, then the add pages rise in the page sheet
+          setTimeout(() => {
+            setAdding(true);
+            if (m === "small") toAmount();
+            else startAdd(m);
+          }, 300);
         }}
         onClose={closeSheet("method")}
         options={[

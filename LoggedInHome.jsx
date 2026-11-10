@@ -22,7 +22,7 @@ const TABS = [
   { key: "otc", label: "OTC", wallet: "OTC" },
 ];
 
-const LoggedInHome = ({ welcome = "", labelStyle = "ifta", netFlow = "mix", wdPw = "set" }) => {
+const LoggedInHome = ({ welcome = "", labelStyle = "ifta", netFlow = "split", wdPw = "set" }) => {
   const [hidden, setHidden] = useState(false);
   const [tab, setTab] = useState("custody");
   const [hideSmall, setHideSmall] = useState(true);

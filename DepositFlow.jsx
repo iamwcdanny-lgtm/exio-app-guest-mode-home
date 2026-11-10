@@ -2109,7 +2109,7 @@ const W_HEADS = { crypto: ["On-chain withdrawal"], fiat: ["Bank withdrawal"] };
 // netFlow (demo setting): "mix" = network handled inside the address list (pills) / the
 // new-address page; "split" = pick the network right after the token, then addresses or
 // New address for that network only.
-export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode = "deposit", netFlow = "mix", wdPw = "set" }) {
+export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode = "deposit", netFlow = "split", wdPw = "set" }) {
   const withdraw = mode === "withdraw";
   const split = netFlow === "split";
   const [sheet, setSheet] = useState(null); // way | source | network

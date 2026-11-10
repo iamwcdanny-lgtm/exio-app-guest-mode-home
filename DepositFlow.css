@@ -1522,7 +1522,6 @@ textarea.dp-tf-input {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  margin-top: 8px;
 }
 .dp-sechead h2 {
   margin: 0;

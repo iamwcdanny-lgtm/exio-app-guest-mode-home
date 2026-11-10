@@ -512,7 +512,6 @@ const SendAddrPage = ({ d, book, onBack, onPick, onNew, onManage }) => {
         }
       />
       <div className="oc-page-body dp-body">
-        <AssetCard c={d.asset} net={d.net} />
         <SecHead title="Saved addresses" sub={`Approved for ${NET[d.net].name}.`} />
         <div className="dp-opts">
           {list.map((w) => (
@@ -697,7 +696,6 @@ const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, 
       <div className="oc-page-body dp-body">
         {split && !fiat ? (
           <>
-            <AssetCard c={d.asset} net={d.net} />
             <SecHead title="Whitelisted addresses" sub="Select the wallet that will receive your withdrawal." />
           </>
         ) : (

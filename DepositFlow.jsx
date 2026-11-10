@@ -153,10 +153,16 @@ const CopyIcon = () => (
 );
 
 // slide=false: the back asks first (the page leaves only if the user confirms).
-const AppBar = ({ title, onBack, slide = true, right = null }) => (
+// close: first page of a page sheet; the button closes the sheet (X) instead of going back
+const XIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="rgba(0,0,0,0.8)" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+const AppBar = ({ title, onBack, slide = true, right = null, close = false }) => (
   <header className="oc-appbar">
-    <button type="button" className="oc-back" aria-label="Back" onClick={(e) => (slide ? slideBack(e, onBack) : onBack())}>
-      <BackIcon />
+    <button type="button" className="oc-back" aria-label={close ? "Close" : "Back"} onClick={(e) => (slide && !close ? slideBack(e, onBack) : onBack())}>
+      {close ? <XIcon /> : <BackIcon />}
     </button>
     <h1>{title}</h1>
     {right || <span />}
@@ -258,7 +264,7 @@ const Picker = ({ label, open, onOpen, children, ls = "ifta", fixed = false }) =
   );
 };
 
-const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta", netFixed = false }) => {
+const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta", netFixed = false, close = false }) => {
   const c = d.asset;
   const fiat = d.kind === "fiat";
   const [amt, setAmt] = useState("");
@@ -290,7 +296,7 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta", net
   };
   return (
     <div className="oc-screen oc-page dp-page is-amount">
-      <AppBar title={`Deposit ${c}`} onBack={(e) => onBack(amt !== "" || locked)} slide={false} />
+      <AppBar title={`Deposit ${c}`} onBack={(e) => onBack(amt !== "" || locked)} slide={false} close={close} />
       <div className={`oc-page-body dp-body otc otc-style-${ls}`}>
         {!fiat && (
           <Picker ls={ls} label="Network" open={sheet === "network"} onOpen={onPickNet} fixed={netFixed}>
@@ -1712,7 +1718,7 @@ const ConnectPage = ({ d, ls, sheet, onPickAsset, onPickNet, onBack, onConnect, 
   const [agree, setAgree] = useState(false);
   return (
     <div className="oc-screen oc-page dp-page is-connect">
-      <AppBar title="Add whitelist address" onBack={onBack} slide={slide} />
+      <AppBar title="Add whitelist address" onBack={onBack} slide={slide} close={!slide} />
       <div className={`oc-page-body dp-body dp-form is-${ls} otc-style-${ls}`}>
         <WlHead d={d} ls={ls} sheet={sheet} onPickAsset={onPickAsset} onPickNet={onPickNet} />
         <TextField ls={ls} id="dp-wc-remarks" label="Remarks (optional)" value={remarks} onChange={setRemarks} placeholder="e.g. My MetaMask" inputProps={{ maxLength: 30 }} />
@@ -1738,7 +1744,7 @@ const AddrPage = ({ d, ls, sheet, onPickAsset, onPickNet, onBack, onNext, remark
   const err = touched && addr && d.net && !ok ? `Enter a valid ${NET[d.net].name} address` : "";
   return (
     <div className="oc-screen oc-page dp-page is-addr">
-      <AppBar title="Add whitelist address" onBack={onBack} slide={slide} />
+      <AppBar title="Add whitelist address" onBack={onBack} slide={slide} close={!slide} />
       <div className={`oc-page-body dp-body dp-form is-${ls} otc-style-${ls}`}>
         <WlHead d={d} ls={ls} sheet={sheet} onPickAsset={onPickAsset} onPickNet={onPickNet} />
         <TextField
@@ -2164,6 +2170,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             sheet={sheet}
             onPickNet={() => setSheet("network")}
             netFixed={split}
+            close={adding}
             onBack={(dirty) => (dirty ? setLeaving(true) : adding ? closeAdd() : slideOut(".dp-page.is-amount", pop))}
             onConfirmed={(r) => {
               // From the sheet: it slides down onto the deposit QR page

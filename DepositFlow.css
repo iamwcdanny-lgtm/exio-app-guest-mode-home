@@ -1798,3 +1798,15 @@ textarea.dp-tf-input {
   flex: none;
   width: 100%;
 }
+
+/* Address cell: arrow vertically centred on the cell, text kept clear of it */
+.dp-mcell-top:has(> .dp-mcell-chev.is-mid) {
+  position: relative;
+  padding-right: 40px;
+}
+.dp-mcell-chev.is-right.is-mid {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  margin: -6px 0 0;
+}

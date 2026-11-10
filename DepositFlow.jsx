@@ -484,8 +484,9 @@ const AddrCellBody = ({ w, split, chev = true }) => (
       <b className="is-full">
         <FullAddr a={w.addr} />
       </b>
-      {chev && <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-mcell-chev is-right" />}
     </span>
+    {/* Arrow centred on the whole cell (address, tags, label) */}
+    {chev && <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-mcell-chev is-right is-mid" />}
     {(!split || w.isNew) && (
       <span className="dp-mcell-sub">
         {!split && <span className="dp-tag is-wl is-net">{NET[w.net].name}</span>}

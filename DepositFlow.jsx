@@ -2438,8 +2438,8 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
               ]
             : split
               ? [
-                  { value: "crypto", icon: <span className="dp-opt-tile is-sm is-green"><CryptoGlyph /></span>, label: "Deposit crypto", name: "From a crypto wallet" },
-                  { value: "fiat", icon: <span className="dp-opt-tile is-sm"><BankGlyph /></span>, label: "Deposit fiat", name: "From a bank account" },
+                  { value: "crypto", icon: <span className="dp-opt-tile is-sm is-green"><CryptoGlyph /></span>, label: "On-chain deposit", name: "Deposit crypto from whitelisted address" },
+                  { value: "fiat", icon: <span className="dp-opt-tile is-sm"><BankGlyph /></span>, label: "Bank deposit", name: "Deposit fiat from your bank account" },
                 ]
               : [
                   { value: "fiat", label: "Bank deposit", name: "USD or HKD by bank transfer" },

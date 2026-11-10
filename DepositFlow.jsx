@@ -1615,7 +1615,6 @@ const NetPage = ({ d, onBack, onPick, withdraw = false }) => (
   <div className="oc-screen oc-page dp-page is-net">
     <AppBar title="Select a network" onBack={onBack} />
     <div className="oc-page-body dp-body">
-      <AssetCard c={d.asset} />
       <p className="dp-lead">{withdraw ? "Use the same network as the receiving wallet." : "Use the same network in your sending wallet."}</p>
       <div className="tks-list dp-tokens">
         {(NETWORKS[d.asset] || []).map(([k, name, conf]) => (

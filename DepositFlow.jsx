@@ -2417,7 +2417,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
       </PhoneLayer>
       <TokenSheet
         open={sheet === "way"}
-        title={withdraw ? (split ? "Choose a withdrawal method" : "Withdraw") : split ? "Choose a deposit method" : "Deposit"}
+        title={withdraw ? "Choose a withdrawal method" : "Choose a deposit method"}
         chevron={`${IMG}/arrow-down.svg`}
         value={null}
         onPick={(k) => {
@@ -2431,25 +2431,16 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
           setSheet((s) => (s === "way" ? null : s)); // dismissed without a choice: the flow ends
         }}
         options={
+          // Same first step in Mix and Split network
           withdraw
-            ? split
-              ? [
-                  { value: "crypto", icon: <span className="dp-opt-tile is-sm is-green"><CryptoGlyph /></span>, label: "On-chain withdrawal", name: "Withdraw crypto to whitelisted address" },
-                  { value: "fiat", icon: <span className="dp-opt-tile is-sm"><BankGlyph /></span>, label: "Bank withdrawal", name: "Withdraw fiat to your bank account" },
-                ]
-              : [
-                  { value: "fiat", label: "Bank withdrawal", name: "USD or HKD to your bank account" },
-                  { value: "crypto", label: "On-chain withdrawal", name: "Crypto to a whitelisted wallet address" },
-                ]
-            : split
-              ? [
-                  { value: "crypto", icon: <span className="dp-opt-tile is-sm is-green"><CryptoGlyph /></span>, label: "On-chain deposit", name: "Deposit crypto from whitelisted address" },
-                  { value: "fiat", icon: <span className="dp-opt-tile is-sm"><BankGlyph /></span>, label: "Bank deposit", name: "Deposit fiat from your bank account" },
-                ]
-              : [
-                  { value: "fiat", label: "Bank deposit", name: "USD or HKD by bank transfer" },
-                  { value: "crypto", label: "On-chain deposit", name: "Crypto from your wallet or another exchange" },
-                ]
+            ? [
+                { value: "crypto", icon: <span className="dp-opt-tile is-sm is-green"><CryptoGlyph /></span>, label: "On-chain withdrawal", name: "Withdraw crypto to whitelisted address" },
+                { value: "fiat", icon: <span className="dp-opt-tile is-sm"><BankGlyph /></span>, label: "Bank withdrawal", name: "Withdraw fiat to your bank account" },
+              ]
+            : [
+                { value: "crypto", icon: <span className="dp-opt-tile is-sm is-green"><CryptoGlyph /></span>, label: "On-chain deposit", name: "Deposit crypto from whitelisted address" },
+                { value: "fiat", icon: <span className="dp-opt-tile is-sm"><BankGlyph /></span>, label: "Bank deposit", name: "Deposit fiat from your bank account" },
+              ]
         }
       />
       <TokenSheet

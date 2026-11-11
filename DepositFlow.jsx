@@ -499,9 +499,13 @@ const AssetCard = ({ c, net }) => (
     </span>
   </div>
 );
-const SecHead = ({ title, sub }) => (
+// action: a link at the right end of the title line (e.g. Manage)
+const SecHead = ({ title, sub, action = null }) => (
   <div className="dp-sechead">
-    <h2>{title}</h2>
+    <div className="dp-sechead-top">
+      <h2>{title}</h2>
+      {action}
+    </div>
     {sub && <p>{sub}</p>}
   </div>
 );
@@ -590,15 +594,7 @@ const SendAddrPage = ({ d, book, onBack, onPick, onAdd, onManage, v2 = false, on
   const list = listFor(d.asset, book).filter((w) => w.net === d.net);
   return (
     <div className="oc-screen oc-page dp-page is-send">
-      <AppBar
-        title="Select a sending address"
-        onBack={onBack}
-        right={
-          <button type="button" className="dp-bar-link" onClick={onManage}>
-            Manage
-          </button>
-        }
-      />
+      <AppBar title="Select a sending address" onBack={onBack} />
       <div className="oc-page-body dp-body">
         {v2 && (
           <>
@@ -614,7 +610,15 @@ const SendAddrPage = ({ d, book, onBack, onPick, onAdd, onManage, v2 = false, on
             <OrDivider />
           </>
         )}
-        <SecHead title="Saved addresses" sub={`Approved for ${NET[d.net].name}.`} />
+        <SecHead
+          title="Saved addresses"
+          sub={`Approved for ${NET[d.net].name}.`}
+          action={
+            <button type="button" className="dp-bar-link" onClick={onManage}>
+              Manage
+            </button>
+          }
+        />
         <div className="dp-opts">
           {list.map((w) => (
             <div key={w.id} className={`dp-mcell is-pick${w.isNew ? " is-new" : ""}`}>
@@ -688,15 +692,26 @@ const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, 
         title={fiat ? "Select bank account" : split ? "Select a withdrawal address" : "Select address"}
         onBack={onBack}
         right={
-          <button type="button" className="dp-bar-link" onClick={onManage}>
-            Manage
-          </button>
+          // split crypto: Manage sits on the "Whitelisted addresses" line instead
+          split && !fiat ? null : (
+            <button type="button" className="dp-bar-link" onClick={onManage}>
+              Manage
+            </button>
+          )
         }
       />
       <div className="oc-page-body dp-body">
         {split && !fiat ? (
           <>
-            <SecHead title="Whitelisted addresses" sub="Select the wallet that will receive your withdrawal." />
+            <SecHead
+              title="Whitelisted addresses"
+              sub="Select the wallet that will receive your withdrawal."
+              action={
+                <button type="button" className="dp-bar-link" onClick={onManage}>
+                  Manage
+                </button>
+              }
+            />
           </>
         ) : (
           <p className="dp-lead">

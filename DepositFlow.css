@@ -1908,3 +1908,15 @@ textarea.dp-tf-input {
   flex: none;
   margin-top: -1px;
 }
+
+/* Section header: title line with an optional link at the right end */
+.dp-sechead-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.dp-sechead-top .dp-bar-link {
+  flex: none;
+  margin-right: 0;
+}

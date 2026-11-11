@@ -1999,3 +1999,9 @@ textarea.dp-tf-input {
   margin-top: 8px;
   padding: 0 16px;
 }
+
+/* Page sheet: the sheet itself rises; its first page doesn't also slide in from the side.
+   Pages pushed inside the sheet (e.g. the signature step) still slide in. */
+.dp-ps-stage > .oc-page:first-child:not(.is-leaving):not(.is-revealing) {
+  animation: none;
+}

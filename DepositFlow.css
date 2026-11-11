@@ -1884,3 +1884,27 @@ textarea.dp-tf-input {
   color: rgba(0, 0, 0, 0.8);
   font-feature-settings: "lnum" 1, "tnum" 1;
 }
+
+/* Intended deposit amount (Figma 20015:58639): min. deposit row, whitelist note with icon */
+.dp-row.is-min {
+  margin-top: -8px; /* 8px under the amount field */
+  font-size: 12px;
+  line-height: 18px;
+}
+.dp-row.is-min > b {
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+.dp-row.is-min.is-under > b {
+  color: #e5484d;
+}
+.dp-note.has-icon {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.dp-note.has-icon > svg {
+  flex: none;
+  margin-top: -1px;
+}

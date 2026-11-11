@@ -284,6 +284,8 @@ const Picker = ({ label, open, onOpen, children, ls = "ifta", fixed = false }) =
   );
 };
 
+// Minimum deposit per asset (demo placeholders; Figma 20015:58639 shows 0.01 ETH)
+const MIN_DEP = { BTC: 0.0005, ETH: 0.01, USDT: 10, USDC: 10 };
 const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta", netFixed = false, close = false }) => {
   const c = d.asset;
   const fiat = d.kind === "fiat";
@@ -308,8 +310,10 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta", net
   const vv = fiat ? 0 : ver;
   const tdp = fiat ? dpOf(c) : Math.max(dpOf(c), verDp(c));
   const total = v + vv;
+  const min = fiat ? 0 : MIN_DEP[c] || 0;
+  const under = v > 0 && v < min; // below the minimum deposit: can't confirm
   const confirm = () => {
-    if (!v) return;
+    if (!v || under) return;
     setVer(makeVer(c)); // a fresh tail each time the amount is set
     setLocked(true);
     ref.current?.blur();
@@ -380,12 +384,20 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta", net
             </div>
           </div>
         </div>
+        {!fiat && (
+          <div className={`dp-row is-min${under ? " is-under" : ""}`}>
+            <span>Min. deposit</span>
+            <b>
+              {min} {c}
+            </b>
+          </div>
+        )}
         {locked ? (
           <button type="button" className="oc-btn is-outline dp-amt-btn" onClick={() => setLocked(false)}>
             Modify
           </button>
         ) : (
-          <button type="button" className="oc-btn is-primary dp-amt-btn" disabled={!v || noNet} onClick={confirm}>
+          <button type="button" className="oc-btn is-primary dp-amt-btn" disabled={!v || under || noNet} onClick={confirm}>
             Confirm amount
           </button>
         )}
@@ -419,6 +431,15 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta", net
                 : `Send exactly the total amount. The extra ${fmtDp(ver, verDp(c))} ${c} lets us confirm this address is yours; once it arrives, it’s added to your whitelist.`}
             </p>
           </section>
+        )}
+        {!fiat && (
+          <div className="dp-note has-icon">
+            <WarnIcon />
+            <span>
+              Upon successful deposit, your address will only be added to the deposit whitelist. Should you wish to whitelist your address for withdrawals, you can add it in the
+              whitelist management page.
+            </span>
+          </div>
         )}
       </div>
       {locked && (

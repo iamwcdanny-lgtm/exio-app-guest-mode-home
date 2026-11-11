@@ -1283,13 +1283,77 @@ const DAILY_WD_LIMIT = 2000000; // USD, demo placeholder
 // Network fee per withdrawal, in the asset (demo placeholders)
 const WD_FEE = { BTC: { BTC: 0.0002 }, ETH: { ERC20: 0.002, Arbitrum: 0.0002, Base: 0.0002 }, USDT: { ERC20: 5, TRC20: 1, SOL: 1 }, USDC: { ERC20: 5, SOL: 1, Base: 1, Arbitrum: 1 } };
 const wdFee = (c, net) => WD_FEE[c]?.[net] ?? 0;
-const WAmountPage = ({ d, onBack, onNext, ls = "ifta", split = false }) => {
+// Withdrawal confirmation sheet (Figma 9897:53403): what arrives, the breakdown, and a
+// slider instead of a button, so withdrawing takes a deliberate gesture.
+const WdConfirmSheet = ({ open, d, amount, fee, onClose, onConfirm, say }) => {
+  const c = d.asset;
+  const [n, setN] = useState(0); // fresh slider each time the sheet opens
+  useEffect(() => {
+    if (open) setN((x) => x + 1);
+  }, [open]);
+  const copy = () => {
+    navigator.clipboard?.writeText(d.to.addr).catch(() => {});
+    say?.("Address copied");
+  };
+  return (
+    <BaseSheet open={open} onClose={onClose} title="Withdrawal confirmation" className="dp-depamt dp-wdconf">
+      <div className="dp-depamt-total">
+        <span>You will receive</span>
+        <b>
+          {fmtCcy(amount, c)} <em>{c}</em>
+        </b>
+      </div>
+      <div className="dp-depamt-rows">
+        <div className="dp-row">
+          <span>Asset</span>
+          <b className="dp-wdconf-asset">
+            <Icon c={c} size={16} /> {c}
+          </b>
+        </div>
+        <div className="dp-row">
+          <span>Network</span>
+          <b>{NET[d.to.net].name}</b>
+        </div>
+        <div className="dp-row is-addr">
+          <span>Address</span>
+          <b>
+            <span>{d.to.addr}</span>
+            <button type="button" className="dp-copy" aria-label="Copy address" tabIndex={open ? 0 : -1} onClick={copy}>
+              <CopyIcon />
+            </button>
+          </b>
+        </div>
+        <div className="dp-row">
+          <span>Withdraw amount</span>
+          <b>
+            {fmtCcy(amount, c)} {c}
+          </b>
+        </div>
+        <div className="dp-row">
+          <span>Fee</span>
+          <b>
+            {fmtCcy(fee, c)} {c}
+          </b>
+        </div>
+        <div className="dp-row">
+          <span>Deduct amount</span>
+          <b>
+            {fmtCcy(amount + fee, c)} {c}
+          </b>
+        </div>
+      </div>
+      <div className="dp-wdconf-slide">{open && <SlideToConfirm key={n} label="Slide to withdraw" onDone={onConfirm} />}</div>
+    </BaseSheet>
+  );
+};
+const WAmountPage = ({ d, onBack, onNext, onConfirm, say, ls = "ifta", split = false }) => {
   const c = d.asset;
   const avail = useOtc().s.bal.custody[c] || 0;
   const [amt, setAmt] = useState("");
   const [focused, setFocused] = useState(false);
   const ref = useRef(null);
   const v = parseFloat(amt) || 0;
+  const [ask, setAsk] = useState(false); // withdrawal confirmation sheet
   // Crypto: the network fee comes on top, so the most you can withdraw is the balance less the fee
   const fee = split && d.to.net !== "bank" ? wdFee(c, d.to.net) : 0;
   const maxWd = Math.max(0, avail - fee);
@@ -1395,10 +1459,25 @@ const WAmountPage = ({ d, onBack, onNext, ls = "ifta", split = false }) => {
               Fee <b>{fmtCcy(fee, c)}</b> {c}
             </small>
           </div>
-          <button type="button" className="oc-btn is-primary" disabled={!v || over} onClick={() => onNext(v)}>
-            Review
+          <button type="button" className="oc-btn is-primary" disabled={!v || over} onClick={() => setAsk(true)}>
+            Withdraw
           </button>
         </div>
+        <WdConfirmSheet
+          open={ask}
+          d={d}
+          amount={v}
+          fee={fee}
+          say={say}
+          onClose={() => setAsk(false)}
+          onConfirm={() => {
+            // let the slider finish, then the sheet goes down onto the verification step
+            setTimeout(() => {
+              setAsk(false);
+              onConfirm(v, fee);
+            }, 250);
+          }}
+        />
       </div>
     );
   return (
@@ -2644,6 +2723,12 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
               setD((x) => ({ ...x, amount: v }));
               push("wreview");
             }}
+            // Split crypto: confirmed in the sheet, straight to verification (no review page)
+            onConfirm={(v, fee) => {
+              setD((x) => ({ ...x, amount: v, fee }));
+              push("wverify");
+            }}
+            say={say}
           />
         )}
         {stack.includes("wreview") && <WReviewPage d={d} split={split} onBack={pop} onConfirmed={() => push(split && d.to?.net !== "bank" ? "wverify" : "wdone")} />}

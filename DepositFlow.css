@@ -2082,3 +2082,24 @@ textarea.dp-tf-input {
   min-width: 139px;
   padding: 0 24px;
 }
+
+/* Withdrawal confirmation sheet */
+.dp-wdconf-asset {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.dp-depamt-rows .dp-row.is-addr {
+  align-items: flex-start;
+}
+.dp-depamt-rows .dp-row.is-addr > b {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  max-width: 220px;
+  text-align: right;
+  word-break: break-all;
+}
+.dp-wdconf-slide {
+  padding: 8px 0 8px;
+}

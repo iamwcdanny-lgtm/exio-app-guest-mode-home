@@ -1850,7 +1850,7 @@ textarea.dp-tf-input {
 }
 /* Split v2: "Add whitelist address" text button, 16px under the last address (body gap) */
 .dp-text-btn.is-addwl {
-  align-self: flex-start;
+  align-self: center;
   padding: 0;
   font-size: 14px;
   line-height: 20px;

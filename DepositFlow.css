@@ -1855,3 +1855,23 @@ textarea.dp-tf-input {
   font-size: 14px;
   line-height: 20px;
 }
+
+/* Address avatar (Jazzicon): 32px at 16px from the left, centred on the cell, 12px to the text;
+   same as the token cell icon (.tks-icon in .tks-row) */
+.dp-mcell-top.has-av {
+  position: relative;
+  padding-left: 60px;
+}
+.dp-av {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  width: 32px;
+  height: 32px;
+  margin-top: -16px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.dp-av > div {
+  display: block;
+}

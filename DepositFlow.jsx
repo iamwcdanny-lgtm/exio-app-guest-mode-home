@@ -1,3 +1,4 @@
+import jazzicon from "@metamask/jazzicon";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import PhoneLayer from "./PhoneLayer";
@@ -491,10 +492,27 @@ const CryptoGlyph = () => (
 );
 const Chev = () => <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-chev" />;
 
+// Address avatar: Jazzicon generated from the address (MetaMask's algorithm, so an EVM address
+// shows the same pattern as in MetaMask). Same 32px size and left position as the token icon.
+const jazzSeed = (a) => {
+  if (/^0x[0-9a-f]{8}/i.test(a)) return parseInt(a.slice(2, 10), 16); // as MetaMask
+  let h = 0; // other chains (BTC…): a hash of the whole address
+  for (let i = 0; i < a.length; i++) h = (Math.imul(h, 31) + a.charCodeAt(i)) >>> 0;
+  return h;
+};
+const AddrAvatar = ({ a }) => {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current) ref.current.replaceChildren(jazzicon(32, jazzSeed(a)));
+  }, [a]);
+  return <span ref={ref} className="dp-av" aria-hidden="true" />;
+};
+
 // Address cell (Select a sending / withdrawal address): full address as the title (first and
 // last 6 dark), network tag only in Mix network (Split: the list is one network), then the label.
 const AddrCellBody = ({ w, split, chev = true }) => (
   <>
+    <AddrAvatar a={w.addr} />
     <span className="dp-mcell-title">
       <b className="is-full">
         <FullAddr a={w.addr} />
@@ -557,7 +575,7 @@ const SendAddrPage = ({ d, book, onBack, onPick, onAdd, onManage, v2 = false, on
         <div className="dp-opts">
           {list.map((w) => (
             <div key={w.id} className={`dp-mcell is-pick${w.isNew ? " is-new" : ""}`}>
-              <button type="button" className="dp-mcell-top" onClick={() => onPick(w)}>
+              <button type="button" className="dp-mcell-top has-av" onClick={() => onPick(w)}>
                 <AddrCellBody w={w} split />
               </button>
             </div>
@@ -656,7 +674,7 @@ const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, 
                 const blocked = cool || noWd;
                 return (
                   <div key={w.id} data-id={w.id} className={`dp-mcell is-pick${w.isNew ? " is-new" : ""}${blocked ? " is-blocked" : ""}`}>
-                    <button type="button" className="dp-mcell-top" onClick={() => onPick(w)}>
+                    <button type="button" className="dp-mcell-top has-av" onClick={() => onPick(w)}>
                       <AddrCellBody w={w} split={split} chev={!blocked} />
                     </button>
                     {blocked && (
@@ -816,7 +834,8 @@ const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, s
             const isOpen = open === w.id;
             return (
               <div key={w.id} className={`dp-mcell${isOpen ? " is-open" : ""}`}>
-                <button type="button" className="dp-mcell-top" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : w.id)}>
+                <button type="button" className="dp-mcell-top has-av" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : w.id)}>
+                  <AddrAvatar a={w.addr} />
                   <span className="dp-mcell-title">
                     <b>{shortAddr(w.addr)}</b>
                     <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-mcell-chev" />

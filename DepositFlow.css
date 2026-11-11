@@ -2173,3 +2173,15 @@ textarea.dp-tf-input {
 .dp-trypk {
   align-self: center;
 }
+
+/* Withdraw result: Awaiting approval */
+.dp-result h2 {
+  margin-top: 16px;
+}
+.dp-result-msg {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.8);
+}

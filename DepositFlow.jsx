@@ -1951,14 +1951,22 @@ const WResultPage = ({ onDone, onHistory, d, split = false }) => (
       <h1>Withdraw</h1>
       <span />
     </header>
+    {/* Content as Figma 18342:150106 (a sheet there; a page here) */}
     <div className="oc-page-body dp-body dp-result">
-      <img src={`${import.meta.env.BASE_URL}images/passkey/result-success.svg`} width="120" height="120" alt="" />
-      <h2>Withdrawal request submitted</h2>
-      {split && d?.to && d.to.net !== "bank" && <WSummary d={d} amount />}
+      <div className="pd-illo is-clock" aria-hidden="true">
+        <span className="pd-illo-back" />
+        <span className="pd-illo-front">
+          <svg width="40" height="40" viewBox="0 0 40 40">
+            <path d="M20 10v11l6 6" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+      </div>
+      <h2>Awaiting approval</h2>
+      <p className="dp-result-msg">Withdrawal request submitted. You will be notified once the withdrawal is complete. View your history for the latest updates.</p>
     </div>
     <div className="oc-foot dp-foot">
       <button type="button" className="oc-btn is-primary" onClick={onDone}>
-        Done
+        OK
       </button>
       <button type="button" className="oc-btn is-outline" onClick={onHistory}>
         View history

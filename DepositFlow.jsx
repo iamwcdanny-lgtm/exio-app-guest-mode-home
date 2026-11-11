@@ -1280,6 +1280,9 @@ const DetailPage = ({ d, onDone, onBack, onModify, say, split = false }) => {
 /* ---------- Withdraw: amount, review, result ---------- */
 // Withdrawals leave the Custody account, so its balance is what's available.
 const DAILY_WD_LIMIT = 2000000; // USD, demo placeholder
+// Network fee per withdrawal, in the asset (demo placeholders)
+const WD_FEE = { BTC: { BTC: 0.0002 }, ETH: { ERC20: 0.002, Arbitrum: 0.0002, Base: 0.0002 }, USDT: { ERC20: 5, TRC20: 1, SOL: 1 }, USDC: { ERC20: 5, SOL: 1, Base: 1, Arbitrum: 1 } };
+const wdFee = (c, net) => WD_FEE[c]?.[net] ?? 0;
 const WAmountPage = ({ d, onBack, onNext, ls = "ifta", split = false }) => {
   const c = d.asset;
   const avail = useOtc().s.bal.custody[c] || 0;
@@ -1287,12 +1290,15 @@ const WAmountPage = ({ d, onBack, onNext, ls = "ifta", split = false }) => {
   const [focused, setFocused] = useState(false);
   const ref = useRef(null);
   const v = parseFloat(amt) || 0;
-  const over = v > avail;
+  // Crypto: the network fee comes on top, so the most you can withdraw is the balance less the fee
+  const fee = split && d.to.net !== "bank" ? wdFee(c, d.to.net) : 0;
+  const maxWd = Math.max(0, avail - fee);
+  const over = v > maxWd;
   const availEl = (
     <span className="otc-avail">
       Avail.
       <b>{fmtCcy(avail, c)}</b>
-      <button type="button" className="otc-all" disabled={!avail} onMouseDown={(e) => e.preventDefault()} onClick={() => setAmt(clean(String(avail), dpOf(c)))}>
+      <button type="button" className="otc-all" disabled={!maxWd} onMouseDown={(e) => e.preventDefault()} onClick={() => setAmt(clean(String(maxWd), dpOf(c)))}>
         Max
       </button>
     </span>
@@ -1363,7 +1369,7 @@ const WAmountPage = ({ d, onBack, onNext, ls = "ifta", split = false }) => {
             <div className="dp-row is-min">
               <span>Max. withdrawable</span>
               <b>
-                {fmtCcy(avail, c)} <em>{c}</em>
+                {fmtCcy(maxWd, c)} <em>{c}</em>
               </b>
             </div>
             <div className="dp-row is-min">
@@ -1378,9 +1384,19 @@ const WAmountPage = ({ d, onBack, onNext, ls = "ifta", split = false }) => {
             <b>{NET[d.to.net].name}</b>
           </div>
         </div>
-        <div className="oc-foot dp-foot">
+        {/* Bottom bar (Figma 9847:46092): deduct amount = amount + fee, and the CTA */}
+        <div className="oc-foot dp-foot dp-deduct">
+          <div className="dp-deduct-val">
+            <span>Deduct amount</span>
+            <b>
+              {fmtCcy(v ? v + fee : 0, c)} <em>{c}</em>
+            </b>
+            <small>
+              Fee <b>{fmtCcy(fee, c)}</b> {c}
+            </small>
+          </div>
           <button type="button" className="oc-btn is-primary" disabled={!v || over} onClick={() => onNext(v)}>
-            Review withdrawal
+            Review
           </button>
         </div>
       </div>

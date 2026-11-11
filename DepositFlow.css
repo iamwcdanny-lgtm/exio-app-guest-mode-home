@@ -1928,3 +1928,9 @@ textarea.dp-tf-input {
 .dp-cell-text {
   gap: 4px;
 }
+
+/* The page body scrolls: its children keep their height instead of shrinking
+   (a long page squashed the Modify button) */
+.dp-body > * {
+  flex-shrink: 0;
+}

@@ -1825,9 +1825,13 @@ const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
           <button type="button" className="oc-btn is-primary" disabled={!okOther} tabIndex={tab(step === "other")} onClick={finish}>
             Submit
           </button>
-          <button type="button" className="dp-text-btn dp-trypk" tabIndex={tab(step === "other")} onClick={() => go("passkey")}>
-            Try passkey
-          </button>
+          {/* mirrors "Passkey not available? Try another way" on the passkey sheet */}
+          <p className="dp-another">
+            Passkey available?{" "}
+            <button type="button" className="dp-text-btn" tabIndex={tab(step === "other")} onClick={() => go("passkey")}>
+              Verify with passkey
+            </button>
+          </p>
         </div>
       </BaseSheet>
     </>

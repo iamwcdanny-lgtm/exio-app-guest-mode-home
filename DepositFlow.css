@@ -2013,3 +2013,18 @@ textarea.dp-tf-input {
   font-weight: 700;
   color: rgba(0, 0, 0, 0.6);
 }
+
+/* Withdraw amount: Max. withdrawable / Daily withdraw limit under the field */
+.dp-lims {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: -8px; /* 8px under the field */
+}
+.dp-lims .dp-row.is-min {
+  margin-top: 0;
+}
+.dp-lims .dp-row > b em {
+  font-style: normal;
+  font-weight: 500;
+}

@@ -1279,6 +1279,7 @@ const DetailPage = ({ d, onDone, onBack, onModify, say, split = false }) => {
 
 /* ---------- Withdraw: amount, review, result ---------- */
 // Withdrawals leave the Custody account, so its balance is what's available.
+const DAILY_WD_LIMIT = 2000000; // USD, demo placeholder
 const WAmountPage = ({ d, onBack, onNext, ls = "ifta", split = false }) => {
   const c = d.asset;
   const avail = useOtc().s.bal.custody[c] || 0;
@@ -1356,6 +1357,21 @@ const WAmountPage = ({ d, onBack, onNext, ls = "ifta", split = false }) => {
                 Exceeds your available balance.
               </p>
             )}
+          </div>
+          {/* Limits under the field (2026-11-11) */}
+          <div className="dp-lims">
+            <div className="dp-row is-min">
+              <span>Max. withdrawable</span>
+              <b>
+                {fmtCcy(avail, c)} <em>{c}</em>
+              </b>
+            </div>
+            <div className="dp-row is-min">
+              <span>Daily withdraw limit</span>
+              <b>
+                {fmtDp(DAILY_WD_LIMIT, 0)} <em>USD</em>
+              </b>
+            </div>
           </div>
           <div className="dp-row">
             <span>Network</span>

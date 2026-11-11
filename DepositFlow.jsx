@@ -917,7 +917,18 @@ const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, s
   return (
     <div className="oc-screen oc-page dp-page is-manage">
       <div ref={headRef} className="dp-mhead">
-      <AppBar title="Manage whitelist address" onBack={onBack} />
+      <AppBar
+        title="Manage whitelist address"
+        onBack={onBack}
+        right={
+          // Add (2026-11-11): a + in the top bar instead of a bottom CTA
+          <button type="button" className="oc-back is-close" aria-label={bank ? "Add bank account" : "Add address"} onClick={bank ? onAddBank : onAdd}>
+            <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" fill="none" stroke="rgba(0,0,0,0.8)" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </button>
+        }
+      />
       {/* Two kinds only, so the app's segmented control (Trade's OTC / Order book). */}
       <div className="dp-seg-wrap">
       <div className="tp-seg dp-seg" role="tablist" aria-label="Whitelist type" style={{ "--seg-i": bank ? 1 : 0, "--seg-n": 2 }}>
@@ -1020,11 +1031,6 @@ const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, s
         </div>
           </>
         )}
-      </div>
-      <div className="oc-foot dp-foot">
-        <button type="button" className="oc-btn is-outline" onClick={bank ? onAddBank : onAdd}>
-          {bank ? "Add bank account" : "Add address"}
-        </button>
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import QRCode from "qrcode";
 import PhoneLayer from "./PhoneLayer";
 import TokenSheet from "./TokenSheet";
 import { CCY, IMG, fmtDp, fmtCcy, useOtc } from "./OtcSession";
-import { slideBack } from "./backOut";
+import { slideBack, leavePage } from "./backOut";
 import "./DepositFlow.css";
 
 // Deposit flow (2026-11-04), started from Home's Deposit buttons.
@@ -2378,8 +2378,9 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
     }, 280);
   };
   const slideOut = (sel, then) => {
-    document.querySelector(sel)?.classList.add("is-leaving");
-    setTimeout(then, 240);
+    const el = document.querySelector(sel);
+    if (!el) return then();
+    return leavePage(el, then);
   };
   if (!open) return null;
   const amountPage = (

@@ -50,6 +50,16 @@
     transform: translateX(100%);
   }
 }
+/* …and the page underneath comes back in from the left (backOut.js) */
+.oc-screen.is-revealing,
+.oc-page.is-revealing {
+  animation: oc-reveal 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes oc-reveal {
+  from {
+    transform: translateX(-30%);
+  }
+}
 
 .oc-desk {
   flex: none;

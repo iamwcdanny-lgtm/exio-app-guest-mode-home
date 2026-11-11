@@ -691,7 +691,7 @@ const SendAddrPage = ({ d, book, onBack, onPick, onAdd, onManage, v2 = false, on
   const list = listFor(d.asset, book).filter((w) => w.net === d.net);
   return (
     <div className="oc-screen oc-page dp-page is-send">
-      <AppBar title="Select a sending address" onBack={onBack} />
+      <AppBar title="Deposit from" onBack={onBack} />
       <div className="oc-page-body dp-body">
         {v2 && (
           <>
@@ -778,7 +778,7 @@ const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, 
   return (
     <div ref={pageRef} className="oc-screen oc-page dp-page is-list">
       <AppBar
-        title={fiat ? "Select bank account" : split ? "Select a withdrawal address" : "Select address"}
+        title={fiat ? "Select bank account" : split ? "Withdraw to" : "Select address"}
         onBack={onBack}
       />
       <div className="oc-page-body dp-body">

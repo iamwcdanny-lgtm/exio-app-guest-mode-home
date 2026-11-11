@@ -717,7 +717,7 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
   const signinCheck = signinMethod(bound);
   const [home, setHome] = useState(() => readParam("home", HOME_STATES, "member"));
   const [navStyle, setNavStyle] = useState(() => readParam("nav", NAV_STYLES, "classic"));
-  const [netFlow, setNetFlow] = useState(() => readParam("net", NET_FLOWS, "split"));
+  const [netFlow, setNetFlow] = useState(() => readParam("net", NET_FLOWS, "split2"));
   const [wdPw, setWdPw] = useState(() => readParam("wdpw", WD_PWS, "set"));
   const [rwaView, setRwaView] = useState(() => readParam("rwa", RWA_VIEWS, "current"));
   const [pdUser, setPdUserRaw] = useState(readPd);

@@ -2069,7 +2069,7 @@ const W_HEADS = { crypto: ["On-chain withdrawal"], fiat: ["Bank withdrawal"] };
 // netFlow (demo setting): "mix" = network handled inside the address list (pills) / the
 // new-address page; "split" = pick the network right after the token, then addresses or
 // New address for that network only.
-export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode = "deposit", netFlow = "split", wdPw = "set" }) {
+export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode = "deposit", netFlow = "split2", wdPw = "set" }) {
   const withdraw = mode === "withdraw";
   const split = netFlow === "split" || netFlow === "split2";
   // split2 (Split v2): direct deposit on top of the address list, "Add whitelist address" link

@@ -2001,8 +2001,9 @@ const TokenPage = ({ value, kind, onBack, onPick, title = "Deposit", heads = HEA
           <div className="dp-opts">
             {KINDS.fiat.assets.map((c) => (
               <button key={c} type="button" className="dp-opt" onClick={() => onPick("fiat", c)}>
-                <span className="dp-opt-tile">
-                  <BankGlyph />
+                {/* currency logo, as the token cells */}
+                <span className="dp-opt-icon">
+                  <Icon c={c} />
                 </span>
                 <span className="dp-opt-text">
                   <b>{c}</b>

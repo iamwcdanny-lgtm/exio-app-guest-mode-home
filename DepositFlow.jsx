@@ -71,6 +71,13 @@ const ADDRESSES = [
   { id: "a9", withdraw: true, label: "Binance", net: "TRC20", addr: "TQ9mFz2Rk7Lb4Wn8Yc1Vd5Hs3Jt6Gp0kLp" },
   { id: "a10", withdraw: false, label: "OKX", net: "TRC20", addr: "TNXoiAJ3dct8Fjg4M9fkLFh9S2v9TXc32G" },
   { id: "a11", withdraw: true, label: "Trust Wallet", net: "TRC20", addr: "TYASr5UV6HEcXatwdFQfmLVUqQQQMUxHLS" },
+  // No remark: the cell shows the first 6 / last 6 as its title (one per network)
+  { id: "u1", withdraw: true, label: "", net: "BTC", addr: "bc1qdvkfhu9t94xuft3zh7jkndgakm87gqujwgu0zp" },
+  { id: "u2", withdraw: true, label: "", net: "ERC20", addr: "0x5D6ca5bDDFAB7E5EF94feedDe783c747Dc9D4754" },
+  { id: "u3", withdraw: true, label: "", net: "Arbitrum", addr: "0xEF2DAbDAE9A2da5bAfFC315B88576AC469DB17b9" },
+  { id: "u4", withdraw: true, label: "", net: "Base", addr: "0xDad597714bdE83bc86aCca2BE99aDd48DA7B2Bab" },
+  { id: "u5", withdraw: true, label: "", net: "TRC20", addr: "ToX6sJxm7RQjcqig7HXx7fz1jF3wikAgaf" },
+  { id: "u6", withdraw: true, label: "", net: "SOL", addr: "XqPHSq7vrSKw2iHjNaUohETdyonhnikMfACEFKVC1XvD" },
 ];
 const BANKS = {
   USD: [

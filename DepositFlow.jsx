@@ -1943,9 +1943,14 @@ const WVerifyPage = ({ d, hasPw, onBack, onVerified, ls = "ifta" }) => {
   );
 };
 
-const WResultPage = ({ onDone, d, split = false }) => (
+// Result: no back (the request is already submitted); Done or View history.
+const WResultPage = ({ onDone, onHistory, d, split = false }) => (
   <div className="oc-screen oc-page dp-page is-wresult">
-    <AppBar title="Withdraw" onBack={onDone} />
+    <header className="oc-appbar">
+      <span />
+      <h1>Withdraw</h1>
+      <span />
+    </header>
     <div className="oc-page-body dp-body dp-result">
       <img src={`${import.meta.env.BASE_URL}images/passkey/result-success.svg`} width="120" height="120" alt="" />
       <h2>Withdrawal request submitted</h2>
@@ -1954,6 +1959,9 @@ const WResultPage = ({ onDone, d, split = false }) => (
     <div className="oc-foot dp-foot">
       <button type="button" className="oc-btn is-primary" onClick={onDone}>
         Done
+      </button>
+      <button type="button" className="oc-btn is-outline" onClick={onHistory}>
+        View history
       </button>
     </div>
   </div>
@@ -2913,7 +2921,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         )}
         {stack.includes("wreview") && <WReviewPage d={d} split={split} onBack={pop} onConfirmed={() => push(split && d.to?.net !== "bank" ? "wverify" : "wdone")} />}
         {stack.includes("wverify") && <WVerifyPage d={d} ls={labelStyle} hasPw={wdPw === "set"} onBack={pop} onVerified={() => push("wdone")} />}
-        {stack.includes("wdone") && <WResultPage onDone={finish} d={d} split={split} />}
+        {stack.includes("wdone") && <WResultPage onDone={finish} onHistory={() => say("Withdrawal history isn’t in this demo")} d={d} split={split} />}
         {stack.includes("amount") && !adding && amountPage}
         {detail && (
           <DetailPage

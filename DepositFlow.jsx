@@ -286,11 +286,12 @@ const Picker = ({ label, open, onOpen, children, ls = "ifta", fixed = false }) =
 
 // Minimum deposit per asset (demo placeholders; Figma 20015:58639 shows 0.01 ETH)
 const MIN_DEP = { BTC: 0.0005, ETH: 0.01, USDT: 10, USDC: 10 };
-const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta", netFixed = false, close = false }) => {
+const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta", netFixed = false, close = false, initAmt = "" }) => {
   const c = d.asset;
   const fiat = d.kind === "fiat";
-  const [amt, setAmt] = useState("");
-  const [locked, setLocked] = useState(false);
+  const [amt, setAmt] = useState(initAmt);
+  const [locked, setLocked] = useState(false); // fiat: amount locked on the page
+  const [ask, setAsk] = useState(false); // crypto: "Deposit the amount" confirmation sheet
   const [focused, setFocused] = useState(false);
   const [ver, setVer] = useState(() => makeVer(c));
   const ref = useRef(null);
@@ -315,8 +316,11 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta", net
   const confirm = () => {
     if (!v || under) return;
     setVer(makeVer(c)); // a fresh tail each time the amount is set
-    setLocked(true);
     ref.current?.blur();
+    // Crypto (Figma 20044:58640): confirm in a bottom sheet, then the deposit QR page.
+    // Dismissing the sheet = keep editing the amount.
+    if (fiat) setLocked(true);
+    else setAsk(true);
   };
   return (
     <div className="oc-screen oc-page dp-page is-amount">
@@ -447,9 +451,93 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta", net
           <SlideToConfirm onDone={() => onConfirmed({ amount: v, ver: vv, total, tdp })} />
         </div>
       )}
+      {!fiat && (
+        <DepAmountSheet
+          open={ask}
+          c={c}
+          amount={v}
+          ver={ver}
+          total={total}
+          tdp={tdp}
+          onClose={() => setAsk(false)}
+          onConfirm={() => {
+            setAsk(false);
+            onConfirmed({ amount: v, ver: vv, total, tdp });
+          }}
+        />
+      )}
     </div>
   );
 };
+
+// "Deposit the amount" sheet (Figma 20044:58640): total, breakdown, warning, acknowledgement.
+const DepAmountSheet = ({ open, c, amount, ver, total, tdp, onClose, onConfirm }) => {
+  const [agree, setAgree] = useState(false);
+  useEffect(() => {
+    if (open) setAgree(false);
+  }, [open]);
+  return (
+    <BaseSheet open={open} onClose={onClose} title="Deposit the amount" className="dp-depamt">
+      <div className="dp-depamt-total">
+        <span>Total deposit amount (verification amount included)</span>
+        <b>
+          {fmtDp(total, tdp)} <em>{c}</em>
+        </b>
+      </div>
+      <div className="dp-depamt-rows">
+        <div className="dp-row">
+          <span>Deposit amount</span>
+          <b>
+            {fmtDp(amount, dpOf(c))} {c}
+          </b>
+        </div>
+        <div className="dp-row">
+          <span>Verification amount</span>
+          <b>
+            {fmtDp(ver, verDp(c))} {c}
+          </b>
+        </div>
+      </div>
+      <div className="dp-note has-icon">
+        <WarnIcon />
+        <span>Please only deposit the above specified amount; otherwise, the deposit will fail, and relevant refund fees may be incurred.</span>
+      </div>
+      <button type="button" role="checkbox" aria-checked={agree} className="dp-agree" tabIndex={open ? 0 : -1} onClick={() => setAgree((a) => !a)}>
+        <Check on={agree} />
+        <span>
+          I confirm that I will only deposit virtual assets from a wallet for which I hold the private keys, and I understand that depositing from wallets I do not fully
+          control, such as exchange wallets, may result in refund fees.
+        </span>
+      </button>
+      <div className="dp-leave-btns">
+        <button type="button" className="oc-btn is-primary" disabled={!agree} tabIndex={open ? 0 : -1} onClick={onConfirm}>
+          Confirm
+        </button>
+      </div>
+    </BaseSheet>
+  );
+};
+
+// Modify amount from the deposit QR page: the old total stops matching.
+const ModifyAmtSheet = ({ open, onClose, onConfirm }) => (
+  <PhoneLayer className="tks-layer">
+    <div className={`tks-scrim${open ? " is-open" : ""}`} onClick={onClose} aria-hidden="true" />
+    <div className={`tks-sheet dp-disable${open ? " is-open" : ""}`} role="dialog" aria-modal="true" aria-labelledby="dp-modamt-title" aria-hidden={!open}>
+      <span className="tks-grab" aria-hidden="true" />
+      <img src={`${IMG}/result-warning.png`} width="120" height="120" alt="" />
+      <h2 id="dp-modamt-title">Modify the amount?</h2>
+      <p>If you’ve already sent the deposit, don’t change the amount. A new amount comes with a new verification amount, so a deposit of the current total will fail, and refund fees may be incurred.</p>
+      <div className="dp-leave-btns">
+        <button type="button" className="oc-btn is-primary" tabIndex={open ? 0 : -1} onClick={onConfirm}>
+          Modify amount
+        </button>
+        <button type="button" className="oc-btn is-outline" tabIndex={open ? 0 : -1} onClick={onClose}>
+          Keep this amount
+        </button>
+      </div>
+    </div>
+  </PhoneLayer>
+);
 
 /* ---------- Step 10–11: whitelisted list ---------- */
 // Same page for deposit and withdraw: only what tapping a row does differs.
@@ -997,7 +1085,7 @@ const Qr = ({ text }) => {
   return <div className="dp-qr" role="img" aria-label="Deposit address QR code" dangerouslySetInnerHTML={{ __html: svg }} />;
 };
 
-const DetailPage = ({ d, onDone, onBack, say, split = false }) => {
+const DetailPage = ({ d, onDone, onBack, onModify, say, split = false }) => {
   const c = d.asset;
   const fiat = d.kind === "fiat";
   const fromNew = !d.from;
@@ -1022,8 +1110,10 @@ const DetailPage = ({ d, onDone, onBack, say, split = false }) => {
     </div>
   );
   const amountStr = d.total != null ? `${fmtDp(d.total, d.tdp)} ${c}` : null;
+  const [modAsk, setModAsk] = useState(false);
   // Split network, crypto (Figma Xirry "Deposit QR"): its own wording and rows.
-  if (split && !fiat && !fromNew)
+  // A new address (any approach) uses it too: exact total on top, "Modify amount" back to the amount.
+  if (!fiat && (split || fromNew))
     return (
       <div className="oc-screen oc-page dp-page is-detail">
         <AppBar title={`${c} deposit address`} onBack={onBack || onDone} />
@@ -1031,10 +1121,18 @@ const DetailPage = ({ d, onDone, onBack, say, split = false }) => {
           {fromNew ? (
             <div className="dp-exact">
               <span>Exact total to send</span>
-              <b>{amountStr}</b>
+              <b>
+                {amountStr}
+                <button type="button" className="dp-copy" aria-label="Copy total deposit amount" onClick={() => copy("Amount", String(d.total.toFixed(d.tdp)))}>
+                  <CopyIcon />
+                </button>
+              </b>
               <small>
-                Includes {fmtDp(d.ver, verDp(c))} {c} for address verification.
+                Includes {fmtDp(d.ver, verDp(c))} {c} for address verification. Send exactly this amount from your new address.
               </small>
+              <button type="button" className="oc-btn is-outline is-sm dp-modamt" onClick={() => setModAsk(true)}>
+                Modify amount
+              </button>
             </div>
           ) : (
             <div className="dp-note">
@@ -1053,7 +1151,7 @@ const DetailPage = ({ d, onDone, onBack, say, split = false }) => {
             <Row k="Asset" v={c} />
             <Row k="Network" v={NET[net].name} />
             <Row k="Sending address" v={fromNew ? "New address" : nameOf(d.from)} />
-            {!fromNew && <Row k="Credited to" v="Custody account" />}
+            <Row k="Credited to" v="Custody account" />
           </section>
         </div>
         <div className="oc-foot dp-foot">
@@ -1061,6 +1159,16 @@ const DetailPage = ({ d, onDone, onBack, say, split = false }) => {
             Done
           </button>
         </div>
+        {fromNew && (
+          <ModifyAmtSheet
+            open={modAsk}
+            onClose={() => setModAsk(false)}
+            onConfirm={() => {
+              setModAsk(false);
+              onModify?.();
+            }}
+          />
+        )}
       </div>
     );
   return (
@@ -2144,7 +2252,9 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
   const [wl, setWl] = useState({ remarks: "", addr: "", wallet: null, method: null });
   const [wapp, setWapp] = useState(null); // wallet app being "opened"
   const [adding, setAdding] = useState(false); // Add address pages are in the page sheet
-  const [noSmall, setNoSmall] = useState(false); // method sheet without "Directly deposit" (split v2 link)
+  const [noSmall, setNoSmall] = useState(false);
+  const [initAmt, setInitAmt] = useState(""); // Modify amount (page sheet): the amount to start from
+  const amtInSheet = useRef(false); // the confirmed amount came from the page sheet // method sheet without "Directly deposit" (split v2 link)
   const lastAdd = useRef(null);
   const picked = useRef(false); // the New / Existing sheet closed by a choice, not a dismiss
   const [toast, setToast] = useState("");
@@ -2193,6 +2303,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
   const fiat = d.kind === "fiat";
   // The New-address page: network preset when the token has only one.
   const toAmount = () => {
+    setInitAmt("");
     const nets = NETWORKS[d.asset] || [];
     setD((x) => ({ ...x, net: fiat ? "bank" : split && x.net ? x.net : nets.length === 1 ? nets[0][0] : null }));
     setStack((s) => [...s.filter((x) => x !== "amount"), "amount"]);
@@ -2271,13 +2382,13 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             onPickNet={() => setSheet("network")}
             netFixed={split}
             close={adding}
+            initAmt={initAmt}
             onBack={(dirty) => (dirty ? setLeaving(true) : adding ? closeAdd() : slideOut(".dp-page.is-amount", pop))}
             onConfirmed={(r) => {
               // From the sheet: it slides down onto the deposit QR page
+              // (Plain page: the amount page stays under the QR page, for Modify amount.)
+              amtInSheet.current = adding;
               if (adding) closeAdd();
-              // Split v2 (plain page): once the QR page covers it, drop the amount page so
-              // back from the QR page lands on the address list
-              else if (v2 && !fiat) setTimeout(() => setStack((s) => s.filter((x) => x !== "amount")), 400);
               setDetail({ ...d, ...r, from: null });
             }}
           />
@@ -2453,7 +2564,28 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         {stack.includes("wverify") && <WVerifyPage d={d} ls={labelStyle} hasPw={wdPw === "set"} onBack={pop} onVerified={() => push("wdone")} />}
         {stack.includes("wdone") && <WResultPage onDone={finish} d={d} split={split} />}
         {stack.includes("amount") && !adding && amountPage}
-        {detail && <DetailPage d={detail} onDone={finish} onBack={() => setDetail(null)} say={say} split={split} />}
+        {detail && (
+          <DetailPage
+            d={detail}
+            onDone={finish}
+            onBack={() => {
+              setDetail(null);
+              // new address: back = give up this deposit, to the address list
+              if (!detail.from) setStack((s) => s.filter((x) => x !== "amount"));
+            }}
+            onModify={() => {
+              // back to the intended amount, filled in; it gets a new verification amount
+              setDetail(null);
+              if (amtInSheet.current) {
+                setInitAmt(String(detail.amount));
+                setAdding(true);
+                setStack((s) => [...s.filter((x) => x !== "amount"), "amount"]);
+              }
+            }}
+            say={say}
+            split={split}
+          />
+        )}
       </PhoneLayer>
       <PhoneLayer className="oc-layer dp-ps-layer">
         <AddSheet open={sheetOpen}>{sheetOpen ? addPages : lastAdd.current}</AddSheet>

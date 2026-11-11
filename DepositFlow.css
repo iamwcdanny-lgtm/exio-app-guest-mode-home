@@ -1934,3 +1934,68 @@ textarea.dp-tf-input {
 .dp-body > * {
   flex-shrink: 0;
 }
+
+/* "Deposit the amount" sheet (Figma 20044:58640) */
+.dp-depamt-total {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 0;
+  text-align: center;
+}
+.dp-depamt-total span {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+}
+.dp-depamt-total b {
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.9);
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+.dp-depamt-total em {
+  font-style: normal;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.6);
+}
+.dp-depamt-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 0 16px;
+}
+.dp-depamt-rows .dp-row {
+  font-size: 12px;
+  line-height: 18px;
+}
+.dp-depamt-rows .dp-row > b {
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}
+/* Modify amount: two stacked buttons */
+.dp-disable .dp-leave-btns:has(> .oc-btn + .oc-btn) {
+  flex-direction: column;
+  gap: 8px;
+}
+.dp-disable .dp-leave-btns .oc-btn {
+  flex: none;
+  width: 100%;
+}
+/* Deposit QR (new address): exact total with copy, Modify amount */
+.dp-exact b {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dp-exact .dp-modamt {
+  align-self: flex-start;
+  width: auto;
+  margin-top: 8px;
+  padding: 0 16px;
+}

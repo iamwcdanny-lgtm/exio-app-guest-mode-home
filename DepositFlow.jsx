@@ -1298,7 +1298,7 @@ const WAmountPage = ({ d, onBack, onNext, ls = "ifta", split = false }) => {
   );
   const label = (
     <label className="otc-label" htmlFor="wd-amt">
-      {split ? "Amount you want to withdraw" : "Withdraw amount"}
+      Withdrawal amount
     </label>
   );
   // Split (Figma Xirry "Withdraw ETH"): To card, amount, Available + Max, Network, Review withdrawal.
@@ -1324,7 +1324,11 @@ const WAmountPage = ({ d, onBack, onNext, ls = "ifta", split = false }) => {
                   ref.current?.focus();
                 }}
               >
-                <div className="otc-amount-head">{label}</div>
+                {/* Available + Max inside the field, as the other amount fields */}
+                <div className="otc-amount-head">
+                  {label}
+                  {availEl}
+                </div>
                 <div className="otc-amount-row">
                   <input
                     ref={ref}
@@ -1352,15 +1356,6 @@ const WAmountPage = ({ d, onBack, onNext, ls = "ifta", split = false }) => {
                 Exceeds your available balance.
               </p>
             )}
-          </div>
-          <div className="dp-row is-avail">
-            <span>Available to withdraw</span>
-            <b>
-              {fmtCcy(avail, c)} {c}
-              <button type="button" className="otc-all" disabled={!avail} onClick={() => setAmt(clean(String(avail), dpOf(c)))}>
-                Max
-              </button>
-            </b>
           </div>
           <div className="dp-row">
             <span>Network</span>

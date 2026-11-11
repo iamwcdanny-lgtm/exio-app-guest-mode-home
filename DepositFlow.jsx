@@ -396,15 +396,17 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta", net
             </b>
           </div>
         )}
-        {locked ? (
-          <button type="button" className="oc-btn is-outline dp-amt-btn" onClick={() => setLocked(false)}>
-            Modify
-          </button>
-        ) : (
-          <button type="button" className="oc-btn is-primary dp-amt-btn" disabled={!v || under || noNet} onClick={confirm}>
-            Confirm amount
-          </button>
-        )}
+        {/* Crypto: Confirm amount sits in the bottom CTA bar */}
+        {fiat &&
+          (locked ? (
+            <button type="button" className="oc-btn is-outline dp-amt-btn" onClick={() => setLocked(false)}>
+              Modify
+            </button>
+          ) : (
+            <button type="button" className="oc-btn is-primary dp-amt-btn" disabled={!v || noNet} onClick={confirm}>
+              Confirm amount
+            </button>
+          ))}
         {locked && (
           <section className="dp-verify" aria-live="polite">
             {!fiat && (
@@ -449,6 +451,13 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta", net
       {locked && (
         <div className="oc-foot dp-foot">
           <SlideToConfirm onDone={() => onConfirmed({ amount: v, ver: vv, total, tdp })} />
+        </div>
+      )}
+      {!fiat && (
+        <div className="oc-foot dp-foot">
+          <button type="button" className="oc-btn is-primary" disabled={!v || under || noNet} onClick={confirm}>
+            Confirm amount
+          </button>
         </div>
       )}
       {!fiat && (

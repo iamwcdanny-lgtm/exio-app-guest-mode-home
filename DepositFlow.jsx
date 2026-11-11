@@ -492,18 +492,30 @@ const CryptoGlyph = () => (
 );
 const Chev = () => <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-chev" />;
 
-// Address avatar: Jazzicon generated from the address (MetaMask's algorithm, so an EVM address
-// shows the same pattern as in MetaMask). Same 32px size and left position as the token icon.
-const jazzSeed = (a) => {
-  if (/^0x[0-9a-f]{8}/i.test(a)) return parseInt(a.slice(2, 10), 16); // as MetaMask
-  let h = 0; // other chains (BTC…): a hash of the whole address
-  for (let i = 0; i < a.length; i++) h = (Math.imul(h, 31) + a.charCodeAt(i)) >>> 0;
-  return h;
+// Address avatar: Jazzicon seeded by a SHA-256 hash of the whole address (not MetaMask's
+// first-8-hex seed), so changing any character changes the pattern; a look-alike address
+// that only copies the start and end gets a different avatar. EVM addresses are
+// case-insensitive, so they are lower-cased first. Same 32px size and left position as the
+// token icon.
+const jazzSeeds = new Map();
+const jazzSeed = async (a) => {
+  const key = /^0x/i.test(a) ? a.toLowerCase() : a;
+  if (!jazzSeeds.has(key)) {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(key));
+    jazzSeeds.set(key, new DataView(buf).getUint32(0)); // first 4 bytes of the hash
+  }
+  return jazzSeeds.get(key);
 };
 const AddrAvatar = ({ a }) => {
   const ref = useRef(null);
   useEffect(() => {
-    if (ref.current) ref.current.replaceChildren(jazzicon(32, jazzSeed(a)));
+    let live = true;
+    jazzSeed(a).then((seed) => {
+      if (live && ref.current) ref.current.replaceChildren(jazzicon(32, seed));
+    });
+    return () => {
+      live = false;
+    };
   }, [a]);
   return <span ref={ref} className="dp-av" aria-hidden="true" />;
 };

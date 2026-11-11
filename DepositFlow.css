@@ -1871,6 +1871,7 @@ textarea.dp-tf-input {
   margin-top: -16px;
   border-radius: 50%;
   overflow: hidden;
+  background: rgba(0, 0, 0, 0.04); /* until the hash is ready (a frame) */
 }
 .dp-av > div {
   display: block;

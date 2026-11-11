@@ -1920,3 +1920,11 @@ textarea.dp-tf-input {
   flex: none;
   margin-right: 0;
 }
+
+/* Cell title → second line: 4px everywhere (same as the address cells) */
+.tks-text,
+.dp-opt-text,
+.dp-asset > span,
+.dp-cell-text {
+  gap: 4px;
+}

@@ -79,8 +79,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 64px;
-  padding: 0 16px;
+  padding: 12px 16px; /* hugs its content, no fixed height */
   border: 0;
   border-radius: 8px;
   background: none;

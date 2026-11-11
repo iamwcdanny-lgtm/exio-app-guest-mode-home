@@ -513,7 +513,19 @@ const AddrCellBody = ({ w, split, chev = true }) => (
 );
 
 // Deposit · Select a sending address: saved addresses on this network, then "Use a new address".
-const SendAddrPage = ({ d, book, onBack, onPick, onAdd, onManage }) => {
+// "Or" divider between the direct-deposit option and the saved addresses (split v2)
+const OrDivider = () => (
+  <div className="dp-or" role="separator">
+    <span>Or</span>
+  </div>
+);
+// Split v2: "Add whitelist address" text button 16px under the last address
+const AddWlLink = ({ onClick }) => (
+  <button type="button" className="dp-text-btn is-addwl" onClick={onClick}>
+    Add whitelist address
+  </button>
+);
+const SendAddrPage = ({ d, book, onBack, onPick, onAdd, onManage, v2 = false, onDirect }) => {
   const list = listFor(d.asset, book).filter((w) => w.net === d.net);
   return (
     <div className="oc-screen oc-page dp-page is-send">
@@ -527,6 +539,20 @@ const SendAddrPage = ({ d, book, onBack, onPick, onAdd, onManage }) => {
         }
       />
       <div className="oc-page-body dp-body">
+        {v2 && (
+          <>
+            {/* Split v2: deposit straight from a new address (small amount verification) */}
+            <button type="button" className="dp-opt" onClick={onDirect}>
+              <MethodIcon k="small" />
+              <span className="dp-opt-text">
+                <b>Directly deposit from new address</b>
+                <small>Deposit with a small extra amount; whitelisted when it arrives</small>
+              </span>
+              <Chev />
+            </button>
+            <OrDivider />
+          </>
+        )}
         <SecHead title="Saved addresses" sub={`Approved for ${NET[d.net].name}.`} />
         <div className="dp-opts">
           {list.map((w) => (
@@ -538,17 +564,21 @@ const SendAddrPage = ({ d, book, onBack, onPick, onAdd, onManage }) => {
           ))}
           {!list.length && <p className="dp-empty">No saved addresses on {NET[d.net].name} yet.</p>}
         </div>
+        {v2 && <AddWlLink onClick={onAdd} />}
       </div>
-      <div className="oc-foot dp-foot">
-        <button type="button" className="oc-btn is-outline" onClick={onAdd}>
-          Add address
-        </button>
-      </div>
+      {!v2 && (
+        <div className="oc-foot dp-foot">
+          <button type="button" className="oc-btn is-outline" onClick={onAdd}>
+            Add address
+          </button>
+        </div>
+      )}
     </div>
   );
 };
 
-const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, onManage }) => {
+const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, onManage, v2 = false }) => {
+  const v2w = v2 && split && d.kind !== "fiat";
   const fiat = d.kind === "fiat";
   // Split network: the network was picked before this page, so only its addresses show.
   const all = listFor(d.asset, book).filter((w) => !split || fiat || w.net === d.net);
@@ -682,12 +712,15 @@ const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, 
           )}
           {!list.length && <p className="dp-empty">No whitelisted {fiat ? "bank accounts" : "addresses"} for {d.asset} yet.</p>}
         </div>
+        {v2w && <AddWlLink onClick={onAdd} />}
       </div>
-      <div className="oc-foot dp-foot">
-        <button type="button" className="oc-btn is-outline" onClick={onAdd}>
-          {fiat ? "Add bank account" : "Add address"}
-        </button>
-      </div>
+      {!v2w && (
+        <div className="oc-foot dp-foot">
+          <button type="button" className="oc-btn is-outline" onClick={onAdd}>
+            {fiat ? "Add bank account" : "Add address"}
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -2038,7 +2071,9 @@ const W_HEADS = { crypto: ["On-chain withdrawal"], fiat: ["Bank withdrawal"] };
 // New address for that network only.
 export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode = "deposit", netFlow = "split", wdPw = "set" }) {
   const withdraw = mode === "withdraw";
-  const split = netFlow === "split";
+  const split = netFlow === "split" || netFlow === "split2";
+  // split2 (Split v2): direct deposit on top of the address list, "Add whitelist address" link
+  const v2 = netFlow === "split2";
   const [sheet, setSheet] = useState(null); // way | source | network
   const [way, setWay] = useState(null); // first step: "fiat" | "crypto"
   const [d, setD] = useState({});
@@ -2054,6 +2089,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
   const [wl, setWl] = useState({ remarks: "", addr: "", wallet: null, method: null });
   const [wapp, setWapp] = useState(null); // wallet app being "opened"
   const [adding, setAdding] = useState(false); // Add address pages are in the page sheet
+  const [noSmall, setNoSmall] = useState(false); // method sheet without "Directly deposit" (split v2 link)
   const lastAdd = useRef(null);
   const picked = useRef(false); // the New / Existing sheet closed by a choice, not a dismiss
   const [toast, setToast] = useState("");
@@ -2184,6 +2220,9 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             onConfirmed={(r) => {
               // From the sheet: it slides down onto the deposit QR page
               if (adding) closeAdd();
+              // Split v2 (plain page): once the QR page covers it, drop the amount page so
+              // back from the QR page lands on the address list
+              else if (v2 && !fiat) setTimeout(() => setStack((s) => s.filter((x) => x !== "amount")), 400);
               setDetail({ ...d, ...r, from: null });
             }}
           />
@@ -2285,7 +2324,12 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
               push("manage");
             }}
             onPick={(w) => setDetail({ ...d, from: w })}
-            onAdd={() => setSheet("method")}
+            v2={v2}
+            onDirect={toAmount}
+            onAdd={() => {
+              setNoSmall(v2);
+              setSheet("method");
+            }}
           />
         )}
         {stack.includes("list") && (
@@ -2311,7 +2355,12 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
               setD((x) => ({ ...x, to: w }));
               return push("wamount");
             }}
-            onAdd={() => (fiat ? toAmount() : setSheet("method"))}
+            v2={v2}
+            onAdd={() => {
+              if (fiat) return toAmount();
+              setNoSmall(v2 && split);
+              return setSheet("method");
+            }}
           />
         )}
         {stack.includes("manage") && (
@@ -2321,7 +2370,10 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             setTab={setMTab}
             onAddBank={addBank}
             onBack={pop}
-            onAdd={() => setSheet("method")}
+            onAdd={() => {
+              setNoSmall(false);
+              setSheet("method");
+            }}
             say={say}
             onWithdraw={(w) => {
               setWdFor(w);
@@ -2463,7 +2515,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
           { value: "small", icon: <MethodIcon k="small" />, label: "Directly deposit from new address", name: "Deposit with a small extra amount; whitelisted when it arrives" },
           { value: "connect", icon: <MethodIcon k="connect" />, label: "Connect to wallet", name: "Connect your wallet app to prove you own the address" },
           { value: "sign", icon: <MethodIcon k="sign" />, label: "Manual signature", name: "Sign a message in your wallet and paste the result" },
-        ]}
+        ].filter((o) => !(noSmall && o.value === "small"))}
       />
       <TokenSheet
         open={sheet === "wallets"}

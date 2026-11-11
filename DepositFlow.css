@@ -1833,3 +1833,28 @@ textarea.dp-tf-input {
 .oc-back.is-close {
   justify-self: end;
 }
+
+/* Split v2: "Or" divider between direct deposit and saved addresses */
+.dp-or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+}
+.dp-or::before,
+.dp-or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.08);
+}
+/* Split v2: "Add whitelist address" text button, 16px under the last address (body gap) */
+.dp-text-btn.is-addwl {
+  align-self: flex-start;
+  padding: 0;
+  font-size: 14px;
+  line-height: 20px;
+}

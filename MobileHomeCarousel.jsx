@@ -169,6 +169,7 @@ const CARD_STYLES = [
 const NET_FLOWS = [
   { key: "mix", short: "Mix network" },
   { key: "split", short: "Split network" },
+  { key: "split2", short: "Split v2" },
 ];
 // Split-network withdraw: with a withdrawal password the password comes before passkey.
 const WD_PWS = [
@@ -379,7 +380,7 @@ const ProtoControls = ({ home, onHome, rwaView, onRwaView, pdUser, onPdUser, sho
         <Segmented label="Bottom nav" options={NAV_STYLES} value={navStyle} onChange={onNavStyle} />
         <Segmented label="Input style" options={LABEL_STYLES} value={labelStyle} onChange={onLabelStyle} />
         <Segmented label="Deposit / Withdraw" options={NET_FLOWS} value={netFlow} onChange={onNetFlow} />
-        {netFlow === "split" && <Segmented label="Withdrawal password" options={WD_PWS} value={wdPw} onChange={onWdPw} />}
+        {netFlow !== "mix" && <Segmented label="Withdrawal password" options={WD_PWS} value={wdPw} onChange={onWdPw} />}
         <Segmented label="Sheet" options={PLATFORMS} value={platform} onChange={onPlatform} />
         <Bindings bound={bound} onToggle={onToggleBinding} />
         <p className="as-proto-note">Tap Login or Sign up to see it. Switching works with the sheet open too.</p>

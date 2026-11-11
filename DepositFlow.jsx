@@ -1738,7 +1738,7 @@ const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
   );
   const pwField = (id, v, set, on) => (
     <TextField
-      ls="trad"
+      ls="float"
       id={id}
       label="Withdraw password"
       value={v}
@@ -1750,7 +1750,7 @@ const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
   return (
     <>
       <BaseSheet open={step === "pw"} onClose={onClose} title="Security verification" className="dp-sec">
-        <div className="dp-sec-body dp-form is-trad">{pwField("wv-pw", pw, setPw, step === "pw")}</div>
+        <div className="dp-sec-body dp-form is-float">{pwField("wv-pw", pw, setPw, step === "pw")}</div>
         <div className="dp-leave-btns">
           <button type="button" className="oc-btn is-primary" disabled={!pw} tabIndex={tab(step === "pw")} onClick={() => go("passkey")}>
             Verify with passkey
@@ -1785,11 +1785,11 @@ const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
         </div>
       </BaseSheet>
       <BaseSheet open={step === "other"} onClose={onClose} title="Security verification" className="dp-sec">
-        <div className="dp-sec-body dp-form is-trad">
+        <div className="dp-sec-body dp-form is-float">
           {/* the password already typed carries over (Figma 18350:209140) */}
           {hasPw && pwField("wv-pw2", pw, setPw, step === "other")}
           <TextField
-            ls="trad"
+            ls="float"
             id="wv-sms"
             label="Mobile verification"
             hint={
@@ -1807,7 +1807,7 @@ const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
             }
           />
           <TextField
-            ls="trad"
+            ls="float"
             id="wv-ga"
             label="Authenticator code"
             hint="Enter the 6-digit code from authenticator app"

@@ -683,9 +683,9 @@ const OrDivider = () => (
   </div>
 );
 // Split v2: "Add whitelist address" text button 16px under the last address
-const AddWlLink = ({ onClick }) => (
+const AddWlLink = ({ onClick, label = "Add whitelist address" }) => (
   <button type="button" className="dp-text-btn is-addwl" onClick={onClick}>
-    Add whitelist address
+    {label}
   </button>
 );
 const SendAddrPage = ({ d, book, onBack, onPick, onAdd, onManage, v2 = false, onDirect }) => {
@@ -733,7 +733,8 @@ const SendAddrPage = ({ d, book, onBack, onPick, onAdd, onManage, v2 = false, on
 };
 
 const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, onManage, v2 = false }) => {
-  const v2w = v2 && split && d.kind !== "fiat";
+  // Split v2: "Add …" text button under the list instead of a bottom CTA (bank accounts too)
+  const v2w = v2 && split;
   const fiat = d.kind === "fiat";
   // Split network: the network was picked before this page, so only its addresses show.
   const all = listFor(d.asset, book).filter((w) => !split || fiat || w.net === d.net);
@@ -862,7 +863,7 @@ const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, 
           )}
           {!list.length && <p className="dp-empty">No whitelisted {fiat ? "bank accounts" : "addresses"} for {d.asset} yet.</p>}
         </div>
-        {v2w && <AddWlLink onClick={onAdd} />}
+        {v2w && <AddWlLink onClick={onAdd} label={fiat ? "Add bank account" : undefined} />}
       </div>
       {!v2w && (
         <div className="oc-foot dp-foot">
@@ -2520,7 +2521,9 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
                 return setStack([withdraw ? "list" : "send"]);
               }
               setD({ kind: k, asset: c });
-              if (withdraw) setStack(["list"]);
+              // Split v2, fiat: no small-amount verification, so no "Deposit from" sheet:
+              // straight to the bank accounts (a new one is added from there).
+              if (withdraw || (v2 && k === "fiat")) setStack(["list"]);
               else setSheet("source");
             }}
           />

@@ -1726,7 +1726,7 @@ const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
     if (step !== null) setBusy(false);
     return undefined;
   }, [step]);
-  const okOther = (!hasPw || pw2.length >= 6) && sms.length === 6 && ga.length === 6;
+  const okOther = (!hasPw || pw.length >= 6) && sms.length === 6 && ga.length === 6;
   const tab = (on) => (on ? 0 : -1);
   const another = (on) => (
     <p className="dp-another">
@@ -1786,12 +1786,17 @@ const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
       </BaseSheet>
       <BaseSheet open={step === "other"} onClose={onClose} title="Security verification" className="dp-sec">
         <div className="dp-sec-body dp-form is-trad">
-          {hasPw && pwField("wv-pw2", pw2, setPw2, step === "other")}
+          {/* the password already typed carries over (Figma 18350:209140) */}
+          {hasPw && pwField("wv-pw2", pw, setPw, step === "other")}
           <TextField
             ls="trad"
             id="wv-sms"
             label="Mobile verification"
-            hint="Code will be sent to phone number +85291***21"
+            hint={
+              <>
+                Code will be sent to phone number <b>+85291***21</b>
+              </>
+            }
             value={sms}
             onChange={(v) => setSms(digits(v))}
             inputProps={{ inputMode: "numeric", autoComplete: "one-time-code", tabIndex: tab(step === "other") }}
@@ -1809,11 +1814,19 @@ const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
             value={ga}
             onChange={(v) => setGa(digits(v))}
             inputProps={{ inputMode: "numeric", tabIndex: tab(step === "other") }}
+            action={
+              <button type="button" className="dp-paste" tabIndex={tab(step === "other")} onClick={() => setGa("735204")}>
+                Paste
+              </button>
+            }
           />
         </div>
         <div className="dp-leave-btns">
           <button type="button" className="oc-btn is-primary" disabled={!okOther} tabIndex={tab(step === "other")} onClick={finish}>
             Submit
+          </button>
+          <button type="button" className="dp-text-btn dp-trypk" tabIndex={tab(step === "other")} onClick={() => go("passkey")}>
+            Try passkey
           </button>
         </div>
       </BaseSheet>

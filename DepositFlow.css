@@ -2166,3 +2166,10 @@ textarea.dp-tf-input {
   0%, 100% { opacity: 0.35; }
   50% { opacity: 1; }
 }
+
+.dp-field-hint b {
+  font-weight: 700;
+}
+.dp-trypk {
+  align-self: center;
+}

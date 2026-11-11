@@ -2185,3 +2185,8 @@ textarea.dp-tf-input {
   font-weight: 500;
   color: rgba(0, 0, 0, 0.8);
 }
+
+/* Security verification sheets: 24px from the title to the first field (Figma 18699:102011) */
+.dp-sec .dp-sec-body {
+  padding-top: 16px; /* + the head's 8px */
+}

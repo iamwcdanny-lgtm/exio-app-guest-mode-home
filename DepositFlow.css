@@ -1876,3 +1876,11 @@ textarea.dp-tf-input {
 .dp-av > div {
   display: block;
 }
+
+/* Address cell: remark (or first 6…last 6) as the title, full address underneath */
+.dp-mcell-top small.dp-mcell-addr {
+  align-self: stretch;
+  word-break: break-all;
+  color: rgba(0, 0, 0, 0.8);
+  font-feature-settings: "lnum" 1, "tnum" 1;
+}

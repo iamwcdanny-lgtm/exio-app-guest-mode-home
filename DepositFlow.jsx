@@ -121,6 +121,9 @@ const WlTags = ({ w }) => (
   </>
 );
 const short = (a) => (a.length > 16 ? `${a.slice(0, 8)}…${a.slice(-6)}` : a);
+// Address name (2026-11-11): the remark if there is one, else the first 6 and last 6 of the address
+const head6 = (a) => (a.length > 14 ? `${a.slice(0, 6)}…${a.slice(-6)}` : a);
+const nameOf = (w) => w.label || head6(w.addr);
 const dpOf = (c) => CCY[c]?.dp ?? 2;
 // A unique tail on the amount identifies a deposit from a new address / account.
 const verDp = (c) => (c === "BTC" || c === "ETH" ? 6 : 2);
@@ -526,19 +529,19 @@ const AddrCellBody = ({ w, split, chev = true }) => (
   <>
     <AddrAvatar a={w.addr} />
     <span className="dp-mcell-title">
-      <b className="is-full">
-        <FullAddr a={w.addr} />
-      </b>
+      <b>{nameOf(w)}</b>
     </span>
-    {/* Arrow centred on the whole cell (address, tags, label) */}
+    {/* Arrow centred on the whole cell */}
     {chev && <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-mcell-chev is-right is-mid" />}
+    <small className="dp-mcell-addr">
+      <FullAddr a={w.addr} />
+    </small>
     {(!split || w.isNew) && (
       <span className="dp-mcell-sub">
         {!split && <span className="dp-tag is-wl is-net">{NET[w.net].name}</span>}
         {w.isNew && <span className="dp-tag is-new">Just added</span>}
       </span>
     )}
-    <small>{w.label}</small>
   </>
 );
 
@@ -849,15 +852,17 @@ const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, s
                 <button type="button" className="dp-mcell-top has-av" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : w.id)}>
                   <AddrAvatar a={w.addr} />
                   <span className="dp-mcell-title">
-                    <b>{shortAddr(w.addr)}</b>
+                    <b>{nameOf(w)}</b>
                     <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-mcell-chev" />
                   </span>
+                  <small className="dp-mcell-addr">
+                    <FullAddr a={w.addr} />
+                  </small>
                   <span className="dp-mcell-sub">
                     {/* Network tag only under "All": a network pill already says which network */}
                     {nf.net === "all" && <span className="dp-tag is-wl is-net">{NET[w.net].name}</span>}
                     <WlTags w={w} />
                   </span>
-                  <small>{w.label}</small>
                 </button>
                 {/* Always mounted so open and close can animate (grid row 0fr ↔ 1fr); inert while closed. */}
                 <div className="dp-mcell-exp" inert={isOpen ? undefined : ""} aria-hidden={!isOpen}>
@@ -880,7 +885,7 @@ const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, s
                         <Switch on={w.withdraw} label="Withdraw" onClick={() => onWithdraw(w)} />
                       </dd>
                       <dt>Remarks</dt>
-                      <dd>{w.label}</dd>
+                      <dd>{w.label || "–"}</dd>
                     </dl>
                     <div className="dp-mcell-btns">
                       <button type="button" className="dp-sbtn" onClick={() => say("Editing remarks isn’t in this demo")}>
@@ -926,7 +931,7 @@ const DeclareSheet = ({ w, open, onClose, onConfirm }) => {
           <dt>Network</dt>
           <dd>{NET[w.net].name}</dd>
           <dt>Remarks</dt>
-          <dd>{w.label}</dd>
+          <dd>{w.label || "–"}</dd>
         </dl>
       )}
       <button type="button" role="checkbox" aria-checked={agree} className="dp-agree" tabIndex={open ? 0 : -1} onClick={() => setAgree((a) => !a)}>
@@ -1014,7 +1019,7 @@ const DetailPage = ({ d, onDone, onBack, say, split = false }) => {
             </div>
           ) : (
             <div className="dp-note">
-              Send any amount of {c}. Use only {d.from.label} ({short(d.from.addr)}) on {NET[net].name}.
+              Send any amount of {c}. Use only {d.from.label ? `${d.from.label} (${head6(d.from.addr)})` : head6(d.from.addr)} on {NET[net].name}.
             </div>
           )}
           <section className="dp-card is-qr">
@@ -1028,7 +1033,7 @@ const DetailPage = ({ d, onDone, onBack, say, split = false }) => {
           <section className="dp-card">
             <Row k="Asset" v={c} />
             <Row k="Network" v={NET[net].name} />
-            <Row k="Sending address" v={fromNew ? "New address" : d.from.label} />
+            <Row k="Sending address" v={fromNew ? "New address" : nameOf(d.from)} />
             {!fromNew && <Row k="Credited to" v="Custody account" />}
           </section>
         </div>
@@ -1058,7 +1063,7 @@ const DetailPage = ({ d, onDone, onBack, say, split = false }) => {
             </>
           ) : (
             <>
-              Send {c} only from <b>{d.from.label}</b> ({fiat ? d.from.addr : short(d.from.addr)}). Deposits from other {fiat ? "accounts" : "addresses"} are returned.
+              Send {c} only from {fiat || d.from.label ? <><b>{d.from.label}</b> ({fiat ? d.from.addr : head6(d.from.addr)})</> : <b>{head6(d.from.addr)}</b>}. Deposits from other {fiat ? "accounts" : "addresses"} are returned.
             </>
           )}
         </div>
@@ -1086,7 +1091,7 @@ const DetailPage = ({ d, onDone, onBack, say, split = false }) => {
           <Row k="Asset" v={c} />
           {!fiat && <Row k="Network" v={NET[net].name} />}
           {amountStr && <Row k="Amount to send" v={amountStr} copyAs={String(d.total.toFixed(d.tdp))} />}
-          <Row k="From" v={fromNew ? (fiat ? "New bank account" : "New address") : d.from.label} />
+          <Row k="From" v={fromNew ? (fiat ? "New bank account" : "New address") : nameOf(d.from)} />
           <Row k="Credited to" v="Custody account" />
           {!fiat && <Row k="Arrives after" v={NET[net].conf} />}
         </section>
@@ -1132,7 +1137,7 @@ const WAmountPage = ({ d, onBack, onNext, ls = "ifta", split = false }) => {
         <div className={`oc-page-body dp-body otc otc-style-${ls}`}>
           <div className="dp-to">
             <span>To</span>
-            <b>{d.to.label}</b>
+            <b>{nameOf(d.to)}</b>
             <small>
               <FullAddr a={d.to.addr} />
             </small>
@@ -1203,7 +1208,7 @@ const WAmountPage = ({ d, onBack, onNext, ls = "ifta", split = false }) => {
       <div className={`oc-page-body dp-body otc otc-style-${ls}`}>
         <div className="dp-route">
           <span>To</span>
-          <b>{d.to.label}</b>
+          <b>{nameOf(d.to)}</b>
           <em>{d.to.net === "bank" ? d.to.addr : short(d.to.addr)}</em>
         </div>
         <div className="otc-fields">
@@ -1309,7 +1314,7 @@ const WReviewPage = ({ d, onBack, onConfirmed, split = false }) => {
           <div className="dp-row is-to">
             <span>To</span>
             <b>
-              {d.to.label}
+              {nameOf(d.to)}
               <small className={bank ? "" : "dp-addr-full"}>{d.to.addr}</small>
             </b>
           </div>
@@ -1351,7 +1356,7 @@ const WSummary = ({ d, amount = false }) => (
     <div className="dp-row is-to">
       <span>To</span>
       <b>
-        {d.to.label}
+        {nameOf(d.to)}
         <small className="dp-addr-full">{d.to.addr}</small>
       </b>
     </div>
@@ -2205,7 +2210,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
     setSheet(null);
     const w = {
       id: `n${Date.now()}`,
-      label: wl.remarks.trim() || (wl.wallet ? WALLET[wl.wallet].name : "Wallet"),
+      label: wl.remarks.trim(), // no remark: the cell shows the first 6 / last 6 instead
       net: d.net,
       addr: wl.method === "connect" ? DEMO_ADDR[d.net] : wl.addr,
       // Ownership proven by WalletConnect / signature: both whitelists.

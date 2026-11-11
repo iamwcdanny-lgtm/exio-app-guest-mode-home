@@ -436,8 +436,8 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta", net
           <div className="dp-note has-icon">
             <WarnIcon />
             <span>
-              Upon successful deposit, your address will only be added to the deposit whitelist. Should you wish to whitelist your address for withdrawals, you can add it in the
-              whitelist management page.
+              Upon successful deposit, your address will only be added to the deposit whitelist. Should you wish to whitelist your address for withdrawals, you can add it in
+              Account › Addresses &amp; bank accounts.
             </span>
           </div>
         )}
@@ -610,15 +610,7 @@ const SendAddrPage = ({ d, book, onBack, onPick, onAdd, onManage, v2 = false, on
             <OrDivider />
           </>
         )}
-        <SecHead
-          title="Saved addresses"
-          sub={`Approved for ${NET[d.net].name}.`}
-          action={
-            <button type="button" className="dp-bar-link" onClick={onManage}>
-              Manage
-            </button>
-          }
-        />
+        <SecHead title="Saved addresses" sub={`Approved for ${NET[d.net].name}.`} />
         <div className="dp-opts">
           {list.map((w) => (
             <div key={w.id} className={`dp-mcell is-pick${w.isNew ? " is-new" : ""}`}>
@@ -691,27 +683,11 @@ const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, 
       <AppBar
         title={fiat ? "Select bank account" : split ? "Select a withdrawal address" : "Select address"}
         onBack={onBack}
-        right={
-          // split crypto: Manage sits on the "Whitelisted addresses" line instead
-          split && !fiat ? null : (
-            <button type="button" className="dp-bar-link" onClick={onManage}>
-              Manage
-            </button>
-          )
-        }
       />
       <div className="oc-page-body dp-body">
         {split && !fiat ? (
           <>
-            <SecHead
-              title="Whitelisted addresses"
-              sub="Select the wallet that will receive your withdrawal."
-              action={
-                <button type="button" className="dp-bar-link" onClick={onManage}>
-                  Manage
-                </button>
-              }
-            />
+<SecHead title="Whitelisted addresses" sub="Select the wallet that will receive your withdrawal." />
           </>
         ) : (
           <p className="dp-lead">

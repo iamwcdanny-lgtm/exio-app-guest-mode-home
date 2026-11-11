@@ -1346,7 +1346,7 @@ const WdConfirmSheet = ({ open, d, amount, fee, onClose, onConfirm, say }) => {
     </BaseSheet>
   );
 };
-const WAmountPage = ({ d, onBack, onNext, onConfirm, say, ls = "ifta", split = false }) => {
+const WAmountPage = ({ d, onBack, onNext, onConfirm, say, hasPw = true, ls = "ifta", split = false }) => {
   const c = d.asset;
   const avail = useOtc().s.bal.custody[c] || 0;
   const [amt, setAmt] = useState("");
@@ -1354,6 +1354,7 @@ const WAmountPage = ({ d, onBack, onNext, onConfirm, say, ls = "ifta", split = f
   const ref = useRef(null);
   const v = parseFloat(amt) || 0;
   const [ask, setAsk] = useState(false); // withdrawal confirmation sheet
+  const [sec, setSec] = useState(false); // then security verification
   // Crypto: the network fee comes on top, so the most you can withdraw is the balance less the fee
   const fee = split && d.to.net !== "bank" ? wdFee(c, d.to.net) : 0;
   const maxWd = Math.max(0, avail - fee);
@@ -1471,13 +1472,14 @@ const WAmountPage = ({ d, onBack, onNext, onConfirm, say, ls = "ifta", split = f
           say={say}
           onClose={() => setAsk(false)}
           onConfirm={() => {
-            // let the slider finish, then the sheet goes down onto the verification step
+            // let the slider finish; the sheet goes down, then security verification comes up
             setTimeout(() => {
               setAsk(false);
-              onConfirm(v, fee);
+              setTimeout(() => setSec(true), 300);
             }, 250);
           }}
         />
+        <WdSecurity open={sec} hasPw={hasPw} onClose={() => setSec(false)} onVerified={() => onConfirm(v, fee)} />
       </div>
     );
   return (
@@ -1654,6 +1656,170 @@ const PasskeyArt = () => (
 // Withdraw · verification (split). With a withdrawal password: password, then passkey
 // (default); without one: straight to passkey. "Try another method": password + SMS +
 // authenticator. Passkey is simulated: Start verification waits briefly, then passes.
+// Security verification (Figma 18699:102011 / 12324:68135), as sheets over the withdraw
+// amount page: withdraw password → passkey; "Try another way" = password + mobile code +
+// authenticator code. Dismissing any sheet goes back to the amount page.
+const EyeBtn = ({ shown, onClick, tab }) => (
+  <button type="button" className="dp-eye" aria-label={shown ? "Hide password" : "Show password"} tabIndex={tab} onClick={onClick}>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.8)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {shown ? (
+        <>
+          <path d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" />
+          <circle cx="12" cy="12" r="3" />
+        </>
+      ) : (
+        <path d="M3 10c2.2 3 5.4 4.5 9 4.5s6.8-1.5 9-4.5M6 13.4L4.5 15.5M10 14.4l-.6 2.4M14 14.4l.6 2.4M18 13.4l1.5 2.1" />
+      )}
+    </svg>
+  </button>
+);
+const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
+  const [step, setStep] = useState(null); // pw | passkey | other
+  const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [show, setShow] = useState(false);
+  const [sms, setSms] = useState("");
+  const [ga, setGa] = useState("");
+  const [sent, setSent] = useState(0);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (!open) return setStep(null);
+    setPw("");
+    setPw2("");
+    setSms("");
+    setGa("");
+    setShow(false);
+    setStep(hasPw ? "pw" : "passkey");
+    return undefined;
+  }, [open]);
+  useEffect(() => {
+    if (!sent) return undefined;
+    const t = setTimeout(() => setSent((x) => x - 1), 1000);
+    return () => clearTimeout(t);
+  }, [sent]);
+  const digits = (v) => v.replace(/\D/g, "").slice(0, 6);
+  const go = (next) => {
+    clearTimeout(timer.current);
+    setBusy(false);
+    setStep(null);
+    setTimeout(() => setStep(next), 300);
+  };
+  const finish = () => {
+    setStep(null);
+    setTimeout(onVerified, 280);
+  };
+  const timer = useRef(null);
+  const start = () => {
+    setBusy(true);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      setBusy(false);
+      finish();
+    }, 2000);
+  };
+  useEffect(() => {
+    if (step === "passkey") {
+      const t = setTimeout(start, 350); // once the sheet is up
+      return () => clearTimeout(t);
+    }
+    clearTimeout(timer.current); // left the passkey sheet (another way / dismissed)
+    if (step !== null) setBusy(false);
+    return undefined;
+  }, [step]);
+  const okOther = (!hasPw || pw2.length >= 6) && sms.length === 6 && ga.length === 6;
+  const tab = (on) => (on ? 0 : -1);
+  const another = (on) => (
+    <p className="dp-another">
+      Passkey not available?{" "}
+      <button type="button" className="dp-text-btn" tabIndex={tab(on)} onClick={() => go("other")}>
+        Try another way
+      </button>
+    </p>
+  );
+  const pwField = (id, v, set, on) => (
+    <TextField
+      ls="trad"
+      id={id}
+      label="Withdraw password"
+      value={v}
+      onChange={set}
+      inputProps={{ type: show ? "text" : "password", tabIndex: tab(on) }}
+      action={<EyeBtn shown={show} tab={tab(on)} onClick={() => setShow((x) => !x)} />}
+    />
+  );
+  return (
+    <>
+      <BaseSheet open={step === "pw"} onClose={onClose} title="Security verification" className="dp-sec">
+        <div className="dp-sec-body dp-form is-trad">{pwField("wv-pw", pw, setPw, step === "pw")}</div>
+        <div className="dp-leave-btns">
+          <button type="button" className="oc-btn is-primary" disabled={!pw} tabIndex={tab(step === "pw")} onClick={() => go("passkey")}>
+            Verify with passkey
+          </button>
+          {another(step === "pw")}
+        </div>
+      </BaseSheet>
+      {/* Passkey (Figma 18699:102076): the device prompt starts as the sheet opens */}
+      <BaseSheet open={step === "passkey"} onClose={onClose} title="" className="dp-pk">
+        <div className="dp-pk-body">
+          <PasskeyArt />
+          <h2>Complete verification with passkey</h2>
+          <p>Please follow the instructions on your device to complete verification</p>
+        </div>
+        <div className="dp-leave-btns">
+          <button type="button" className="oc-btn is-primary dp-pk-busy" aria-busy={busy} tabIndex={tab(step === "passkey")} onClick={busy ? undefined : start}>
+            {busy ? (
+              <>
+                <span className="dp-bars" aria-hidden="true">
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                </span>
+                Verifying
+              </>
+            ) : (
+              "Verify with passkey"
+            )}
+          </button>
+          {another(step === "passkey")}
+        </div>
+      </BaseSheet>
+      <BaseSheet open={step === "other"} onClose={onClose} title="Security verification" className="dp-sec">
+        <div className="dp-sec-body dp-form is-trad">
+          {hasPw && pwField("wv-pw2", pw2, setPw2, step === "other")}
+          <TextField
+            ls="trad"
+            id="wv-sms"
+            label="Mobile verification"
+            hint="Code will be sent to phone number +85291***21"
+            value={sms}
+            onChange={(v) => setSms(digits(v))}
+            inputProps={{ inputMode: "numeric", autoComplete: "one-time-code", tabIndex: tab(step === "other") }}
+            action={
+              <button type="button" className="dp-paste" disabled={sent > 0} tabIndex={tab(step === "other")} onClick={() => setSent(60)}>
+                {sent ? `Resend in ${sent}s` : "Send code"}
+              </button>
+            }
+          />
+          <TextField
+            ls="trad"
+            id="wv-ga"
+            label="Authenticator code"
+            hint="Enter the 6-digit code from authenticator app"
+            value={ga}
+            onChange={(v) => setGa(digits(v))}
+            inputProps={{ inputMode: "numeric", tabIndex: tab(step === "other") }}
+          />
+        </div>
+        <div className="dp-leave-btns">
+          <button type="button" className="oc-btn is-primary" disabled={!okOther} tabIndex={tab(step === "other")} onClick={finish}>
+            Submit
+          </button>
+        </div>
+      </BaseSheet>
+    </>
+  );
+};
 const WVerifyPage = ({ d, hasPw, onBack, onVerified, ls = "ifta" }) => {
   const [step, setStep] = useState(null); // pw | passkey | other
   const [pw, setPw] = useState("");
@@ -2723,11 +2889,12 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
               setD((x) => ({ ...x, amount: v }));
               push("wreview");
             }}
-            // Split crypto: confirmed in the sheet, straight to verification (no review page)
+            // Split crypto: confirmed and verified in sheets over this page, then the result
             onConfirm={(v, fee) => {
               setD((x) => ({ ...x, amount: v, fee }));
-              push("wverify");
+              push("wdone");
             }}
+            hasPw={wdPw === "set"}
             say={say}
           />
         )}

@@ -2103,3 +2103,66 @@ textarea.dp-tf-input {
 .dp-wdconf-slide {
   padding: 8px 0 8px;
 }
+
+/* Security verification: eye toggle in the password field, "Try another way" line */
+.dp-eye {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.dp-another {
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+}
+.dp-another .dp-text-btn {
+  display: inline;
+  padding: 0;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.dp-tf-box .dp-eye {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+}
+.dp-tf-box.has-action:has(.dp-eye) .dp-tf-input {
+  padding-right: 40px;
+}
+/* Passkey: "Verifying" with animated signal bars */
+.dp-pk-busy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.dp-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+}
+.dp-bars i {
+  width: 3px;
+  border-radius: 1px;
+  background: #fff;
+  animation: dp-bar 1s ease-in-out infinite;
+}
+.dp-bars i:nth-child(1) { height: 5px; }
+.dp-bars i:nth-child(2) { height: 8px; animation-delay: 0.15s; }
+.dp-bars i:nth-child(3) { height: 11px; animation-delay: 0.3s; }
+.dp-bars i:nth-child(4) { height: 14px; animation-delay: 0.45s; }
+@keyframes dp-bar {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}

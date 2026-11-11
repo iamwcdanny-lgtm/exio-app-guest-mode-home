@@ -2005,3 +2005,11 @@ textarea.dp-tf-input {
 .dp-ps-stage > .oc-page:first-child:not(.is-leaving):not(.is-revealing) {
   animation: none;
 }
+
+/* Manage › bank account cell: ****last 4 next to the currency tags */
+.dp-bank-no {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.6);
+}

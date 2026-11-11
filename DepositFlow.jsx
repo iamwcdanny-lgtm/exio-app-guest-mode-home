@@ -87,9 +87,10 @@ const BANKS = {
   HKD: [{ id: "b3", label: "HSBC Hong Kong", net: "bank", addr: "···· 4821" }],
 };
 // The user's own-name bank accounts, once each (one account can hold several currencies).
+// Details shown when a Manage cell opens (Figma 17286:57264; placeholders).
 const MY_BANKS = [
-  { id: "b1", label: "HSBC Hong Kong", addr: "···· 4821", ccy: ["USD", "HKD"] },
-  { id: "b2", label: "Bank of China (Hong Kong)", addr: "···· 0937", ccy: ["USD"] },
+  { id: "b1", label: "HSBC Hong Kong", addr: "···· 4821", ccy: ["USD", "HKD"], no: "004-512-834821", bank: "The Hongkong and Shanghai Banking Corporation Limited", code: "004", swift: "HSBCHKHHHKH", holder: "Chan Tai Man" },
+  { id: "b2", label: "Bank of China (Hong Kong)", addr: "···· 0937", ccy: ["USD"], no: "012-875-2-140937", bank: "Bank of China (Hong Kong) Limited", code: "012", swift: "BKCHHKHHXXX", holder: "Chan Tai Man" },
 ];
 // A newly whitelisted address can't be withdrawn to until the cool-down has passed.
 const COOL_HOURS = 4;
@@ -946,23 +947,51 @@ const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, s
       <div ref={bodyRef} className="oc-page-body dp-body" style={{ paddingTop: headH + 16 }}>
         {bank ? (
           <div className="dp-list">
-            {MY_BANKS.map((b) => (
-              <div key={b.id} className="dp-mcell">
-                <div className="dp-mcell-top is-static">
-                  <span className="dp-mcell-title">
-                    <b>{b.label}</b>
-                  </span>
-                  <span className="dp-mcell-sub">
-                    <span className="dp-mcell-net">{b.addr}</span>
-                    {b.ccy.map((c) => (
-                      <span key={c} className="dp-tag is-wl">
-                        {c}
-                      </span>
-                    ))}
-                  </span>
+            {/* Bank account cell (Figma 17286:57264): bank, ****last 4 + currencies; opens to the details */}
+            {MY_BANKS.map((b) => {
+              const isOpen = open === b.id;
+              return (
+                <div key={b.id} className={`dp-mcell${isOpen ? " is-open" : ""}`}>
+                  <button type="button" className="dp-mcell-top" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : b.id)}>
+                    <span className="dp-mcell-title">
+                      <b>{b.label}</b>
+                      <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-mcell-chev" />
+                    </span>
+                    <span className="dp-mcell-sub">
+                      <span className="dp-bank-no">****{b.no.replace(/\D/g, "").slice(-4)}</span>
+                      {b.ccy.map((c) => (
+                        <span key={c} className="dp-tag is-wl is-net">
+                          {c}
+                        </span>
+                      ))}
+                    </span>
+                  </button>
+                  <div className="dp-mcell-exp" inert={isOpen ? undefined : ""} aria-hidden={!isOpen}>
+                    <div className="dp-mcell-exp-in">
+                      <div className="dp-mcell-body">
+                        <dl className="dp-grid">
+                          <dt>Account number</dt>
+                          <dd>{b.no}</dd>
+                          <dt>Bank name</dt>
+                          <dd>{b.bank}</dd>
+                          <dt>Bank code</dt>
+                          <dd>{b.code}</dd>
+                          <dt>SWIFT code</dt>
+                          <dd>{b.swift}</dd>
+                          <dt>Account name</dt>
+                          <dd>{b.holder}</dd>
+                        </dl>
+                        <div className="dp-mcell-btns">
+                          <button type="button" className="dp-sbtn is-danger" onClick={() => say("Removing an account isn’t in this demo")}>
+                            Remove account
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <>

@@ -1996,7 +1996,7 @@ const AddrPage = ({ d, ls, sheet, onPickAsset, onPickNet, onBack, onNext, remark
   );
 };
 
-const SignPage = ({ addr, onBack, onHow, onSubmit, say }) => {
+const SignPage = ({ addr, onBack, onClose, onHow, onSubmit, say }) => {
   const [sig, setSig] = useState("");
   const msg = useRef(
     `It is hereby declared, on ${new Date().toISOString().slice(0, 10)}, that I/we own the wallet address ${addr} Nonce: ${Math.floor(Date.now() / 1000)}`
@@ -2004,7 +2004,18 @@ const SignPage = ({ addr, onBack, onHow, onSubmit, say }) => {
   const ok = /^0x[0-9a-fA-F]{64,}$/.test(sig.trim());
   return (
     <div className="oc-screen oc-page dp-page is-sign">
-      <AppBar title="Add whitelist address" onBack={onBack} />
+      <AppBar
+        title="Add whitelist address"
+        onBack={onBack}
+        right={
+          // 2nd step of the page sheet: back (left) to the previous step, close (right) the sheet
+          onClose && (
+            <button type="button" className="oc-back is-close" aria-label="Close" onClick={onClose}>
+              <XIcon />
+            </button>
+          )
+        }
+      />
       <div className="oc-page-body dp-body">
         <div className="dp-sign-head">
           <h2>Address ownership verification</h2>
@@ -2443,7 +2454,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             setAddr={(v) => setWl((x) => ({ ...x, addr: v }))}
           />
         )}
-        {stack.includes("sign") && <SignPage addr={wl.addr} onBack={pop} onHow={() => setSheet("how")} onSubmit={() => setSheet("security")} say={say} />}
+        {stack.includes("sign") && <SignPage addr={wl.addr} onBack={pop} onClose={closeAdd} onHow={() => setSheet("how")} onSubmit={() => setSheet("security")} say={say} />}
     </>
   );
   if (sheetOpen) lastAdd.current = addPages;

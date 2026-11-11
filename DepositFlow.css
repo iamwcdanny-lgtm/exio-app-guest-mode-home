@@ -2201,3 +2201,193 @@ textarea.dp-tf-input {
 .dp-opt-icon img {
   display: block;
 }
+
+/* ---------- Add bank account (split v2) ---------- */
+.dp-bank-asset .oc-xpick-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.dp-bank-asset .oc-xpick-row b {
+  flex: 1;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+  text-align: left;
+}
+.dp-btype {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dp-btype-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 36px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.9);
+  text-align: left;
+  cursor: pointer;
+}
+.dp-radio {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px rgba(0, 0, 0, 0.8);
+}
+.dp-radio.is-on {
+  background: #00d690;
+  box-shadow: inset 0 0 0 6px #00d690, inset 0 0 0 10px #fff;
+}
+.dp-countries {
+  padding: 16px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.03);
+}
+.dp-countries h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.9);
+}
+.dp-countries ul,
+.dp-countries-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.8);
+}
+.dp-countries ul {
+  max-height: 280px;
+  overflow-y: auto;
+}
+.dp-countries-list {
+  overflow-y: auto;
+  padding-bottom: 16px;
+}
+.dp-note-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dp-bstep h2 {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+}
+.dp-bstep-n {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.9);
+  font-size: 12px;
+  line-height: 1;
+  color: #fff;
+}
+.dp-bstep-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 12px 0 0 32px;
+}
+.dp-bstep-body .dp-lims {
+  margin-top: 0;
+}
+.dp-bank-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.dp-bank-to {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.dp-bank-to span,
+.dp-bank-row small {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+}
+.dp-bank-to b {
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.03);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.9);
+}
+.dp-bank-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.dp-bank-row > span {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.dp-bank-row b {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.9);
+  word-break: break-word;
+}
+.dp-tips-list {
+  margin: 0;
+  padding: 0 0 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.8);
+}
+.dp-tips-link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+  text-decoration: underline;
+  cursor: pointer;
+}

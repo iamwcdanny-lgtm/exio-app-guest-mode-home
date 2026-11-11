@@ -1979,6 +1979,220 @@ const WResultPage = ({ onDone, onHistory, d, split = false }) => (
   </div>
 );
 
+
+/* ---------- Add bank account (split v2): type, then EX.IO's bank details ---------- */
+// From the live app's screens (2026-11-11): 1) asset + Hong Kong / Oversea bank,
+// 2) deposit to EX.IO's account from an own-name account; the first deposit whitelists it.
+const HOLDER = "Chan Tai Man"; // the account opening name (demo)
+const MIN_FIAT_DEP = { USD: 1400, HKD: 10000 }; // min. initial deposit (demo placeholders)
+const COUNTRIES = ["Åland Islands", "Albania", "American Samoa", "Andorra", "Anguilla", "Antarctica", "Antigua and Barbuda", "Argentina", "Armenia", "Aruba", "Australia", "Austria", "Bahamas", "Bahrain", "Barbados", "Belgium", "Bermuda", "Brazil", "Brunei", "Bulgaria", "Canada", "Chile", "Croatia", "Cyprus", "Czechia", "Denmark", "Estonia", "Finland", "France", "Germany", "Greece", "Iceland", "Ireland", "Israel", "Italy", "Japan", "Korea", "Latvia", "Lithuania", "Luxembourg", "Macao", "Malaysia", "Malta", "Mexico", "Netherlands", "New Zealand", "Norway", "Philippines", "Poland", "Portugal", "Singapore", "Slovakia", "Slovenia", "Spain", "Sweden", "Switzerland", "Taiwan", "Thailand", "United Kingdom", "United States"];
+const EXIO_BANK = [
+  ["Bank Name", "ZA Bank Limited"],
+  ["Bank Code", "387"],
+  ["Branch Code", "747"],
+  ["SWIFT Code", "AABLHKHH"],
+  ["Account Name", "EXIO (HK) LTD - CLIENTS A/C"],
+  ["Account Number", "327400044128"],
+  ["Account Type", "Multi-currency Current Account"],
+  ["Bank address", "UNIT 1301, IT STREET, CYBERPORT 3, 100 CYBERPORT ROAD, HK"],
+];
+const BulbIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M8.5 15.5c-1.6-1.2-2.5-3-2.5-5a6 6 0 0112 0c0 2-.9 3.8-2.5 5v1.5h-7v-1.5z" stroke="rgba(0,0,0,0.8)" strokeWidth="1.6" strokeLinejoin="round" />
+    <path d="M9.5 20h5" stroke="#00c08b" strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+);
+const QIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+    <circle cx="10" cy="10" r="7.5" fill="#f7a042" />
+    <path d="M8 8.2a2 2 0 113 1.7c-.6.4-1 .8-1 1.5v.3" fill="none" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
+    <circle cx="10" cy="14" r=".9" fill="#fff" />
+  </svg>
+);
+const BankTips = ({ open, onClose, c, count, onCountries }) => (
+  <BaseSheet open={open} onClose={onClose} title="Tips" className="dp-tips">
+    <ol className="dp-tips-list">
+      <li>
+        The bank transfer must be made from an account registered under the same name you provided in the account opening form (i.e. <b>{HOLDER}</b>).
+      </li>
+      <li>
+        Please note that the initial deposit amount must be a minimum of{" "}
+        <b>
+          {fmtDp(MIN_FIAT_DEP[c] || 0, 0)} {c}
+        </b>{" "}
+        per transaction.
+      </li>
+      <li>To ensure smooth processing, please refrain from depositing cash into the designated bank account. Instead, we suggest utilizing alternative methods such as FPS (Faster Payment System), or Bank transfer via CHATS.</li>
+      <li>
+        Please use a bank account from the{" "}
+        <button type="button" className="dp-tips-link" tabIndex={open ? 0 : -1} onClick={onCountries}>
+          supported countries / region
+        </button>{" "}
+        for deposit according to regulatory requirements. If not, a refund will be issued, and you will be responsible for any applicable refund fees.
+      </li>
+      <li>FPS/CHATS deposits are expected to be credited within 1 working day.</li>
+      <li>
+        Only 3 bank accounts can be whitelisted per currency. If you already have 3 whitelisted bank accounts and need to add a new one, you must first delete one of the previously
+        whitelisted accounts. You currently have <b>{count}/3</b> whitelisted bank accounts for {c}.
+      </li>
+    </ol>
+  </BaseSheet>
+);
+const BankTypePage = ({ d, setAsset, onBack, onNext, onTips }) => {
+  const c = d.asset;
+  const [type, setType] = useState("hk");
+  const [pick, setPick] = useState(false);
+  return (
+    <div className="oc-screen oc-page dp-page is-bank1">
+      <AppBar
+        title="Add bank account"
+        onBack={onBack}
+        right={
+          <button type="button" className="oc-back is-close" aria-label="Tips" onClick={onTips}>
+            <BulbIcon />
+          </button>
+        }
+      />
+      <div className="oc-page-body dp-body">
+        <div className="dp-note has-icon">
+          <QIcon />
+          <span>Note: Deposit requested near bank holidays may experience processing delays.</span>
+        </div>
+        <div className="dp-trad">
+          <span className="dp-trad-label">Asset</span>
+          <button type="button" className={`oc-xpick dp-pick is-trad dp-bank-asset${pick ? " is-open" : ""}`} aria-haspopup="dialog" onClick={() => setPick(true)}>
+            <span className="oc-xpick-row">
+              <Icon c={c} size={24} />
+              <b>{c}</b>
+              <img className="sel-caret" src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
+            </span>
+          </button>
+        </div>
+        <div className="dp-btype" role="radiogroup" aria-label="Bank Account Type">
+          <span className="dp-trad-label">Bank Account Type</span>
+          {[
+            ["hk", "Hong Kong"],
+            ["os", "Oversea Bank"],
+          ].map(([k, l]) => (
+            <button key={k} type="button" role="radio" aria-checked={type === k} className="dp-btype-row" onClick={() => setType(k)}>
+              <span>{l}</span>
+              <span className={`dp-radio${type === k ? " is-on" : ""}`} aria-hidden="true" />
+            </button>
+          ))}
+        </div>
+        {type === "os" && (
+          <section className="dp-countries" aria-label="Supported countries/regions">
+            <h3>Supported countries/regions</h3>
+            <ul>
+              {COUNTRIES.map((n) => (
+                <li key={n}>{n}</li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </div>
+      <div className="oc-foot dp-foot">
+        <button type="button" className="oc-btn is-primary" onClick={() => onNext(type)}>
+          Next
+        </button>
+      </div>
+      <TokenSheet
+        open={pick}
+        title="Select asset"
+        value={c}
+        onPick={(v) => setAsset(v)}
+        onClose={() => setPick(false)}
+        options={KINDS.fiat.assets.map((k) => ({ value: k, label: k, name: CCY[k].name, icon: <Icon c={k} /> }))}
+      />
+    </div>
+  );
+};
+const BankInfoPage = ({ d, onBack, onTips, say }) => {
+  const c = d.asset;
+  const copy = (k, v) => {
+    navigator.clipboard?.writeText(v).catch(() => {});
+    say(`${k} copied`);
+  };
+  return (
+    <div className="oc-screen oc-page dp-page is-bank2">
+      <AppBar
+        title="Add bank account"
+        onBack={onBack}
+        right={
+          <button type="button" className="oc-back is-close" aria-label="Tips" onClick={onTips}>
+            <BulbIcon />
+          </button>
+        }
+      />
+      <div className="oc-page-body dp-body">
+        <div className="dp-note has-icon">
+          <WarnIcon />
+          <ol className="dp-note-list">
+            <li>
+              The bank transfer must be made from an account registered under the same name you provided in the account opening form (i.e. <b>{HOLDER}</b>).
+            </li>
+            <li>
+              Please note that the initial deposit amount must be a minimum of{" "}
+              <b>
+                {fmtDp(MIN_FIAT_DEP[c] || 0, 0)} {c}
+              </b>{" "}
+              per transaction.
+            </li>
+          </ol>
+        </div>
+        <section className="dp-bstep">
+          <h2>
+            <span className="dp-bstep-n">1</span>
+            <span>Deposit {c} to the designated bank account of EX.IO</span>
+          </h2>
+          <div className="dp-bstep-body">
+            <div className="dp-bank-card">
+              <div className="dp-bank-to">
+                <span>Bank to Deposit</span>
+                <b>ZA Bank Limited</b>
+              </div>
+              {EXIO_BANK.map(([k, v]) => (
+                <div key={k} className="dp-bank-row">
+                  <span>
+                    <small>{k}</small>
+                    <b>{v}</b>
+                  </span>
+                  <button type="button" className="dp-copy" aria-label={`Copy ${k}`} onClick={() => copy(k, v)}>
+                    <CopyIcon />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="dp-lims">
+              <div className="dp-row is-min">
+                <span>Min. Initial Deposit</span>
+                <b>
+                  {fmtDp(MIN_FIAT_DEP[c] || 0, 2)} <em>{c}</em>
+                </b>
+              </div>
+              <div className="dp-row is-min">
+                <span>Suggest Payment Method</span>
+                <b>FPS / CHATS</b>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section className="dp-bstep">
+          <h2>
+            <span className="dp-bstep-n">2</span>
+            <span>After receiving the funds, EX.IO will automatically credit and whitelist</span>
+          </h2>
+        </section>
+      </div>
+      <div className="oc-foot dp-foot">
+        <button type="button" className="oc-btn is-primary" onClick={() => say("Saved to Photos")}>
+          Save picture
+        </button>
+      </div>
+    </div>
+  );
+};
+
 /* ---------- Token selection (page) ---------- */
 const HEADS = { crypto: ["On-chain deposit"], fiat: ["Bank deposit"] };
 const TokenPage = ({ value, kind, onBack, onPick, title = "Deposit", heads = HEADS, split = false, withdraw = false }) => {
@@ -2671,7 +2885,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
     setStack((s) => [...s.filter((x) => x !== "amount"), "amount"]);
   };
   const pop = () => {
-    if (stack[stack.length - 1] === "amount" && savedD.current) {
+    if ((stack[stack.length - 1] === "amount" || stack[stack.length - 1] === "bank1") && savedD.current) {
       setD(savedD.current);
       savedD.current = null;
     }
@@ -2680,6 +2894,14 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
   // Manage › Bank accounts › Add bank account: the first deposit from an own-name
   // account whitelists it (same as Add bank account on Select bank account).
   const addBank = () => {
+    // Split v2: the Add bank account steps (type, then EX.IO's bank details)
+    if (v2) {
+      if (!fiat) {
+        savedD.current = d;
+        setD({ kind: "fiat", asset: "HKD", net: "bank" });
+      }
+      return push("bank1");
+    }
     if (fiat) return toAmount();
     savedD.current = d;
     setD({ kind: "fiat", asset: "HKD", net: "bank" });
@@ -2888,7 +3110,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             }}
             v2={v2}
             onAdd={() => {
-              if (fiat) return toAmount();
+              if (fiat) return v2 ? push("bank1") : toAmount();
               setNoSmall(v2 && split);
               return setSheet("method");
             }}
@@ -2934,6 +3156,10 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         )}
         {stack.includes("wreview") && <WReviewPage d={d} split={split} onBack={pop} onConfirmed={() => push(split && d.to?.net !== "bank" ? "wverify" : "wdone")} />}
         {stack.includes("wverify") && <WVerifyPage d={d} ls={labelStyle} hasPw={wdPw === "set"} onBack={pop} onVerified={() => push("wdone")} />}
+        {stack.includes("bank1") && (
+          <BankTypePage d={d} setAsset={(a) => setD((x) => ({ ...x, asset: a }))} onBack={pop} onNext={() => push("bank2")} onTips={() => setSheet("tips")} />
+        )}
+        {stack.includes("bank2") && <BankInfoPage d={d} onBack={pop} onTips={() => setSheet("tips")} say={say} />}
         {stack.includes("wdone") && <WResultPage onDone={finish} onHistory={() => say("Withdrawal history isn’t in this demo")} d={d} split={split} />}
         {stack.includes("amount") && !adding && amountPage}
         {detail && (
@@ -3102,6 +3328,23 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         options={KINDS.crypto.assets.map((c) => ({ value: c, label: c, icon: <Icon c={c} />, name: CCY[c].name, tag: CCY[c].pi ? "PI" : undefined }))}
       />
       <HowSheet open={sheet === "how"} onClose={closeSheet("how")} />
+      <BankTips
+        open={sheet === "tips"}
+        onClose={closeSheet("tips")}
+        c={d.asset && BANKS[d.asset] ? d.asset : "USD"}
+        count={(BANKS[d.asset] || []).length}
+        onCountries={() => {
+          setSheet(null);
+          setTimeout(() => setSheet("countries"), 300);
+        }}
+      />
+      <BaseSheet open={sheet === "countries"} onClose={closeSheet("countries")} title="Supported countries/regions" className="dp-tips">
+        <ul className="dp-countries-list">
+          {COUNTRIES.map((n) => (
+            <li key={n}>{n}</li>
+          ))}
+        </ul>
+      </BaseSheet>
       {/* Security codes are account-security, not trading: floating label (library Floating Input), like sign up / sign in. */}
       <SecuritySheet ls="float" open={sheet === "security"} onClose={closeSheet("security")} onSubmit={whitelist} />
       <DeclareSheet w={wdFor} open={sheet === "declare"} onClose={closeSheet("declare")} onConfirm={() => setWithdraw(true)} />

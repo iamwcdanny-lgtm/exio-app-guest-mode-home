@@ -43,7 +43,7 @@ const Spinner = () => <span className="pk-spin" aria-hidden="true" />;
 
 // Also used by the withdraw security verification (2026-11-13: "Try another way" =
 // SMS, then authenticator); `extra` adds a line under the CTA there.
-export const VerifySheet = ({ open, onClose, onDone, extra = null }) => {
+export const VerifySheet = ({ open, onClose, onDone, extra = null, lastLabel = "Next" }) => {
   const [step, setStep] = useState("sms");
   const [code, setCode] = useState(EMPTY);
   const [error, setError] = useState("");
@@ -149,7 +149,7 @@ export const VerifySheet = ({ open, onClose, onDone, extra = null }) => {
             aria-busy={busy || undefined}
             onClick={() => full && !busy && !error && submit(code)}
           >
-            {busy ? <Spinner /> : "Next"}
+            {busy ? <Spinner /> : step === "totp" ? lastLabel : "Next"}
             <span className="pk-sr">{busy ? "Verifying" : ""}</span>
           </button>
           {extra}

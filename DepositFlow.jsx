@@ -1807,6 +1807,7 @@ const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
         open={step === "other"}
         onClose={onClose}
         onDone={finish}
+        lastLabel="Complete"
         extra={
           <p className="dp-another pk-another">
             Passkey available?{" "}

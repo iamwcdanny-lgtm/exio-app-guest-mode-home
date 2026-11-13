@@ -613,11 +613,6 @@ const PlusGlyph = () => (
     <path d="M10 4.5v11M4.5 10h11" stroke="#00a874" strokeWidth="1.8" strokeLinecap="round" />
   </svg>
 );
-const BankGlyph = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-    <path d="M3 7.5L10 3.5l7 4M4 16.5h12M5 8.5v6M8.3 8.5v6M11.7 8.5v6M15 8.5v6" stroke="rgba(0,0,0,0.8)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
 const CryptoGlyph = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
     <path d="M10 2.8l6.2 3.6v7.2L10 17.2l-6.2-3.6V6.4z" stroke="#00a874" strokeWidth="1.5" strokeLinejoin="round" />
@@ -2365,6 +2360,12 @@ const MethodIcon = ({ k }) => (
         <path d="M10.9243 10.9102C9.52133 9.50715 7.24634 9.50722 5.84328 10.9102L4.92629 11.8271C4.53641 12.2177 4.53603 12.8509 4.92629 13.2412C5.31677 13.6312 5.95093 13.6313 6.34133 13.2412L7.25832 12.3242C7.88034 11.7024 8.88834 11.7023 9.51028 12.3242C10.1317 12.9462 10.1319 13.9543 9.51028 14.5762L8.59328 15.4932C8.20311 15.8836 8.20313 16.5168 8.59328 16.9072C8.98376 17.2972 9.61697 17.2973 10.0073 16.9072L10.9243 15.9902C12.327 14.5874 12.3268 12.3132 10.9243 10.9102Z" />
       </svg>
     )}
+    {/* bank 2280:1374 */}
+    {k === "bank" && (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M21.2075 19.9999C21.7597 19.9999 22.2075 20.4476 22.2075 20.9999C22.2075 21.5522 21.7597 21.9999 21.2075 21.9999H2.79242C2.24013 21.9999 1.79242 21.5522 1.79242 20.9999C1.79242 20.4476 2.24013 19.9999 2.79242 19.9999H21.2075ZM11.3569 1.23815C11.7495 0.989739 12.2513 0.989701 12.644 1.23815L12.726 1.29479L21.6157 8.00573C22.5372 8.70211 22.0452 10.1713 20.8901 10.1717H19.5756C19.5759 10.1811 19.5766 10.1907 19.5766 10.2001V15.8856H20.769C21.3212 15.8856 21.7689 16.3334 21.769 16.8856C21.7689 17.4378 21.3212 17.8856 20.769 17.8856H3.2309C2.67869 17.8856 2.23103 17.4378 2.2309 16.8856C2.23099 16.3334 2.67867 15.8856 3.2309 15.8856H4.42328V10.2001C4.42328 10.1907 4.424 10.1811 4.42426 10.1717H3.11078C1.95539 10.1715 1.46326 8.70209 2.38519 8.00573L11.2748 1.29479L11.3569 1.23815ZM6.4223 10.1717C6.42256 10.1811 6.42328 10.1907 6.42328 10.2001V15.8856H8.80804V10.2001C8.80804 10.1907 8.80876 10.1811 8.80902 10.1717H6.4223ZM10.8071 10.1717C10.8073 10.1811 10.808 10.1907 10.808 10.2001V15.8856H13.1928V10.2001C13.1928 10.1907 13.1935 10.1811 13.1938 10.1717H10.8071ZM15.1918 10.1717C15.1921 10.1811 15.1928 10.1907 15.1928 10.2001V15.8856H17.5766V10.2001C17.5766 10.1907 17.5773 10.1811 17.5776 10.1717H15.1918ZM5.4848 8.17174H18.5161L12.0004 3.2528L5.4848 8.17174Z" />
+      </svg>
+    )}
     {/* Interactive Icons/edit2 11884:6720 */}
     {k === "sign" && (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -3216,11 +3217,11 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
           withdraw
             ? [
                 { value: "crypto", icon: <span className="dp-opt-tile is-sm is-green"><CryptoGlyph /></span>, label: "On-chain withdrawal", name: "Withdraw crypto to whitelisted address" },
-                { value: "fiat", icon: <span className="dp-opt-tile is-sm"><BankGlyph /></span>, label: "Bank withdrawal", name: "Withdraw fiat to your bank account" },
+                { value: "fiat", icon: <MethodIcon k="bank" />, label: "Bank withdrawal", name: "Withdraw fiat to your bank account" },
               ]
             : [
                 { value: "crypto", icon: <span className="dp-opt-tile is-sm is-green"><CryptoGlyph /></span>, label: "On-chain deposit", name: "Deposit crypto from whitelisted address" },
-                { value: "fiat", icon: <span className="dp-opt-tile is-sm"><BankGlyph /></span>, label: "Bank deposit", name: "Deposit fiat from your bank account" },
+                { value: "fiat", icon: <MethodIcon k="bank" />, label: "Bank deposit", name: "Deposit fiat from your bank account" },
               ]
         }
       />

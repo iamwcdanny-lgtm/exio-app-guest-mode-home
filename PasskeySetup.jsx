@@ -43,7 +43,9 @@ const Spinner = () => <span className="pk-spin" aria-hidden="true" />;
 
 // Also used by the withdraw security verification (2026-11-13: "Try another way" =
 // SMS, then authenticator); `extra` adds a line under the CTA there.
-export const VerifySheet = ({ open, onClose, onDone, extra = null, lastLabel = "Next" }) => {
+// The SMS → authenticator steps on their own, for a bottom sheet (VerifySheet) or a
+// page in the add-address page sheet (2026-11-13). `open` resets and focuses them.
+export const VerifySteps = ({ open, onDone, extra = null, lastLabel = "Next", onBusy }) => {
   const [step, setStep] = useState("sms");
   const [code, setCode] = useState(EMPTY);
   const [error, setError] = useState("");
@@ -51,7 +53,9 @@ export const VerifySheet = ({ open, onClose, onDone, extra = null, lastLabel = "
   const [left, setLeft] = useState(RESEND);
   const [n, setN] = useState(0); // re-keys the body so the next step slides in
   const timer = useRef(null);
-  const focus = (ms) => setTimeout(() => document.getElementById("as-otp-0")?.focus({ preventScroll: true }), ms);
+  const root = useRef(null);
+  // Its own first box: another sheet with these steps (closed, off-screen) may be mounted too.
+  const focus = (ms) => setTimeout(() => root.current?.querySelector("#as-otp-0")?.focus({ preventScroll: true }), ms);
   useEffect(() => {
     clearTimeout(timer.current);
     if (!open) return undefined;
@@ -97,12 +101,9 @@ export const VerifySheet = ({ open, onClose, onDone, extra = null, lastLabel = "
     if (c.every(Boolean) && !busy) submit(c);
   };
   const full = code.every(Boolean);
+  useEffect(() => onBusy?.(busy), [busy]);
   return (
-    <PhoneLayer className="tks-layer pk-layer">
-      <div className={`tks-scrim${open ? " is-open" : ""}`} onClick={busy ? undefined : onClose} aria-hidden="true" />
-      <div className={`tks-sheet pk-sheet as-style-float${open ? " is-open" : ""}`} role="dialog" aria-modal="true" aria-labelledby="pk-title" aria-hidden={!open}>
-        <span className="tks-grab" aria-hidden="true" />
-        <div className="pk-step" key={n} data-anim={n ? "next" : "first"}>
+        <div className="pk-step" key={n} ref={root} data-anim={n ? "next" : "first"}>
           {/* One row: the title names this step, the tag says where it sits. */}
           <div className="pk-title-row">
             <h2 className="pk-title" id="pk-title">
@@ -154,6 +155,17 @@ export const VerifySheet = ({ open, onClose, onDone, extra = null, lastLabel = "
           </button>
           {extra}
         </div>
+  );
+};
+
+export const VerifySheet = ({ open, onClose, onDone, extra = null, lastLabel = "Next" }) => {
+  const [busy, setBusy] = useState(false);
+  return (
+    <PhoneLayer className="tks-layer pk-layer">
+      <div className={`tks-scrim${open ? " is-open" : ""}`} onClick={busy ? undefined : onClose} aria-hidden="true" />
+      <div className={`tks-sheet pk-sheet as-style-float${open ? " is-open" : ""}`} role="dialog" aria-modal="true" aria-labelledby="pk-title" aria-hidden={!open}>
+        <span className="tks-grab" aria-hidden="true" />
+        <VerifySteps open={open} onDone={onDone} extra={extra} lastLabel={lastLabel} onBusy={setBusy} />
       </div>
     </PhoneLayer>
   );

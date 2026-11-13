@@ -5,7 +5,7 @@ import PhoneLayer from "./PhoneLayer";
 import TokenSheet from "./TokenSheet";
 import { CCY, IMG, fmtDp, fmtCcy, useOtc } from "./OtcSession";
 import { slideBack, leavePage } from "./backOut";
-import { VerifySheet } from "./PasskeySetup";
+import { VerifySheet, VerifySteps } from "./PasskeySetup";
 import "./DepositFlow.css";
 
 // Deposit flow (2026-11-04), started from Home's Deposit buttons.
@@ -2619,6 +2619,32 @@ const SignPage = ({ addr, onBack, onClose, onHow, onSubmit, say }) => {
   );
 };
 
+// Add address, last step (2026-11-13): security verification as a page in the page
+// sheet, for both Connect to wallet and Manual wallet signing. SMS, then authenticator.
+const SecPage = ({ onBack, onClose, onDone }) => {
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setOn(true), 30);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <div className="oc-screen oc-page dp-page is-secpage">
+      <AppBar
+        title="Add whitelist address"
+        onBack={onBack}
+        right={
+          <button type="button" className="oc-back is-close" aria-label="Close" onClick={onClose}>
+            <XIcon />
+          </button>
+        }
+      />
+      <div className="oc-page-body dp-body as-style-float">
+        <VerifySteps open={on} onDone={onDone} lastLabel="Complete" />
+      </div>
+    </div>
+  );
+};
+
 const BaseSheet = ({ open, onClose, title, children, className = "" }) => (
   <PhoneLayer className="tks-layer">
     <div className={`tks-scrim${open ? " is-open" : ""}`} onClick={onClose} aria-hidden="true" />
@@ -2648,62 +2674,6 @@ const HowSheet = ({ open, onClose }) => (
     </div>
   </BaseSheet>
 );
-
-const SecuritySheet = ({ open, onClose, onSubmit, ls = "ifta" }) => {
-  const [sms, setSms] = useState("");
-  const [ga, setGa] = useState("");
-  const [left, setLeft] = useState(0);
-  useEffect(() => {
-    if (open) {
-      setSms("");
-      setGa("");
-      setLeft(0);
-    }
-  }, [open]);
-  useEffect(() => {
-    if (!left) return undefined;
-    const t = setTimeout(() => setLeft((s) => s - 1), 1000);
-    return () => clearTimeout(t);
-  }, [left]);
-  const digits = (v) => v.replace(/\D/g, "").slice(0, 6);
-  const ok = sms.length === 6 && ga.length === 6;
-  return (
-    <BaseSheet open={open} onClose={onClose} title="Security verification" className="dp-sec">
-      <div className={`dp-sec-body dp-form is-${ls}`}>
-        <TextField
-          ls={ls}
-          id="dp-sec-sms"
-          label="Mobile verification code"
-          hint="Code will be sent to +852 91***21"
-          value={sms}
-          onChange={(v) => setSms(digits(v))}
-          placeholder="6-digit code"
-          inputProps={{ inputMode: "numeric", autoComplete: "one-time-code", tabIndex: open ? 0 : -1 }}
-          action={
-            <button type="button" className="dp-paste" disabled={left > 0} tabIndex={open ? 0 : -1} onClick={() => setLeft(60)}>
-              {left ? `Resend in ${left}s` : "Send code"}
-            </button>
-          }
-        />
-        <TextField
-          ls={ls}
-          id="dp-sec-ga"
-          label="Authenticator code"
-          hint="Enter the 6-digit code from your authenticator app"
-          value={ga}
-          onChange={(v) => setGa(digits(v))}
-          placeholder="6-digit code"
-          inputProps={{ inputMode: "numeric", tabIndex: open ? 0 : -1 }}
-        />
-      </div>
-      <div className="dp-leave-btns">
-        <button type="button" className="oc-btn is-primary" disabled={!ok} tabIndex={open ? 0 : -1} onClick={onSubmit}>
-          Submit
-        </button>
-      </div>
-    </BaseSheet>
-  );
-};
 
 // Stand-in for the wallet app: "Opening…", then its connect request.
 const WalletApp = ({ k, onCancel, onConnect }) => {
@@ -2753,7 +2723,7 @@ const WalletApp = ({ k, onCancel, onConnect }) => {
    the address list, like sign-up and the OTC chat: the app behind shrinks into a card
    (.mhc-phone.as-open, --as-p). Android: full screen. The sheet keeps its last pages while
    it slides down. */
-const ADD_PAGES = ["amount", "connect", "addr", "sign"];
+const ADD_PAGES = ["amount", "connect", "addr", "sign", "sec"];
 const AddSheet = ({ open, children }) => {
   const [shown, setShown] = useState(open);
   const ref = useRef(null);
@@ -3012,7 +2982,8 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             setAddr={(v) => setWl((x) => ({ ...x, addr: v }))}
           />
         )}
-        {stack.includes("sign") && <SignPage addr={wl.addr} onBack={pop} onClose={closeAdd} onHow={() => setSheet("how")} onSubmit={() => setSheet("security")} say={say} />}
+        {stack.includes("sign") && <SignPage addr={wl.addr} onBack={pop} onClose={closeAdd} onHow={() => setSheet("how")} onSubmit={() => push("sec")} say={say} />}
+        {stack.includes("sec") && <SecPage onBack={pop} onClose={closeAdd} onDone={whitelist} />}
     </>
   );
   if (sheetOpen) lastAdd.current = addPages;
@@ -3202,7 +3173,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             onCancel={() => setWapp(null)}
             onConnect={() => {
               setWapp(null);
-              setTimeout(() => setSheet("security"), 200);
+              push("sec");
             }}
           />
         )}
@@ -3353,7 +3324,6 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         </ul>
       </BaseSheet>
       {/* Security codes are account-security, not trading: floating label (library Floating Input), like sign up / sign in. */}
-      <SecuritySheet ls="float" open={sheet === "security"} onClose={closeSheet("security")} onSubmit={whitelist} />
       <DeclareSheet w={wdFor} open={sheet === "declare"} onClose={closeSheet("declare")} onConfirm={() => setWithdraw(true)} />
       <DisableSheet open={sheet === "disable"} onClose={closeSheet("disable")} onConfirm={() => setWithdraw(false)} />
       <LeaveSheet

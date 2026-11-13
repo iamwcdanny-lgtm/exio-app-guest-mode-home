@@ -2415,3 +2415,11 @@ textarea.dp-tf-input {
 .dp-agree:has(+ .dp-leave-btns) {
   margin-bottom: 16px;
 }
+
+/* Add address: security verification page in the page sheet (2026-11-13) */
+.is-secpage .pk-step {
+  padding-top: 8px;
+}
+.is-secpage .as-otp.is-error .as-otp-box {
+  border-color: #ff649b;
+}

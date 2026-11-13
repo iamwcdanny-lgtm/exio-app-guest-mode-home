@@ -1754,7 +1754,7 @@ textarea.dp-tf-input {
 .dp-sec .dp-leave-btns,
 .dp-pk .dp-leave-btns {
   flex-direction: column;
-  gap: 8px;
+  gap: 16px; /* CTA to the method switch line */
 }
 .dp-pk .tks-head {
   display: none;

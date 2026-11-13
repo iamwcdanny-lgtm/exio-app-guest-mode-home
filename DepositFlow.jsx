@@ -288,7 +288,7 @@ const Picker = ({ label, open, onOpen, children, ls = "ifta", fixed = false }) =
 
 // Minimum deposit per asset (demo placeholders; Figma 20015:58639 shows 0.01 ETH)
 const MIN_DEP = { BTC: 0.0005, ETH: 0.01, USDT: 10, USDC: 10 };
-const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta", netFixed = false, close = false, initAmt = "" }) => {
+const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta", netFixed = false, close = false, initAmt = "", focusKey = 0 }) => {
   const c = d.asset;
   const fiat = d.kind === "fiat";
   const [amt, setAmt] = useState(initAmt);
@@ -297,6 +297,12 @@ const AmountPage = ({ d, sheet, onPickNet, onBack, onConfirmed, ls = "ifta", net
   const [focused, setFocused] = useState(false);
   const [ver, setVer] = useState(() => makeVer(c));
   const ref = useRef(null);
+  // Modify amount (from the deposit address page): focus the amount once the page is back in view
+  useEffect(() => {
+    if (!focusKey) return undefined;
+    const t = setTimeout(() => ref.current?.focus(), 320);
+    return () => clearTimeout(t);
+  }, [focusKey]);
   // A new asset or network unlocks the amount: it has to be confirmed again.
   const first = useRef(true);
   useEffect(() => {
@@ -2821,6 +2827,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
   const [adding, setAdding] = useState(false); // Add address pages are in the page sheet
   const [noSmall, setNoSmall] = useState(false);
   const [initAmt, setInitAmt] = useState(""); // Modify amount (page sheet): the amount to start from
+  const [focusAmt, setFocusAmt] = useState(0); // Modify amount: focus the intended amount field
   const amtInSheet = useRef(false); // the confirmed amount came from the page sheet // method sheet without "Directly deposit" (split v2 link)
   const lastAdd = useRef(null);
   const picked = useRef(false); // the New / Existing sheet closed by a choice, not a dismiss
@@ -2959,11 +2966,13 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             netFixed={split}
             close={adding}
             initAmt={initAmt}
+            focusKey={focusAmt}
             onBack={(dirty) => (dirty ? setLeaving(true) : adding ? closeAdd() : slideOut(".dp-page.is-amount", pop))}
             onConfirmed={(r) => {
               // From the sheet: it slides down onto the deposit QR page
               // (Plain page: the amount page stays under the QR page, for Modify amount.)
               amtInSheet.current = adding;
+              setFocusAmt(0);
               if (adding) closeAdd();
               setDetail({ ...d, ...r, from: null });
             }}
@@ -3170,6 +3179,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             onModify={() => {
               // back to the intended amount, filled in; it gets a new verification amount
               setDetail(null);
+              setFocusAmt((n) => n + 1);
               if (amtInSheet.current) {
                 setInitAmt(String(detail.amount));
                 setAdding(true);

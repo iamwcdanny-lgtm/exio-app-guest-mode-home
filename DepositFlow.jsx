@@ -5,6 +5,7 @@ import PhoneLayer from "./PhoneLayer";
 import TokenSheet from "./TokenSheet";
 import { CCY, IMG, fmtDp, fmtCcy, useOtc } from "./OtcSession";
 import { slideBack, leavePage } from "./backOut";
+import { VerifySheet } from "./PasskeySetup";
 import "./DepositFlow.css";
 
 // Deposit flow (2026-11-04), started from Home's Deposit buttons.
@@ -1800,56 +1801,21 @@ const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
           {another(step === "passkey")}
         </div>
       </BaseSheet>
-      <BaseSheet open={step === "other"} onClose={onClose} title="Security verification" className="dp-sec">
-        <div className="dp-sec-body dp-form is-float">
-          {/* the password already typed carries over (Figma 18350:209140) */}
-          {hasPw && pwField("wv-pw2", pw, setPw, step === "other")}
-          <TextField
-            ls="float"
-            id="wv-sms"
-            label="Mobile verification"
-            hint={
-              <>
-                Code will be sent to phone number <b>+85291***21</b>
-              </>
-            }
-            value={sms}
-            onChange={(v) => setSms(digits(v))}
-            inputProps={{ inputMode: "numeric", autoComplete: "one-time-code", tabIndex: tab(step === "other") }}
-            action={
-              <button type="button" className="dp-paste" disabled={sent > 0} tabIndex={tab(step === "other")} onClick={() => setSent(60)}>
-                {sent ? `Resend in ${sent}s` : "Send code"}
-              </button>
-            }
-          />
-          <TextField
-            ls="float"
-            id="wv-ga"
-            label="Authenticator code"
-            hint="Enter the 6-digit code from authenticator app"
-            value={ga}
-            onChange={(v) => setGa(digits(v))}
-            inputProps={{ inputMode: "numeric", tabIndex: tab(step === "other") }}
-            action={
-              <button type="button" className="dp-paste" tabIndex={tab(step === "other")} onClick={() => setGa("735204")}>
-                Paste
-              </button>
-            }
-          />
-        </div>
-        <div className="dp-leave-btns">
-          <button type="button" className="oc-btn is-primary" disabled={!okOther} tabIndex={tab(step === "other")} onClick={finish}>
-            Submit
-          </button>
-          {/* mirrors "Passkey not available? Try another way" on the passkey sheet */}
-          <p className="dp-another">
+      {/* Try another way (2026-11-13): SMS, then authenticator, as in Set up passkey;
+          the withdraw password was already entered in the first sheet. */}
+      <VerifySheet
+        open={step === "other"}
+        onClose={onClose}
+        onDone={finish}
+        extra={
+          <p className="dp-another pk-another">
             Passkey available?{" "}
-            <button type="button" className="dp-text-btn" tabIndex={tab(step === "other")} onClick={() => go("passkey")}>
+            <button type="button" className="dp-text-btn" tabIndex={step === "other" ? 0 : -1} onClick={() => go("passkey")}>
               Verify with passkey
             </button>
           </p>
-        </div>
-      </BaseSheet>
+        }
+      />
     </>
   );
 };

@@ -41,7 +41,9 @@ const WarnIcon = () => (
 );
 const Spinner = () => <span className="pk-spin" aria-hidden="true" />;
 
-const VerifySheet = ({ open, onClose, onDone }) => {
+// Also used by the withdraw security verification (2026-11-13: "Try another way" =
+// SMS, then authenticator); `extra` adds a line under the CTA there.
+export const VerifySheet = ({ open, onClose, onDone, extra = null }) => {
   const [step, setStep] = useState("sms");
   const [code, setCode] = useState(EMPTY);
   const [error, setError] = useState("");
@@ -150,6 +152,7 @@ const VerifySheet = ({ open, onClose, onDone }) => {
             {busy ? <Spinner /> : "Next"}
             <span className="pk-sr">{busy ? "Verifying" : ""}</span>
           </button>
+          {extra}
         </div>
       </div>
     </PhoneLayer>

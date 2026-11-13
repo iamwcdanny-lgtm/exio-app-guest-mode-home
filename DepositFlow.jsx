@@ -909,7 +909,13 @@ const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, s
   const headRef = useRef(null);
   const [headH, setHeadH] = useState(0); // the blurred header floats over the list
   const bank = tab === "bank";
-  const nf = useNetFilter(book);
+  // Search (2026-11-13): crypto by remark or address, bank by name or account number
+  const [q, setQ] = useState("");
+  useEffect(() => setQ(""), [tab]);
+  const qq = q.trim().toLowerCase();
+  const hit = (...xs) => !qq || xs.some((x) => String(x || "").toLowerCase().includes(qq));
+  const nf = useNetFilter(book.filter((w) => hit(w.label, w.addr)));
+  const banks = MY_BANKS.filter((b) => hit(b.label, b.bank, b.no, b.no.replace(/\D/g, "")));
   useLayoutEffect(() => {
     const el = headRef.current;
     if (!el) return;
@@ -947,10 +953,18 @@ const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, s
       </div>
       </div>
       <div ref={bodyRef} className="oc-page-body dp-body" style={{ paddingTop: headH + 16 }}>
+        <label className="dp-search">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <circle cx="7" cy="7" r="5" stroke="rgba(0,0,0,0.4)" strokeWidth="1.5" />
+            <path d="M11 11l3 3" stroke="rgba(0,0,0,0.4)" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={bank ? "Search by bank or account number" : "Search by name or address"} aria-label="Search" />
+        </label>
         {bank ? (
           <div className="dp-list">
+            {!banks.length && <p className="dp-empty">No bank accounts match “{q.trim()}”.</p>}
             {/* Bank account cell (Figma 17286:57264): bank, ****last 4 + currencies; opens to the details */}
-            {MY_BANKS.map((b) => {
+            {banks.map((b) => {
               const isOpen = open === b.id;
               return (
                 <div key={b.id} className={`dp-mcell${isOpen ? " is-open" : ""}`}>
@@ -1003,6 +1017,7 @@ const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, s
         </p>
         <NetPills nets={nf.nets} value={nf.net} onChange={nf.setNet} />
         <div className="dp-list">
+          {qq && !nf.shown.length && <p className="dp-empty">No addresses match “{q.trim()}”.</p>}
           {nf.shown.map((w) => {
             const isOpen = open === w.id;
             return (

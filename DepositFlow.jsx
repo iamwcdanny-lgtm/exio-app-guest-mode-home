@@ -613,12 +613,6 @@ const PlusGlyph = () => (
     <path d="M10 4.5v11M4.5 10h11" stroke="#00a874" strokeWidth="1.8" strokeLinecap="round" />
   </svg>
 );
-const CryptoGlyph = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-    <path d="M10 2.8l6.2 3.6v7.2L10 17.2l-6.2-3.6V6.4z" stroke="#00a874" strokeWidth="1.5" strokeLinejoin="round" />
-    <path d="M3.8 6.4L10 10l6.2-3.6M10 10v7.2" stroke="#00a874" strokeWidth="1.5" strokeLinejoin="round" />
-  </svg>
-);
 const Chev = () => <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-chev" />;
 
 // Address avatar: Jazzicon seeded by a SHA-256 hash of the whole address (not MetaMask's
@@ -2360,6 +2354,12 @@ const MethodIcon = ({ k }) => (
         <path d="M10.9243 10.9102C9.52133 9.50715 7.24634 9.50722 5.84328 10.9102L4.92629 11.8271C4.53641 12.2177 4.53603 12.8509 4.92629 13.2412C5.31677 13.6312 5.95093 13.6313 6.34133 13.2412L7.25832 12.3242C7.88034 11.7024 8.88834 11.7023 9.51028 12.3242C10.1317 12.9462 10.1319 13.9543 9.51028 14.5762L8.59328 15.4932C8.20311 15.8836 8.20313 16.5168 8.59328 16.9072C8.98376 17.2972 9.61697 17.2973 10.0073 16.9072L10.9243 15.9902C12.327 14.5874 12.3268 12.3132 10.9243 10.9102Z" />
       </svg>
     )}
+    {/* blocks 11902:15476 */}
+    {k === "chain" && (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M4.5 16.4844L11 20.3496V13.4824L4.5 9.61719V16.4844ZM13 13.4824V20.3496L19.5 16.4844V9.61719L13 13.4824ZM4.68848 7.40332L12 11.75L19.3105 7.40332L12 3.05566L4.68848 7.40332ZM21.5 16.5977C21.5 16.8994 21.4258 17.2001 21.2793 17.4688C21.1508 17.7043 20.9683 17.9117 20.7422 18.0684L20.6426 18.1318L12.8516 22.7646L12.8506 22.7656C12.5952 22.9173 12.3023 23 12 23C11.6977 23 11.4048 22.9173 11.1494 22.7656L11.1484 22.7646L3.35742 18.1318C3.08559 17.9702 2.86853 17.7391 2.72168 17.4707C2.57508 17.2027 2.50064 16.9027 2.5 16.6016V7.40039C2.50019 7.36337 2.5037 7.32698 2.50781 7.29102C2.52394 7.02647 2.59257 6.76531 2.72168 6.5293L2.84473 6.33496C2.98028 6.14914 3.1536 5.98932 3.35742 5.86816L11.1484 1.23535L11.1494 1.23438C11.4048 1.08269 11.6977 1 12 1C12.2267 1 12.4481 1.04651 12.6523 1.13379L12.8506 1.23438L12.8516 1.23535L20.6426 5.86816L20.7422 5.93164C20.9032 6.04318 21.0423 6.18014 21.1553 6.33496L21.2783 6.5293L21.374 6.73633C21.4431 6.9126 21.4802 7.09841 21.4922 7.28613C21.4965 7.32303 21.4998 7.36043 21.5 7.39844V16.5977Z" />
+      </svg>
+    )}
     {/* bank 2280:1374 */}
     {k === "bank" && (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -3216,11 +3216,11 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
           // Same first step in Mix and Split network
           withdraw
             ? [
-                { value: "crypto", icon: <span className="dp-opt-tile is-sm is-green"><CryptoGlyph /></span>, label: "On-chain withdrawal", name: "Withdraw crypto to whitelisted address" },
+                { value: "crypto", icon: <MethodIcon k="chain" />, label: "On-chain withdrawal", name: "Withdraw crypto to whitelisted address" },
                 { value: "fiat", icon: <MethodIcon k="bank" />, label: "Bank withdrawal", name: "Withdraw fiat to your bank account" },
               ]
             : [
-                { value: "crypto", icon: <span className="dp-opt-tile is-sm is-green"><CryptoGlyph /></span>, label: "On-chain deposit", name: "Deposit crypto from whitelisted address" },
+                { value: "crypto", icon: <MethodIcon k="chain" />, label: "On-chain deposit", name: "Deposit crypto from whitelisted address" },
                 { value: "fiat", icon: <MethodIcon k="bank" />, label: "Bank deposit", name: "Deposit fiat from your bank account" },
               ]
         }

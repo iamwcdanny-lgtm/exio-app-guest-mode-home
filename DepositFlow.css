@@ -2410,3 +2410,8 @@ textarea.dp-tf-input {
   border-radius: 0;
   background: none;
 }
+
+/* 16px between a CTA and the statement next to it (2026-11-13) */
+.dp-agree:has(+ .dp-leave-btns) {
+  margin-bottom: 16px;
+}

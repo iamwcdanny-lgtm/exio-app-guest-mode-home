@@ -817,7 +817,7 @@
   color: rgba(0, 0, 0, 0.4);
 }
 .oc-conv {
-  margin: -4px 0 0;
+  margin: 0; /* 16px under the CTA (the foot's gap) */
   text-align: center;
   font-size: 10px;
   line-height: 16px;

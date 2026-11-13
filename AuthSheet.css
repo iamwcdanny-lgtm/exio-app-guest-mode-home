@@ -13,9 +13,12 @@
   --dc-bottom: 0px;
   /* Top of the mock home indicator, from the bottom of the screen. */
   --dc-home: 0px;
-  /* Bottom CTAs sit 16px above the home indicator (2026-11-02). On a real
-     phone the OS safe area keeps them clear of its own indicator. */
-  --cta-bottom: max(16px, calc(var(--dc-home) + 16px), env(safe-area-inset-bottom, 0px));
+  /* Every page keeps the bottom 34px for the home indicator (2026-11-13), and the
+     bottom bar / last content keeps its usual 16px above that (Figma: a 34px Home
+     Indicator frame under the content). On a real phone the larger of 34px and the
+     OS safe area. */
+  --home-bar: max(34px, env(safe-area-inset-bottom, 0px));
+  --cta-bottom: calc(16px + var(--home-bar));
   --as-top: calc(env(safe-area-inset-top, 0px) + var(--dc-top) + 10px);
   --as-ease: cubic-bezier(0.32, 0.72, 0, 1);
   --as-dur: 0.45s;

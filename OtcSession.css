@@ -1166,3 +1166,8 @@
 .oc-ps .oc-desk {
   padding-top: 8px;
 }
+
+/* A page with no bottom bar: its scrolling body keeps the home indicator area clear too */
+.oc-page > .oc-page-body:last-child {
+  padding-bottom: var(--cta-bottom, 16px);
+}

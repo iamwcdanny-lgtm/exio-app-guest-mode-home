@@ -2395,3 +2395,17 @@ textarea.dp-tf-input {
 .pk-another {
   margin-top: 16px;
 }
+
+/* Method icons (2026-11-13): the 24px icon on its own, no grey circle */
+.dp-micon {
+  width: 24px;
+  height: 24px;
+  border-radius: 0;
+  background: none;
+}
+.tks-icon:has(> .dp-micon) {
+  width: 24px;
+  height: 24px;
+  border-radius: 0;
+  background: none;
+}

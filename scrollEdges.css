@@ -34,3 +34,14 @@
 .sc-foot.sc-bordered.is-sc-bottom {
   border-top-color: var(--sc-line);
 }
+
+/* No visible scrollbars inside the phone (2026-11-13): it's a mobile mock, where
+   scrollbars only show while scrolling. Scrolling itself is unchanged. */
+.mhc-phone,
+.mhc-phone * {
+  scrollbar-width: none;
+}
+.mhc-phone::-webkit-scrollbar,
+.mhc-phone *::-webkit-scrollbar {
+  display: none;
+}

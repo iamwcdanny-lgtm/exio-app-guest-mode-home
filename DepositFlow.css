@@ -2397,15 +2397,16 @@ textarea.dp-tf-input {
 }
 
 /* Method icons (2026-11-13): the 24px icon on its own, no grey circle */
+/* 24px glyph in a 32px slot, so the text starts where the token and address cells' text does */
 .dp-micon {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   border-radius: 0;
   background: none;
 }
 .tks-icon:has(> .dp-micon) {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   border-radius: 0;
   background: none;
 }

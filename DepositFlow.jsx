@@ -3281,6 +3281,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         open={sheet === "method"}
         title="Add address"
         value={null}
+        chevron={`${IMG}/arrow-down.svg`}
         onPick={(m) => {
           picked.current = true;
           // the bottom sheet slides away first, then the add pages rise in the page sheet

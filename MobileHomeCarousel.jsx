@@ -170,6 +170,7 @@ const NET_FLOWS = [
   { key: "mix", short: "Mix network" },
   { key: "split", short: "Split network" },
   { key: "split2", short: "Split v2" },
+  { key: "split3", short: "Split v3" },
 ];
 // Split-network withdraw: with a withdrawal password the password comes before passkey.
 const WD_PWS = [

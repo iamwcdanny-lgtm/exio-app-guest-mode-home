@@ -732,12 +732,13 @@ const SendAddrPage = ({ d, book, onBack, onPick, onAdd, onManage, v2 = false, on
   );
 };
 
-const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, onManage, v2 = false }) => {
+const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, onManage, v2 = false, allNets = false }) => {
   // Split v2: "Add …" text button under the list instead of a bottom CTA (bank accounts too)
   const v2w = v2 && split;
   const fiat = d.kind === "fiat";
   // Split network: the network was picked before this page, so only its addresses show.
-  const all = listFor(d.asset, book).filter((w) => !split || fiat || w.net === d.net);
+  // Split v3 withdraw (allNets): no network step, so every network's addresses show.
+  const all = listFor(d.asset, book).filter((w) => !split || fiat || allNets || w.net === d.net);
   const nf = useNetFilter(fiat ? [] : all);
   // Withdraw order: 0 ready → 1 needs the ownership declaration → 2 cooling down (soonest
   // to unlock first). Ranks are taken when an address first shows (page opens, or it was
@@ -794,7 +795,7 @@ const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, 
             {split && !fiat && d.net ? ` on ${NET[d.net].name}` : ""}.
           </p>
         )}
-        {!fiat && !split && <NetPills nets={nf.nets} value={nf.net} onChange={nf.setNet} />}
+        {!fiat && (!split || allNets) && <NetPills nets={nf.nets} value={nf.net} onChange={nf.setNet} />}
         <div className="dp-list">
           {list.map((w) =>
             w.net !== "bank" ? (
@@ -808,7 +809,7 @@ const ListPage = ({ d, book, withdraw, split, onBack, onPick, onDeclare, onAdd, 
                 return (
                   <div key={w.id} data-id={w.id} className={`dp-mcell is-pick${w.isNew ? " is-new" : ""}${blocked ? " is-blocked" : ""}`}>
                     <button type="button" className="dp-mcell-top has-av" onClick={() => onPick(w)}>
-                      <AddrCellBody w={w} split={split} chev={!blocked} />
+                      <AddrCellBody w={w} split={split && !(allNets && nf.net === "all")} chev={!blocked} />
                     </button>
                     {blocked && (
                       <div className="dp-walerts">
@@ -2810,9 +2811,12 @@ const W_HEADS = { crypto: ["On-chain withdrawal"], fiat: ["Bank withdrawal"] };
 // New address for that network only.
 export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode = "deposit", netFlow = "split2", wdPw = "set" }) {
   const withdraw = mode === "withdraw";
-  const split = netFlow === "split" || netFlow === "split2";
+  const split = netFlow === "split" || netFlow === "split2" || netFlow === "split3";
   // split2 (Split v2): direct deposit on top of the address list, "Add whitelist address" link
-  const v2 = netFlow === "split2";
+  const v2 = netFlow === "split2" || netFlow === "split3";
+  // split3 (Split v3) = v2, but withdraw skips the network step: every whitelisted address of
+  // the asset shows (network tag + pills), and picking one sets the network. Deposit unchanged.
+  const wdAllNets = netFlow === "split3" && withdraw;
   const [sheet, setSheet] = useState(null); // way | source | network
   const [way, setWay] = useState(null); // first step: "fiat" | "crypto"
   const [d, setD] = useState({});
@@ -3039,6 +3043,10 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
               // Split: crypto goes Select network (page) → Select address, deposit and withdraw
               // alike; a token with one network skips the network page.
               if (split && k === "crypto") {
+                if (wdAllNets) {
+                  setD({ kind: k, asset: c });
+                  return setStack(["list"]);
+                }
                 if (nets.length > 1) {
                   // Network as a bottom sheet over the token list (Figma Xirry)
                   setD({ kind: k, asset: c });
@@ -3091,6 +3099,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             book={book}
             withdraw={withdraw}
             split={split}
+            allNets={wdAllNets}
             onDeclare={(w) => {
               // Declare right here, no detour through Manage
               setWdFor(w);

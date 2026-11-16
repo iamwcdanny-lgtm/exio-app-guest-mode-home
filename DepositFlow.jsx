@@ -583,8 +583,9 @@ const useNetFilter = (list) => {
 // Withdraw reminders inside an address cell (Figma 18740:137477 / 18740:137492).
 const ClockIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-    <circle cx="10" cy="10" r="6.67" stroke="#019ff8" strokeWidth="1.33" />
-    <path d="M10 6.5V10l2.3 1.6" stroke="#019ff8" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
+    {/* outer edge r 6.67, the same size as the "!" (WarnIcon) disc (2026-11-16) */}
+    <circle cx="10" cy="10" r="6" stroke="#019ff8" strokeWidth="1.33" />
+    <path d="M10 6.9V10l2 1.4" stroke="#019ff8" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 const WarnIcon = () => (

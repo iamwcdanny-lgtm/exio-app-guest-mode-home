@@ -2479,7 +2479,10 @@ const Check = ({ on }) => (
 // Asset (pre-filled from where the user came from, changeable), then Network.
 const WlHead = ({ d, ls, sheet, onPickAsset, onPickNet }) => (
   <>
-    <div className="dp-note">{LOCK_NOTE}</div>
+    <div className="dp-note has-icon">
+      <WarnIcon />
+      <span>{LOCK_NOTE}</span>
+    </div>
     <Picker ls={ls} label="Asset" open={sheet === "asset"} onOpen={onPickAsset}>
       <Icon c={d.asset} size={20} />
       <b>

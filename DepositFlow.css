@@ -273,7 +273,7 @@
   font-size: 12px;
   line-height: 18px;
   font-weight: 500;
-  color: #b26b00;
+  color: #f7a042; /* all warning messages (2026-11-16) */
 }
 .dp-note b {
   font-weight: 700;

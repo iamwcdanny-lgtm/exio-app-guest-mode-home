@@ -2762,9 +2762,7 @@ const AddSheet = ({ open, children }) => {
     <>
       <div className="oc-ps-scrim" aria-hidden="true" />
       <div className="oc-ps dp-ps" ref={ref} role="dialog" aria-modal="true" aria-label="Add address">
-        <div className="oc-ps-grip">
-          <span className="oc-grab" aria-hidden="true" />
-        </div>
+        {/* No grab bar, like the sign-in page sheet (2026-11-16) */}
         <div className="dp-ps-stage">{children}</div>
       </div>
     </>

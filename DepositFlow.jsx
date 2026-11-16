@@ -1297,7 +1297,8 @@ const DetailPage = ({ d, onDone, onBack, onModify, say, split = false }) => {
 // Withdrawals leave the Custody account, so its balance is what's available.
 const DAILY_WD_LIMIT = 2000000; // USD, demo placeholder
 // Network fee per withdrawal, in the asset (demo placeholders)
-const WD_FEE = { BTC: { BTC: 0.0002 }, ETH: { ERC20: 0.002, Arbitrum: 0.0002, Base: 0.0002 }, USDT: { ERC20: 5, TRC20: 1, SOL: 1 }, USDC: { ERC20: 5, SOL: 1, Base: 1, Arbitrum: 1 } };
+// Fiat (2026-11-16): a bank withdrawal fee too; demo placeholders
+const WD_FEE = { USD: { bank: 10 }, HKD: { bank: 80 }, BTC: { BTC: 0.0002 }, ETH: { ERC20: 0.002, Arbitrum: 0.0002, Base: 0.0002 }, USDT: { ERC20: 5, TRC20: 1, SOL: 1 }, USDC: { ERC20: 5, SOL: 1, Base: 1, Arbitrum: 1 } };
 const wdFee = (c, net) => WD_FEE[c]?.[net] ?? 0;
 // Withdrawal confirmation sheet (Figma 9897:53403): what arrives, the breakdown, and a
 // slider instead of a button, so withdrawing takes a deliberate gesture.
@@ -1326,6 +1327,15 @@ const WdConfirmSheet = ({ open, d, amount, fee, onClose, onConfirm, say }) => {
             <Icon c={c} size={16} /> {c}
           </b>
         </div>
+        {d.to.net === "bank" ? (
+          <div className="dp-row">
+            <span>To</span>
+            <b>
+              {d.to.label} {d.to.addr}
+            </b>
+          </div>
+        ) : (
+          <>
         <div className="dp-row">
           <span>Network</span>
           <b>{NET[d.to.net].name}</b>
@@ -1339,6 +1349,8 @@ const WdConfirmSheet = ({ open, d, amount, fee, onClose, onConfirm, say }) => {
             </button>
           </b>
         </div>
+          </>
+        )}
         <div className="dp-row">
           <span>Withdraw amount</span>
           <b>
@@ -1371,8 +1383,10 @@ const WAmountPage = ({ d, onBack, onNext, onConfirm, say, hasPw = true, ls = "if
   const v = parseFloat(amt) || 0;
   const [ask, setAsk] = useState(false); // withdrawal confirmation sheet
   const [sec, setSec] = useState(false); // then security verification
-  // Crypto: the network fee comes on top, so the most you can withdraw is the balance less the fee
-  const fee = split && d.to.net !== "bank" ? wdFee(c, d.to.net) : 0;
+  // The fee comes on top (network fee for crypto, bank fee for fiat), so the most you can
+  // withdraw is the balance less the fee. Fiat follows crypto here (2026-11-16).
+  const isBank = d.to.net === "bank";
+  const fee = split ? wdFee(c, d.to.net) : 0;
   const maxWd = Math.max(0, avail - fee);
   const over = v > maxWd;
   const availEl = (
@@ -1390,7 +1404,7 @@ const WAmountPage = ({ d, onBack, onNext, onConfirm, say, hasPw = true, ls = "if
     </label>
   );
   // Split (Figma Xirry "Withdraw ETH"): To card, amount, Available + Max, Network, Review withdrawal.
-  if (split && d.to.net !== "bank")
+  if (split)
     return (
       <div className="oc-screen oc-page dp-page is-wamount">
         <AppBar title={`Withdraw ${c}`} onBack={onBack} />
@@ -1398,9 +1412,7 @@ const WAmountPage = ({ d, onBack, onNext, onConfirm, say, hasPw = true, ls = "if
           <div className="dp-to">
             <span>To</span>
             <b>{nameOf(d.to)}</b>
-            <small>
-              <FullAddr a={d.to.addr} />
-            </small>
+            <small>{isBank ? d.to.addr : <FullAddr a={d.to.addr} />}</small>
           </div>
           <div className="otc-fields">
             <div className={`otc-amount is-pay is-up${focused ? " is-focused" : ""}${over ? " is-error" : ""}`}>
@@ -1460,10 +1472,12 @@ const WAmountPage = ({ d, onBack, onNext, onConfirm, say, hasPw = true, ls = "if
               </b>
             </div>
           </div>
-          <div className="dp-row">
-            <span>Network</span>
-            <b>{NET[d.to.net].name}</b>
-          </div>
+          {!isBank && (
+            <div className="dp-row">
+              <span>Network</span>
+              <b>{NET[d.to.net].name}</b>
+            </div>
+          )}
         </div>
         {/* Bottom bar (Figma 9847:46092): deduct amount = amount + fee, and the CTA */}
         <div className="oc-foot dp-foot dp-deduct">

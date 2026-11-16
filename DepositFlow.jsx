@@ -1984,13 +1984,6 @@ const BulbIcon = () => (
     <path d="M9.5 20h5" stroke="#00c08b" strokeWidth="1.8" strokeLinecap="round" />
   </svg>
 );
-const QIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
-    <circle cx="10" cy="10" r="7.5" fill="#f7a042" />
-    <path d="M8 8.2a2 2 0 113 1.7c-.6.4-1 .8-1 1.5v.3" fill="none" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
-    <circle cx="10" cy="14" r=".9" fill="#fff" />
-  </svg>
-);
 const BankTips = ({ open, onClose, c, count, onCountries }) => (
   <BaseSheet open={open} onClose={onClose} title="Tips" className="dp-tips">
     <ol className="dp-tips-list">
@@ -2049,7 +2042,7 @@ const BankTypePage = ({ d, ls = "ifta", setAsset, onBack, onNext, onTips, onClos
       />
       <div className={`oc-page-body dp-body otc-style-${ls}`}>
         <div className="dp-note has-icon">
-          <QIcon />
+          <WarnIcon />
           <span>Note: Deposit requested near bank holidays may experience processing delays.</span>
         </div>
         {/* Same dropdown as Add whitelist address (2026-11-16) */}

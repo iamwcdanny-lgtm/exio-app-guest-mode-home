@@ -3018,7 +3018,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         {stack.includes("connect") && (
           <ConnectPage
             d={d}
-            ls={labelStyle}
+            ls="float" /* add wallet / add bank account: floating label (2026-11-17) */
             sheet={sheet}
             onPickAsset={() => setSheet("asset")}
             onPickNet={() => setSheet("network")}
@@ -3032,7 +3032,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         {stack.includes("addr") && (
           <AddrPage
             d={d}
-            ls={labelStyle}
+            ls="float"
             sheet={sheet}
             onPickAsset={() => setSheet("asset")}
             onPickNet={() => setSheet("network")}
@@ -3047,7 +3047,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         )}
         {stack.includes("sign") && <SignPage addr={wl.addr} onBack={pop} onClose={closeAdd} onHow={() => setSheet("how")} onSubmit={() => setSheet("sec")} say={say} />}
         {stack.includes("bank1") && (
-          <BankTypePage d={d} ls={labelStyle} setAsset={(a) => setD((x) => ({ ...x, asset: a }))} onBack={pop} onClose={closeAdd} onNext={() => push("bank2")} onTips={() => setSheet("tips")} />
+          <BankTypePage d={d} ls="float" setAsset={(a) => setD((x) => ({ ...x, asset: a }))} onBack={pop} onClose={closeAdd} onNext={() => push("bank2")} onTips={() => setSheet("tips")} />
         )}
         {stack.includes("bank2") && <BankInfoPage d={d} onBack={pop} onClose={closeAdd} onTips={() => setSheet("tips")} say={say} />}
     </>

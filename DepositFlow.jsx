@@ -1219,6 +1219,9 @@ const DetailPage = ({ d, onDone, onBack, onModify, say, split = false }) => {
           <button type="button" className="oc-btn is-primary" onClick={onDone}>
             Done
           </button>
+          <button type="button" className="oc-btn is-outline" onClick={() => say("Saved to Photos")}>
+            Save
+          </button>
         </div>
         {fromNew && (
           <ModifyAmtSheet
@@ -1287,6 +1290,9 @@ const DetailPage = ({ d, onDone, onBack, onModify, say, split = false }) => {
       <div className="oc-foot dp-foot">
         <button type="button" className="oc-btn is-primary" onClick={onDone}>
           Done
+        </button>
+        <button type="button" className="oc-btn is-outline" onClick={() => say("Saved to Photos")}>
+          Save
         </button>
       </div>
     </div>
@@ -2235,8 +2241,11 @@ const BankInfoPage = ({ d, onBack, onTips, say, onClose }) => {
         </section>
       </div>
       <div className="oc-foot dp-foot">
-        <button type="button" className="oc-btn is-primary" onClick={() => say("Saved to Photos")}>
-          Save picture
+        <button type="button" className="oc-btn is-primary" onClick={onClose}>
+          Done
+        </button>
+        <button type="button" className="oc-btn is-outline" onClick={() => say("Saved to Photos")}>
+          Save
         </button>
       </div>
     </div>

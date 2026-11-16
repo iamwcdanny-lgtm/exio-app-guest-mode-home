@@ -500,7 +500,7 @@
   gap: 4px;
   margin: 0 0 12px;
   padding: 16px;
-  border-radius: 12px;
+  border-radius: 8px;
   background: #e6f6ff;
   font-size: 12px;
   line-height: 18px;
@@ -1070,7 +1070,7 @@ textarea.dp-tf-input {
   gap: 4px;
   margin: 0;
   padding: 16px;
-  border-radius: 12px;
+  border-radius: 8px;
   background: #e6f6ff;
   /* type as the orange note (.dp-note), 2026-11-16 */
   font-size: 12px;
@@ -1455,7 +1455,7 @@ textarea.dp-tf-input {
   flex-direction: column;
   gap: 4px;
   padding: 8px;
-  border-radius: 12px;
+  border-radius: 8px;
   background: #e6f6ff;
 }
 .dp-walert.is-warn {

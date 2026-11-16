@@ -2330,8 +2330,7 @@ textarea.dp-tf-input {
 .dp-bank-to {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: 2px; /* plain label + value like the rows below (2026-11-16: no box) */
 }
 .dp-bank-to span,
 .dp-bank-row small {
@@ -2341,12 +2340,9 @@ textarea.dp-tf-input {
   color: rgba(0, 0, 0, 0.4);
 }
 .dp-bank-to b {
-  padding: 12px;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.03);
   font-size: 14px;
   line-height: 20px;
-  font-weight: 500;
+  font-weight: 600;
   color: rgba(0, 0, 0, 0.9);
 }
 .dp-bank-row {

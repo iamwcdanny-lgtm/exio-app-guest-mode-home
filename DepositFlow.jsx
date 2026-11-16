@@ -2031,10 +2031,12 @@ const BankBarRight = ({ onTips, onClose }) => (
     )}
   </span>
 );
+const BANK_TYPES = { hk: "Hong Kong", os: "Oversea Bank" };
 const BankTypePage = ({ d, ls = "ifta", setAsset, onBack, onNext, onTips, onClose }) => {
   const c = d.asset;
   const [type, setType] = useState("hk");
   const [pick, setPick] = useState(false);
+  const [pickType, setPickType] = useState(false);
   return (
     <div className="oc-screen oc-page dp-page is-bank1">
       <AppBar
@@ -2056,18 +2058,10 @@ const BankTypePage = ({ d, ls = "ifta", setAsset, onBack, onNext, onTips, onClos
             <small className="dp-pick-sub">{CCY[c]?.name}</small>
           </b>
         </Picker>
-        <div className="dp-btype" role="radiogroup" aria-label="Bank Account Type">
-          <span className="dp-trad-label">Bank Account Type</span>
-          {[
-            ["hk", "Hong Kong"],
-            ["os", "Oversea Bank"],
-          ].map(([k, l]) => (
-            <button key={k} type="button" role="radio" aria-checked={type === k} className="dp-btype-row" onClick={() => setType(k)}>
-              <span>{l}</span>
-              <span className={`dp-radio${type === k ? " is-on" : ""}`} aria-hidden="true" />
-            </button>
-          ))}
-        </div>
+        {/* Bank Account Type as a dropdown too (2026-11-16) */}
+        <Picker ls={ls} label="Bank Account Type" open={pickType} onOpen={() => setPickType(true)}>
+          <b>{BANK_TYPES[type]}</b>
+        </Picker>
         {type === "os" && (
           <section className="dp-countries" aria-label="Supported countries/regions">
             <h3>Supported countries/regions</h3>
@@ -2091,6 +2085,14 @@ const BankTypePage = ({ d, ls = "ifta", setAsset, onBack, onNext, onTips, onClos
         onPick={(v) => setAsset(v)}
         onClose={() => setPick(false)}
         options={KINDS.fiat.assets.map((k) => ({ value: k, label: k, name: CCY[k].name, icon: <Icon c={k} /> }))}
+      />
+      <TokenSheet
+        open={pickType}
+        title="Bank Account Type"
+        value={type}
+        onPick={(v) => setType(v)}
+        onClose={() => setPickType(false)}
+        options={Object.entries(BANK_TYPES).map(([k, l]) => ({ value: k, label: l }))}
       />
     </div>
   );

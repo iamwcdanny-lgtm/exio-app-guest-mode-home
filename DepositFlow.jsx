@@ -2031,7 +2031,7 @@ const BankBarRight = ({ onTips, onClose }) => (
     )}
   </span>
 );
-const BankTypePage = ({ d, setAsset, onBack, onNext, onTips, onClose }) => {
+const BankTypePage = ({ d, ls = "ifta", setAsset, onBack, onNext, onTips, onClose }) => {
   const c = d.asset;
   const [type, setType] = useState("hk");
   const [pick, setPick] = useState(false);
@@ -2043,21 +2043,19 @@ const BankTypePage = ({ d, setAsset, onBack, onNext, onTips, onClose }) => {
         onBack={onClose || onBack}
         right={<BankBarRight onTips={onTips} onClose={onClose} />}
       />
-      <div className="oc-page-body dp-body">
+      <div className={`oc-page-body dp-body otc-style-${ls}`}>
         <div className="dp-note has-icon">
           <QIcon />
           <span>Note: Deposit requested near bank holidays may experience processing delays.</span>
         </div>
-        <div className="dp-trad">
-          <span className="dp-trad-label">Asset</span>
-          <button type="button" className={`oc-xpick dp-pick is-trad dp-bank-asset${pick ? " is-open" : ""}`} aria-haspopup="dialog" onClick={() => setPick(true)}>
-            <span className="oc-xpick-row">
-              <Icon c={c} size={24} />
-              <b>{c}</b>
-              <img className="sel-caret" src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" />
-            </span>
-          </button>
-        </div>
+        {/* Same dropdown as Add whitelist address (2026-11-16) */}
+        <Picker ls={ls} label="Asset" open={pick} onOpen={() => setPick(true)}>
+          <Icon c={c} size={20} />
+          <b>
+            {c}
+            <small className="dp-pick-sub">{CCY[c]?.name}</small>
+          </b>
+        </Picker>
         <div className="dp-btype" role="radiogroup" aria-label="Bank Account Type">
           <span className="dp-trad-label">Bank Account Type</span>
           {[
@@ -2996,7 +2994,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         {stack.includes("sign") && <SignPage addr={wl.addr} onBack={pop} onClose={closeAdd} onHow={() => setSheet("how")} onSubmit={() => push("sec")} say={say} />}
         {stack.includes("sec") && <SecPage onBack={pop} onClose={closeAdd} onDone={whitelist} />}
         {stack.includes("bank1") && (
-          <BankTypePage d={d} setAsset={(a) => setD((x) => ({ ...x, asset: a }))} onBack={pop} onClose={closeAdd} onNext={() => push("bank2")} onTips={() => setSheet("tips")} />
+          <BankTypePage d={d} ls={labelStyle} setAsset={(a) => setD((x) => ({ ...x, asset: a }))} onBack={pop} onClose={closeAdd} onNext={() => push("bank2")} onTips={() => setSheet("tips")} />
         )}
         {stack.includes("bank2") && <BankInfoPage d={d} onBack={pop} onClose={closeAdd} onTips={() => setSheet("tips")} say={say} />}
     </>

@@ -494,14 +494,22 @@
 
 /* ---------- Add new wallet ---------- */
 .tks-note {
+  /* same as the Manage info reminder (.dp-info), 2026-11-16 */
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
   margin: 0 0 12px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: rgba(0, 120, 255, 0.06);
+  padding: 16px;
+  border-radius: 12px;
+  background: #e6f6ff;
   font-size: 12px;
   line-height: 18px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.6);
+  color: #007dc0;
+}
+.tks-note svg {
+  flex: none;
+  margin: 1px 2px;
 }
 .dp-micon {
   display: grid;

@@ -49,7 +49,17 @@ export default function TokenSheet({ open: openProp, title = "Select currency", 
         <div className="tks-head">
           <h2>{title}</h2>
         </div>
-        {note && <p className="tks-note">{note}</p>}
+        {note && (
+          // Blue info reminder with icon, as in Manage (2026-11-16)
+          <p className="tks-note">
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+              <circle cx="8" cy="8" r="6.7" fill="#007dc0" />
+              <path d="M8 7.2v3.9" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
+              <circle cx="8" cy="5" r=".9" fill="#fff" />
+            </svg>
+            <span>{note}</span>
+          </p>
+        )}
         <div className="tks-list" role="radiogroup" aria-label={title}>
           {options.map((o) => (
             <button

@@ -2010,7 +2010,7 @@ const WResultPage = ({ onDone, onHistory, d, split = false }) => (
     {/* Content as Figma 18342:150106 (a sheet there; a page here) */}
     <div className="oc-page-body dp-body dp-result">
       {/* Result icon: pending (2026-11-16, from Dan) */}
-      <img className="dp-result-icon" src={`${IMG}/result_pending.svg`} width="120" height="120" alt="" />
+      <img className="dp-result-icon" src={`${IMG}/result-pending.png`} width="120" height="120" alt="" />
       <h2>Awaiting approval</h2>
       <p className="dp-result-msg">Withdrawal request submitted. You will be notified once the withdrawal is complete. View your history for the latest updates.</p>
     </div>

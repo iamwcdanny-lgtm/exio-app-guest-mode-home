@@ -138,28 +138,10 @@ const Banner = ({ g, onAction, flush }) =>
     </div>
   ) : null;
 
+// Result illustrations (2026-11-16, PNGs from Dan: they have a soft background)
+const ILLO = { ok: "result-success", warn: "result-warning", clock: "result-pending", error: "result-error" };
 const Illo = ({ kind }) => (
-  <div className={`pd-illo is-${kind}`} aria-hidden="true">
-    <span className="pd-illo-back" />
-    <span className="pd-illo-front">
-      {kind === "warn" && (
-        <svg width="40" height="40" viewBox="0 0 40 40">
-          <path d="M20 9v14" stroke="#fff" strokeWidth="4" strokeLinecap="round" />
-          <circle cx="20" cy="30" r="2.6" fill="#fff" />
-        </svg>
-      )}
-      {kind === "ok" && (
-        <svg width="40" height="40" viewBox="0 0 40 40">
-          <path d="M11 21l6 6 12-13" fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )}
-      {kind === "clock" && (
-        <svg width="40" height="40" viewBox="0 0 40 40">
-          <path d="M20 10v11l6 6" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )}
-    </span>
-  </div>
+  <img className="pd-illo-img" src={`${import.meta.env.BASE_URL}images/otc/${ILLO[kind]}.png`} width="120" height="120" alt="" aria-hidden="true" />
 );
 
 // Bottom sheet over the PD screens.

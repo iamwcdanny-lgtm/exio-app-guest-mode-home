@@ -245,7 +245,7 @@ export default function PasskeySetup({ open, onClose, onSetUp, platform = "ios",
           </header>
           {done ? (
             <div className="oc-page-body pk-body pk-done">
-              <img src={`${IMG}/passkey/result-success.svg`} width="120" height="120" alt="" />
+              <img src={`${IMG}/otc/result-success.png`} width="120" height="120" alt="" />
               <h2>Passkey added successfully</h2>
               <p>You have successfully linked a passkey</p>
             </div>

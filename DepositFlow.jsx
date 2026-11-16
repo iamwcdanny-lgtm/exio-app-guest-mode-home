@@ -971,8 +971,9 @@ const ManagePage = ({ book, tab, setTab, onBack, onAdd, onAddBank, onWithdraw, s
                       <b>{b.label}</b>
                       <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-mcell-chev" />
                     </span>
+                    {/* Same structure as the crypto cell (2026-11-16): number on its own line, then tags */}
+                    <small className="dp-mcell-addr">****{b.no.replace(/\D/g, "").slice(-4)}</small>
                     <span className="dp-mcell-sub">
-                      <span className="dp-bank-no">****{b.no.replace(/\D/g, "").slice(-4)}</span>
                       {b.ccy.map((c) => (
                         <span key={c} className="dp-tag is-wl is-net">
                           {c}

@@ -2421,14 +2421,6 @@ textarea.dp-tf-input {
   margin-bottom: 16px;
 }
 
-/* Add address: security verification page in the page sheet (2026-11-13) */
-.is-secpage .pk-step {
-  padding-top: 8px;
-}
-.is-secpage .as-otp.is-error .as-otp-box {
-  border-color: #ff649b;
-}
-
 /* Add bank account in the page sheet (2026-11-16): tips + close at the top right */
 .oc-appbar:has(.dp-bar-right) {
   grid-template-columns: 88px 1fr 88px;

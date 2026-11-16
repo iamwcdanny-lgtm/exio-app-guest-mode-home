@@ -2703,31 +2703,6 @@ const SignPage = ({ addr, onBack, onClose, onHow, onSubmit, say }) => {
   );
 };
 
-// Add address, last step (2026-11-13): security verification as a page in the page
-// sheet, for both Connect to wallet and Manual wallet signing. SMS, then authenticator.
-const SecPage = ({ onBack, onClose, onDone }) => {
-  const [on, setOn] = useState(false);
-  useEffect(() => {
-    const t = setTimeout(() => setOn(true), 30);
-    return () => clearTimeout(t);
-  }, []);
-  return (
-    <div className="oc-screen oc-page dp-page is-secpage">
-      <AppBar
-        title="Add whitelist address"
-        onBack={onBack}
-        right={
-          <button type="button" className="oc-back is-close" aria-label="Close" onClick={onClose}>
-            <XIcon />
-          </button>
-        }
-      />
-      <div className="oc-page-body dp-body as-style-float">
-        <VerifySteps open={on} onDone={onDone} lastLabel="Complete" />
-      </div>
-    </div>
-  );
-};
 
 const BaseSheet = ({ open, onClose, title, children, className = "", tag = null }) => (
   <PhoneLayer className="tks-layer">
@@ -2808,7 +2783,7 @@ const WalletApp = ({ k, onCancel, onConnect }) => {
    the address list, like sign-up and the OTC chat: the app behind shrinks into a card
    (.mhc-phone.as-open, --as-p). Android: full screen. The sheet keeps its last pages while
    it slides down. */
-const ADD_PAGES = ["amount", "connect", "addr", "sign", "sec", "bank1", "bank2"];
+const ADD_PAGES = ["amount", "connect", "addr", "sign", "bank1", "bank2"];
 const AddSheet = ({ open, children }) => {
   const [shown, setShown] = useState(open);
   const ref = useRef(null);
@@ -3070,8 +3045,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             setAddr={(v) => setWl((x) => ({ ...x, addr: v }))}
           />
         )}
-        {stack.includes("sign") && <SignPage addr={wl.addr} onBack={pop} onClose={closeAdd} onHow={() => setSheet("how")} onSubmit={() => push("sec")} say={say} />}
-        {stack.includes("sec") && <SecPage onBack={pop} onClose={closeAdd} onDone={whitelist} />}
+        {stack.includes("sign") && <SignPage addr={wl.addr} onBack={pop} onClose={closeAdd} onHow={() => setSheet("how")} onSubmit={() => setSheet("sec")} say={say} />}
         {stack.includes("bank1") && (
           <BankTypePage d={d} ls={labelStyle} setAsset={(a) => setD((x) => ({ ...x, asset: a }))} onBack={pop} onClose={closeAdd} onNext={() => push("bank2")} onTips={() => setSheet("tips")} />
         )}
@@ -3261,7 +3235,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             onCancel={() => setWapp(null)}
             onConnect={() => {
               setWapp(null);
-              push("sec");
+              setSheet("sec");
             }}
           />
         )}
@@ -3394,6 +3368,9 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         options={KINDS.crypto.assets.map((c) => ({ value: c, label: c, icon: <Icon c={c} />, name: CCY[c].name, tag: CCY[c].pi ? "PI" : undefined }))}
       />
       <HowSheet open={sheet === "how"} onClose={closeSheet("how")} />
+      {/* Add address, last step (2026-11-16): security verification in a bottom sheet over
+          the page sheet, for both Connect to wallet and Manual wallet signing. SMS, then authenticator. */}
+      <VerifySheet open={sheet === "sec"} onClose={closeSheet("sec")} onDone={whitelist} lastLabel="Complete" />
       <BankTips
         open={sheet === "tips"}
         onClose={closeSheet("tips")}

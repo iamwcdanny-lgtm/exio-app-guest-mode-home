@@ -177,9 +177,11 @@ const AppBar = ({ title, onBack, slide = true, right = null, close = false }) =>
     <header className="oc-appbar">
       <span />
       <h1>{title}</h1>
-      <button type="button" className="oc-back is-close" aria-label="Close" onClick={() => onBack()}>
-        <XIcon />
-      </button>
+      {right || (
+        <button type="button" className="oc-back is-close" aria-label="Close" onClick={() => onBack()}>
+          <XIcon />
+        </button>
+      )}
     </header>
   ) : (
     <header className="oc-appbar">
@@ -2016,7 +2018,20 @@ const BankTips = ({ open, onClose, c, count, onCountries }) => (
     </ol>
   </BaseSheet>
 );
-const BankTypePage = ({ d, setAsset, onBack, onNext, onTips }) => {
+// Add bank account in the page sheet (2026-11-16): tips, then close, at the top right.
+const BankBarRight = ({ onTips, onClose }) => (
+  <span className="dp-bar-right">
+    <button type="button" className="oc-back is-close" aria-label="Tips" onClick={onTips}>
+      <BulbIcon />
+    </button>
+    {onClose && (
+      <button type="button" className="oc-back is-close" aria-label="Close" onClick={onClose}>
+        <XIcon />
+      </button>
+    )}
+  </span>
+);
+const BankTypePage = ({ d, setAsset, onBack, onNext, onTips, onClose }) => {
   const c = d.asset;
   const [type, setType] = useState("hk");
   const [pick, setPick] = useState(false);
@@ -2024,12 +2039,9 @@ const BankTypePage = ({ d, setAsset, onBack, onNext, onTips }) => {
     <div className="oc-screen oc-page dp-page is-bank1">
       <AppBar
         title="Add bank account"
-        onBack={onBack}
-        right={
-          <button type="button" className="oc-back is-close" aria-label="Tips" onClick={onTips}>
-            <BulbIcon />
-          </button>
-        }
+        close={!!onClose}
+        onBack={onClose || onBack}
+        right={<BankBarRight onTips={onTips} onClose={onClose} />}
       />
       <div className="oc-page-body dp-body">
         <div className="dp-note has-icon">
@@ -2085,7 +2097,7 @@ const BankTypePage = ({ d, setAsset, onBack, onNext, onTips }) => {
     </div>
   );
 };
-const BankInfoPage = ({ d, onBack, onTips, say }) => {
+const BankInfoPage = ({ d, onBack, onTips, say, onClose }) => {
   const c = d.asset;
   const copy = (k, v) => {
     navigator.clipboard?.writeText(v).catch(() => {});
@@ -2096,11 +2108,7 @@ const BankInfoPage = ({ d, onBack, onTips, say }) => {
       <AppBar
         title="Add bank account"
         onBack={onBack}
-        right={
-          <button type="button" className="oc-back is-close" aria-label="Tips" onClick={onTips}>
-            <BulbIcon />
-          </button>
-        }
+        right={<BankBarRight onTips={onTips} onClose={onClose} />}
       />
       <div className="oc-page-body dp-body">
         <div className="dp-note has-icon">
@@ -2723,7 +2731,7 @@ const WalletApp = ({ k, onCancel, onConnect }) => {
    the address list, like sign-up and the OTC chat: the app behind shrinks into a card
    (.mhc-phone.as-open, --as-p). Android: full screen. The sheet keeps its last pages while
    it slides down. */
-const ADD_PAGES = ["amount", "connect", "addr", "sign", "sec"];
+const ADD_PAGES = ["amount", "connect", "addr", "sign", "sec", "bank1", "bank2"];
 const AddSheet = ({ open, children }) => {
   const [shown, setShown] = useState(open);
   const ref = useRef(null);
@@ -2868,6 +2876,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         savedD.current = d;
         setD({ kind: "fiat", asset: "HKD", net: "bank" });
       }
+      setAdding(true);
       return push("bank1");
     }
     if (fiat) return toAmount();
@@ -2878,6 +2887,10 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
   const push = (pg) => setStack((s) => [...s.filter((x) => x !== pg), pg]);
   const closeAdd = () => {
     setAdding(false);
+    if (stack.includes("bank1") && savedD.current) {
+      setD(savedD.current);
+      savedD.current = null;
+    }
     setStack((s) => s.filter((x) => !ADD_PAGES.includes(x)));
   };
   const startAdd = (method) => {
@@ -2984,6 +2997,10 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         )}
         {stack.includes("sign") && <SignPage addr={wl.addr} onBack={pop} onClose={closeAdd} onHow={() => setSheet("how")} onSubmit={() => push("sec")} say={say} />}
         {stack.includes("sec") && <SecPage onBack={pop} onClose={closeAdd} onDone={whitelist} />}
+        {stack.includes("bank1") && (
+          <BankTypePage d={d} setAsset={(a) => setD((x) => ({ ...x, asset: a }))} onBack={pop} onClose={closeAdd} onNext={() => push("bank2")} onTips={() => setSheet("tips")} />
+        )}
+        {stack.includes("bank2") && <BankInfoPage d={d} onBack={pop} onClose={closeAdd} onTips={() => setSheet("tips")} say={say} />}
     </>
   );
   if (sheetOpen) lastAdd.current = addPages;
@@ -3086,7 +3103,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             }}
             v2={v2}
             onAdd={() => {
-              if (fiat) return v2 ? push("bank1") : toAmount();
+              if (fiat) return v2 ? (setAdding(true), push("bank1")) : toAmount();
               setNoSmall(v2 && split);
               return setSheet("method");
             }}
@@ -3132,10 +3149,6 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
         )}
         {stack.includes("wreview") && <WReviewPage d={d} split={split} onBack={pop} onConfirmed={() => push(split && d.to?.net !== "bank" ? "wverify" : "wdone")} />}
         {stack.includes("wverify") && <WVerifyPage d={d} ls={labelStyle} hasPw={wdPw === "set"} onBack={pop} onVerified={() => push("wdone")} />}
-        {stack.includes("bank1") && (
-          <BankTypePage d={d} setAsset={(a) => setD((x) => ({ ...x, asset: a }))} onBack={pop} onNext={() => push("bank2")} onTips={() => setSheet("tips")} />
-        )}
-        {stack.includes("bank2") && <BankInfoPage d={d} onBack={pop} onTips={() => setSheet("tips")} say={say} />}
         {stack.includes("wdone") && <WResultPage onDone={finish} onHistory={() => say("Withdrawal history isn’t in this demo")} d={d} split={split} />}
         {stack.includes("amount") && !adding && amountPage}
         {detail && (

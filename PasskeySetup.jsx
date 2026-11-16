@@ -45,7 +45,7 @@ const Spinner = () => <span className="pk-spin" aria-hidden="true" />;
 // SMS, then authenticator); `extra` adds a line under the CTA there.
 // The SMS → authenticator steps on their own, for a bottom sheet (VerifySheet) or a
 // page in the add-address page sheet (2026-11-13). `open` resets and focuses them.
-export const VerifySteps = ({ open, onDone, extra = null, lastLabel = "Next", onBusy }) => {
+export const VerifySteps = ({ open, onDone, extra = null, lastLabel = "Next", onBusy, stepFrom = 1, stepTotal = 2 }) => {
   const [step, setStep] = useState("sms");
   const [code, setCode] = useState(EMPTY);
   const [error, setError] = useState("");
@@ -109,8 +109,8 @@ export const VerifySteps = ({ open, onDone, extra = null, lastLabel = "Next", on
             <h2 className="pk-title" id="pk-title">
               {step === "sms" ? "SMS verification" : "Authenticator verification"}
             </h2>
-            <span className="pk-step-tag" aria-label={`Step ${step === "sms" ? 1 : 2} of 2`}>
-              Step {step === "sms" ? 1 : 2} of 2
+            <span className="pk-step-tag" aria-label={`Step ${stepFrom + (step === "sms" ? 0 : 1)} of ${stepTotal}`}>
+              Step {stepFrom + (step === "sms" ? 0 : 1)} of {stepTotal}
             </span>
           </div>
           <p className="pk-sub">
@@ -158,14 +158,14 @@ export const VerifySteps = ({ open, onDone, extra = null, lastLabel = "Next", on
   );
 };
 
-export const VerifySheet = ({ open, onClose, onDone, extra = null, lastLabel = "Next" }) => {
+export const VerifySheet = ({ open, onClose, onDone, extra = null, lastLabel = "Next", stepFrom = 1, stepTotal = 2 }) => {
   const [busy, setBusy] = useState(false);
   return (
     <PhoneLayer className="tks-layer pk-layer">
       <div className={`tks-scrim${open ? " is-open" : ""}`} onClick={busy ? undefined : onClose} aria-hidden="true" />
       <div className={`tks-sheet pk-sheet as-style-float${open ? " is-open" : ""}`} role="dialog" aria-modal="true" aria-labelledby="pk-title" aria-hidden={!open}>
         <span className="tks-grab" aria-hidden="true" />
-        <VerifySteps open={open} onDone={onDone} extra={extra} lastLabel={lastLabel} onBusy={setBusy} />
+        <VerifySteps open={open} onDone={onDone} extra={extra} lastLabel={lastLabel} onBusy={setBusy} stepFrom={stepFrom} stepTotal={stepTotal} />
       </div>
     </PhoneLayer>
   );

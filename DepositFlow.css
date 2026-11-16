@@ -2493,3 +2493,19 @@ textarea.dp-tf-input {
   line-height: 18px;
   color: var(--text-tertiary);
 }
+
+/* Withdraw security (2026-11-16): step tag next to the sheet title; on the passkey sheet,
+   which has no title, the tag sits alone at the top right. */
+.tks-head.has-tag {
+  gap: 12px;
+}
+.tks-head.has-tag .pk-step-tag {
+  flex: none;
+}
+.dp-pk .tks-head.has-tag {
+  display: flex;
+  justify-content: flex-end;
+}
+.dp-pk .tks-head.has-tag h2 {
+  display: none;
+}

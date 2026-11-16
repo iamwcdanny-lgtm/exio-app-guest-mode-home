@@ -1064,14 +1064,15 @@ textarea.dp-tf-input {
   padding: 16px;
   border-radius: 12px;
   background: #e6f6ff;
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 700;
+  /* type as the orange note (.dp-note), 2026-11-16 */
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
   color: #007dc0;
 }
 .dp-info svg {
   flex: none;
-  margin: 2px;
+  margin: 1px 2px;
 }
 .dp-mcell {
   border: 1px solid #d9d9d9;
@@ -1459,7 +1460,7 @@ textarea.dp-tf-input {
   margin: 0;
   font-size: 12px;
   line-height: 18px;
-  font-weight: 600;
+  font-weight: 500; /* as the orange note (.dp-note), 2026-11-16 */
   color: #019ff8;
   font-feature-settings: "lnum" 1, "tnum" 1; /* countdown digits don't jitter */
 }

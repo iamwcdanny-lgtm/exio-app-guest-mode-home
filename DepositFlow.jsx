@@ -1939,14 +1939,8 @@ const WResultPage = ({ onDone, onHistory, d, split = false }) => (
     </header>
     {/* Content as Figma 18342:150106 (a sheet there; a page here) */}
     <div className="oc-page-body dp-body dp-result">
-      <div className="pd-illo is-clock" aria-hidden="true">
-        <span className="pd-illo-back" />
-        <span className="pd-illo-front">
-          <svg width="40" height="40" viewBox="0 0 40 40">
-            <path d="M20 10v11l6 6" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </span>
-      </div>
+      {/* Result icon: pending (2026-11-16, from Dan) */}
+      <img className="dp-result-icon" src={`${IMG}/result_pending.svg`} width="120" height="120" alt="" />
       <h2>Awaiting approval</h2>
       <p className="dp-result-msg">Withdrawal request submitted. You will be notified once the withdrawal is complete. View your history for the latest updates.</p>
     </div>

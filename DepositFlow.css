@@ -2444,3 +2444,47 @@ textarea.dp-tf-input {
   transform: translateY(calc(var(--as-top) * var(--as-p))) scale(calc(1 - 0.075 * var(--as-p)));
   transition: transform var(--as-dur) var(--as-ease), border-radius var(--as-dur) var(--as-ease);
 }
+
+/* Add bank account › Oversea Bank: supported countries/regions, styled and revealed
+   like the password requirements in Create password (AuthSheet .as-strength). */
+.dp-field-group {
+  display: flex;
+  flex-direction: column;
+}
+.dp-reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.25s ease, opacity 0.2s ease;
+}
+.dp-reveal.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.dp-reveal-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+.dp-countries.is-card {
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dp-countries-title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text-primary);
+}
+.dp-countries.is-card ul {
+  gap: 6px;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text-tertiary);
+}

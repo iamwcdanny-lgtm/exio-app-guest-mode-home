@@ -2059,19 +2059,24 @@ const BankTypePage = ({ d, ls = "ifta", setAsset, onBack, onNext, onTips, onClos
           </b>
         </Picker>
         {/* Bank Account Type as a dropdown too (2026-11-16) */}
-        <Picker ls={ls} label="Bank Account Type" open={pickType} onOpen={() => setPickType(true)}>
-          <b>{BANK_TYPES[type]}</b>
-        </Picker>
-        {type === "os" && (
-          <section className="dp-countries" aria-label="Supported countries/regions">
-            <h3>Supported countries/regions</h3>
-            <ul>
-              {COUNTRIES.map((n) => (
-                <li key={n}>{n}</li>
-              ))}
-            </ul>
-          </section>
-        )}
+        <div className="dp-field-group">
+          <Picker ls={ls} label="Bank Account Type" open={pickType} onOpen={() => setPickType(true)}>
+            <b>{BANK_TYPES[type]}</b>
+          </Picker>
+          {/* Opens under the field like the password requirements in Create password (2026-11-16) */}
+          <div className={`dp-reveal${type === "os" ? " is-open" : ""}`} aria-hidden={type !== "os"}>
+            <div className="dp-reveal-inner">
+              <section className="dp-countries is-card" aria-label="Supported countries/regions">
+                <p className="dp-countries-title">Supported countries/regions</p>
+                <ul>
+                  {COUNTRIES.map((n) => (
+                    <li key={n}>{n}</li>
+                  ))}
+                </ul>
+              </section>
+            </div>
+          </div>
+        </div>
       </div>
       <div className="oc-foot dp-foot">
         <button type="button" className="oc-btn is-primary" onClick={() => onNext(type)}>

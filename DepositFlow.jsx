@@ -2590,7 +2590,7 @@ const ConnectPage = ({ d, ls, sheet, onPickAsset, onPickNet, onBack, onConnect, 
 };
 
 // Connect to wallet, step 2: the address the wallet passed back, then Sign.
-const ConnectedPage = ({ d, ls, wallet, onBack, onClose, onDisconnect, onCopy, onSign, remarks, setRemarks }) => {
+const ConnectedPage = ({ d, ls, wallet, onBack, onClose, onDisconnect, onSign, remarks, setRemarks }) => {
   const a = DEMO_ADDR[d.net] || "";
   return (
     <div className="oc-screen oc-page dp-page is-connected">
@@ -2617,9 +2617,6 @@ const ConnectedPage = ({ d, ls, wallet, onBack, onClose, onDisconnect, onCopy, o
               Disconnect
             </button>
           </div>
-          <button type="button" className="oc-btn is-outline is-sm dp-copy-btn" onClick={onCopy}>
-            Copy address
-          </button>
         </div>
         <TextField ls={ls} id="dp-wc-remarks" label="Remarks (optional)" value={remarks} onChange={setRemarks} placeholder={`e.g. My ${wallet ? WALLET[wallet].name : "wallet"}`} inputProps={{ maxLength: 30 }} />
       </div>
@@ -3086,10 +3083,6 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
               setWl((x) => ({ ...x, wallet: null }));
               pop();
               say("Wallet disconnected");
-            }}
-            onCopy={() => {
-              navigator.clipboard?.writeText(DEMO_ADDR[d.net] || "").catch(() => {});
-              say("Address copied");
             }}
             onSign={() => setSheet("sec")}
             remarks={wl.remarks}

@@ -2590,7 +2590,7 @@ const ConnectPage = ({ d, ls, sheet, onPickAsset, onPickNet, onBack, onConnect, 
 };
 
 // Connect to wallet, step 2: the address the wallet passed back, then Sign.
-const ConnectedPage = ({ d, ls, wallet, onBack, onClose, onDisconnect, onSign, remarks, setRemarks }) => {
+const ConnectedPage = ({ d, ls, wallet, onBack, onClose, onDisconnect, onCopy, onSign, remarks, setRemarks }) => {
   const a = DEMO_ADDR[d.net] || "";
   return (
     <div className="oc-screen oc-page dp-page is-connected">
@@ -2605,17 +2605,20 @@ const ConnectedPage = ({ d, ls, wallet, onBack, onClose, onDisconnect, onSign, r
       />
       <div className={`oc-page-body dp-body dp-form is-${ls} otc-style-${ls}`}>
         <StepTag n={2} />
+        <div className="dp-note has-icon">
+          <WarnIcon />
+          <span>{LOCK_NOTE}</span>
+        </div>
         <div className="dp-wconn">
-          <div className="dp-wconn-top">
-            {wallet && <WalletBadge k={wallet} size={32} />}
-            <b>{wallet ? WALLET[wallet].name : "Wallet"}</b>
+          <TextField ls={ls} id="dp-wc-addr" multiline label="Address" value={a} onChange={() => {}} inputProps={{ readOnly: true, spellCheck: false }} />
+          <div className="dp-wconn-row">
             <span className="dp-wconn-status">Connected</span>
+            <button type="button" className="dp-wconn-off" onClick={onDisconnect}>
+              Disconnect
+            </button>
           </div>
-          <p className="dp-wconn-addr">
-            <FullAddr a={a} />
-          </p>
-          <button type="button" className="dp-wconn-off" onClick={onDisconnect}>
-            Disconnect
+          <button type="button" className="oc-btn is-outline is-sm dp-copy-btn" onClick={onCopy}>
+            Copy address
           </button>
         </div>
         <TextField ls={ls} id="dp-wc-remarks" label="Remarks (optional)" value={remarks} onChange={setRemarks} placeholder={`e.g. My ${wallet ? WALLET[wallet].name : "wallet"}`} inputProps={{ maxLength: 30 }} />
@@ -3083,6 +3086,10 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
               setWl((x) => ({ ...x, wallet: null }));
               pop();
               say("Wallet disconnected");
+            }}
+            onCopy={() => {
+              navigator.clipboard?.writeText(DEMO_ADDR[d.net] || "").catch(() => {});
+              say("Address copied");
             }}
             onSign={() => setSheet("sec")}
             remarks={wl.remarks}

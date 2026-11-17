@@ -2513,28 +2513,22 @@ textarea.dp-tf-input {
   display: inline-block;
   margin-bottom: 12px;
 }
-/* Connect to wallet, step 2: the connected wallet's address */
+/* Connect to wallet, step 2: the address the wallet passed back (Figma draft 20310:164621) */
 .dp-wconn {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
-  padding: 16px;
-  border: 1px solid #d9d9d9;
-  border-radius: 8px;
-  background: #fff;
+  gap: 12px;
 }
-.dp-wconn-top {
+.dp-wconn > .dp-tf {
+  align-self: stretch;
+}
+.dp-wconn-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  width: 100%;
-}
-.dp-wconn-top b {
-  flex: 1;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 700;
+  justify-content: space-between;
+  align-self: stretch;
+  margin-top: -4px;
 }
 .dp-wconn-status {
   display: inline-flex;
@@ -2554,13 +2548,6 @@ textarea.dp-tf-input {
   height: 6px;
   border-radius: 50%;
   background: #00d690;
-}
-.dp-wconn-addr {
-  margin: 0;
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 600;
-  word-break: break-all;
 }
 .dp-wconn-off {
   padding: 0;

@@ -2110,7 +2110,7 @@ const BankTypePage = ({ d, ls = "ifta", setAsset, onBack, onNext, onTips, onClos
         onBack={onClose || onBack}
         right={<BankBarRight onTips={onTips} onClose={onClose} />}
       />
-      <div className={`oc-page-body dp-body otc-style-${ls}`}>
+      <div className={`oc-page-body dp-body dp-form is-${ls} otc-style-${ls}`}>
         <div className="dp-note has-icon">
           <WarnIcon />
           <span>Note: Deposit requested near bank holidays may experience processing delays.</span>

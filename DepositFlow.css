@@ -837,7 +837,7 @@ textarea.dp-input {
 }
 
 /* ---------- Text fields that follow the Input style ---------- */
-/* Gaps between fields, as on the OTC form: IFTA 16, Floating 20, Traditional 24. */
+/* Gaps between fields (2026-11-17): Floating 20, every other style 16. */
 .dp-form.is-ifta {
   gap: 16px;
 }
@@ -845,7 +845,7 @@ textarea.dp-input {
   gap: 20px;
 }
 .dp-form.is-trad {
-  gap: 24px;
+  gap: 16px; /* 2026-11-17: only floating-label fields get 20 */
 }
 .dp-pick-sub {
   margin-left: 6px;

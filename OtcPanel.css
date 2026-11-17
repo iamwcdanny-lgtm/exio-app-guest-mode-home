@@ -238,7 +238,7 @@
   gap: 20px;
 }
 .otc-style-trad .otc-controls {
-  gap: 24px;
+  gap: 16px; /* 2026-11-17: only floating-label fields get 20 */
 }
 
 /* ---- IFTA: grey box, small label fixed at the top inside (56px pickers). ---- */

@@ -191,7 +191,7 @@
   gap: 16px;
 }
 .as-style-trad .as-form {
-  gap: 24px;
+  gap: 16px; /* 2026-11-17: only floating-label fields get 20 */
 }
 .as-style-float .as-form {
   gap: 20px;

@@ -2443,11 +2443,10 @@ const NetPage = ({ d, onBack, onPick, withdraw = false }) => (
     <div className="oc-page-body dp-body">
       <p className="dp-lead">{withdraw ? "Use the same network as the receiving wallet." : "Use the same network in your sending wallet."}</p>
       <div className="tks-list dp-tokens">
-        {(NETWORKS[d.asset] || []).map(([k, name, conf]) => (
+        {(NETWORKS[d.asset] || []).map(([k, name]) => (
           <button key={k} type="button" className={`tks-row${k === d.net ? " is-on" : ""}`} onClick={() => onPick(k)}>
             <span className="tks-text">
               <b>{name}</b>
-              {!withdraw && <small>Credited after {conf}</small>}
             </span>
             <img src={`${IMG}/arrow-down.svg`} width="12" height="12" alt="" className="dp-chev" />
           </button>
@@ -3442,7 +3441,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
           picked.current = false;
           setSheet((s) => (s === "netpick" ? null : s)); // dismissed: back on the token list
         }}
-        options={(NETWORKS[d.asset] || []).map(([k, name, conf]) => ({ value: k, label: name, name: withdraw ? undefined : `Credited after ${conf}` }))}
+        options={(NETWORKS[d.asset] || []).map(([k, name]) => ({ value: k, label: name }))} /* 2026-11-17: network name only */
       />
       <TokenSheet
         open={sheet === "source"}

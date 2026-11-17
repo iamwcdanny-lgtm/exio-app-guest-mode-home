@@ -2562,14 +2562,17 @@ const WlHead = ({ d, ls, sheet, onPickAsset, onPickNet }) => (
   </>
 );
 
-const ConnectPage = ({ d, ls, sheet, onPickAsset, onPickNet, onBack, onConnect, remarks, setRemarks, slide = true }) => {
+// Add whitelist address: Connect to wallet and Manual signing are two steps each (2026-11-17).
+const StepTag = ({ n }) => <span className="pk-step-tag dp-page-step">Step {n} of 2</span>;
+
+const ConnectPage = ({ d, ls, sheet, onPickAsset, onPickNet, onBack, onConnect, slide = true }) => {
   const [agree, setAgree] = useState(false);
   return (
     <div className="oc-screen oc-page dp-page is-connect">
       <AppBar title="Add whitelist address" onBack={onBack} slide={slide} close={!slide} />
       <div className={`oc-page-body dp-body dp-form is-${ls} otc-style-${ls}`}>
+        <StepTag n={1} />
         <WlHead d={d} ls={ls} sheet={sheet} onPickAsset={onPickAsset} onPickNet={onPickNet} />
-        <TextField ls={ls} id="dp-wc-remarks" label="Remarks (optional)" value={remarks} onChange={setRemarks} placeholder="e.g. My MetaMask" inputProps={{ maxLength: 30 }} />
         <button type="button" className="dp-agree" role="checkbox" aria-checked={agree} onClick={() => setAgree((a) => !a)}>
           <Check on={agree} />
           <span>
@@ -2586,6 +2589,46 @@ const ConnectPage = ({ d, ls, sheet, onPickAsset, onPickNet, onBack, onConnect, 
   );
 };
 
+// Connect to wallet, step 2: the address the wallet passed back, then Sign.
+const ConnectedPage = ({ d, ls, wallet, onBack, onClose, onDisconnect, onSign, remarks, setRemarks }) => {
+  const a = DEMO_ADDR[d.net] || "";
+  return (
+    <div className="oc-screen oc-page dp-page is-connected">
+      <AppBar
+        title="Add whitelist address"
+        onBack={onBack}
+        right={
+          <button type="button" className="oc-back is-close" aria-label="Close" onClick={onClose}>
+            <XIcon />
+          </button>
+        }
+      />
+      <div className={`oc-page-body dp-body dp-form is-${ls} otc-style-${ls}`}>
+        <StepTag n={2} />
+        <div className="dp-wconn">
+          <div className="dp-wconn-top">
+            {wallet && <WalletBadge k={wallet} size={32} />}
+            <b>{wallet ? WALLET[wallet].name : "Wallet"}</b>
+            <span className="dp-wconn-status">Connected</span>
+          </div>
+          <p className="dp-wconn-addr">
+            <FullAddr a={a} />
+          </p>
+          <button type="button" className="dp-wconn-off" onClick={onDisconnect}>
+            Disconnect
+          </button>
+        </div>
+        <TextField ls={ls} id="dp-wc-remarks" label="Remarks (optional)" value={remarks} onChange={setRemarks} placeholder={`e.g. My ${wallet ? WALLET[wallet].name : "wallet"}`} inputProps={{ maxLength: 30 }} />
+      </div>
+      <div className="oc-foot dp-foot">
+        <button type="button" className="oc-btn is-primary" onClick={onSign}>
+          Sign
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const AddrPage = ({ d, ls, sheet, onPickAsset, onPickNet, onBack, onNext, remarks, setRemarks, addr, setAddr, slide = true }) => {
   const [touched, setTouched] = useState(false);
   const ok = d.net && ADDR_RE[d.net].test(addr.trim());
@@ -2594,6 +2637,7 @@ const AddrPage = ({ d, ls, sheet, onPickAsset, onPickNet, onBack, onNext, remark
     <div className="oc-screen oc-page dp-page is-addr">
       <AppBar title="Add whitelist address" onBack={onBack} slide={slide} close={!slide} />
       <div className={`oc-page-body dp-body dp-form is-${ls} otc-style-${ls}`}>
+        <StepTag n={1} />
         <WlHead d={d} ls={ls} sheet={sheet} onPickAsset={onPickAsset} onPickNet={onPickNet} />
         <TextField
           ls={ls}
@@ -2645,6 +2689,7 @@ const SignPage = ({ addr, onBack, onClose, onHow, onSubmit, say }) => {
         }
       />
       <div className="oc-page-body dp-body">
+        <StepTag n={2} />
         <div className="dp-sign-head">
           <h2>Address ownership verification</h2>
           <p className="dp-lead">Sign the message below with this address’s wallet, then paste the signature here.</p>
@@ -2783,7 +2828,7 @@ const WalletApp = ({ k, onCancel, onConnect }) => {
    the address list, like sign-up and the OTC chat: the app behind shrinks into a card
    (.mhc-phone.as-open, --as-p). Android: full screen. The sheet keeps its last pages while
    it slides down. */
-const ADD_PAGES = ["amount", "connect", "addr", "sign", "bank1", "bank2"];
+const ADD_PAGES = ["amount", "connect", "connected", "addr", "sign", "bank1", "bank2"];
 const AddSheet = ({ open, children }) => {
   const [shown, setShown] = useState(open);
   const ref = useRef(null);
@@ -3025,6 +3070,21 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             onBack={closeAdd}
             slide={false}
             onConnect={() => setSheet("wallets")}
+          />
+        )}
+        {stack.includes("connected") && (
+          <ConnectedPage
+            d={d}
+            ls="float"
+            wallet={wl.wallet}
+            onBack={pop}
+            onClose={closeAdd}
+            onDisconnect={() => {
+              setWl((x) => ({ ...x, wallet: null }));
+              pop();
+              say("Wallet disconnected");
+            }}
+            onSign={() => setSheet("sec")}
             remarks={wl.remarks}
             setRemarks={(v) => setWl((x) => ({ ...x, remarks: v }))}
           />
@@ -3235,7 +3295,7 @@ export default function DepositFlow({ open, onClose, labelStyle = "ifta", mode =
             onCancel={() => setWapp(null)}
             onConnect={() => {
               setWapp(null);
-              setSheet("sec");
+              push("connected");
             }}
           />
         )}

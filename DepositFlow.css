@@ -2501,3 +2501,75 @@ textarea.dp-tf-input {
 .dp-pk .tks-head.has-tag h2 {
   display: none;
 }
+
+/* Add whitelist address (2026-11-17): Step n of 2 at the top of each page */
+.dp-page-step {
+  align-self: flex-start;
+}
+.dp-form.is-float > .dp-page-step + * {
+  margin-top: -8px;
+}
+.is-sign .dp-page-step {
+  display: inline-block;
+  margin-bottom: 12px;
+}
+/* Connect to wallet, step 2: the connected wallet's address */
+.dp-wconn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  background: #fff;
+}
+.dp-wconn-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.dp-wconn-top b {
+  flex: 1;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+}
+.dp-wconn-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(0, 214, 144, 0.12);
+  color: #00a874;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 700;
+}
+.dp-wconn-status::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00d690;
+}
+.dp-wconn-addr {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  word-break: break-all;
+}
+.dp-wconn-off {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #ff649b;
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  cursor: pointer;
+}

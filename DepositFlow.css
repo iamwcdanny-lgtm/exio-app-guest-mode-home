@@ -2593,3 +2593,24 @@ textarea.dp-tf-input {
 .dp-tf-box:has(.dp-tf-acts) .dp-tf-input {
   padding-right: 170px;
 }
+
+/* Withdraw security verification (2026-11-17): one sheet, content switches in place */
+.dp-morph {
+  transition: height 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  overflow: hidden;
+}
+.dp-morph-inner {
+  display: flex;
+  flex-direction: column;
+  animation: dpMorphIn 0.28s ease both;
+}
+@keyframes dpMorphIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

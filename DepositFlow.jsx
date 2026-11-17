@@ -1713,7 +1713,7 @@ const EyeBtn = ({ shown, onClick, tab }) => (
 // code on one sheet. Several fields on one sheet, so the codes are one-line fields (the
 // 6-box input is kept for screens where a code is the only thing to do). Any 6 digits
 // pass except 000000.
-const OtpBothSheet = ({ open, tag, onClose, onDone, extra, pwField = null, pwOk = true }) => {
+const OtpBothBody = ({ open, onDone, extra, pwField = null, pwOk = true }) => {
   const [sms, setSms] = useState("");
   const [ga, setGa] = useState("");
   const [err, setErr] = useState(null); // sms | ga
@@ -1763,7 +1763,7 @@ const OtpBothSheet = ({ open, tag, onClose, onDone, extra, pwField = null, pwOk 
   const tab = open ? 0 : -1;
   const codeProps = (id) => ({ inputMode: "numeric", pattern: "[0-9]*", autoComplete: id === "wv-sms" ? "one-time-code" : "off", tabIndex: tab, disabled: busy });
   return (
-    <BaseSheet open={open} onClose={onClose} title="Security verification" className="dp-sec dp-otp2" tag={tag}>
+    <>
       <div className="dp-otp2-body dp-form is-float">
         {pwField}
         <TextField
@@ -1811,7 +1811,29 @@ const OtpBothSheet = ({ open, tag, onClose, onDone, extra, pwField = null, pwOk 
         </button>
         {extra}
       </div>
-    </BaseSheet>
+    </>
+  );
+};
+
+// One sheet whose content changes in place (2026-11-17): the height eases to the new content
+// instead of the sheet closing and opening again.
+const SheetMorph = ({ view, children }) => {
+  const inner = useRef(null);
+  const [h, setH] = useState(null);
+  useLayoutEffect(() => {
+    const el = inner.current;
+    if (!el) return undefined;
+    const ro = new ResizeObserver(() => setH(el.offsetHeight));
+    ro.observe(el);
+    setH(el.offsetHeight);
+    return () => ro.disconnect();
+  }, [view]);
+  return (
+    <div className="dp-morph" style={h == null ? undefined : { height: h }}>
+      <div ref={inner} className="dp-morph-inner" key={view} data-view={view}>
+        {children}
+      </div>
+    </div>
   );
 };
 
@@ -1852,12 +1874,16 @@ const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
     return () => clearTimeout(t);
   }, [sent]);
   const digits = (v) => v.replace(/\D/g, "").slice(0, 6);
+  // 2026-11-17: switch the content inside the same sheet (no close + reopen)
   const go = (next) => {
     clearTimeout(timer.current);
     setBusy(false);
-    setStep(null);
-    setTimeout(() => setStep(next), 300);
+    setStep(next);
   };
+  const [view, setView] = useState(null); // what the sheet shows, kept while it slides away
+  useEffect(() => {
+    if (step) setView(step);
+  }, [step]);
   const finish = () => {
     setStep(null);
     setTimeout(onVerified, 280);
@@ -1906,71 +1932,79 @@ const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
       action={<EyeBtn shown={show} tab={tab(on)} onClick={() => setShow((x) => !x)} />}
     />
   );
+  const v = step || view;
+  const SHEET = {
+    pw: { title: "Security verification", cls: "dp-sec", tag: tagOf(1, 2) },
+    passkey: { title: "", cls: "dp-pk", tag: tagOf(first + 1, first + 1) },
+    other: { title: "Security verification", cls: "dp-sec dp-otp2", tag: null },
+  }[v] || { title: "", cls: "dp-sec", tag: null };
   return (
-    <>
-      <BaseSheet open={step === "pw"} onClose={onClose} title="Security verification" className="dp-sec" tag={tagOf(1, 2)}>
-        <div className="dp-sec-body dp-form is-float">{pwField("wv-pw", pw, setPw, step === "pw")}</div>
-        <div className="dp-leave-btns">
-          <button type="button" className="oc-btn is-primary" disabled={!pw} tabIndex={tab(step === "pw")} onClick={() => go("passkey")}>
-            Verify with passkey
-          </button>
-          <p className="dp-another">
-            Passkey not available?{" "}
-            {/* one sheet with the password (kept) + SMS + authenticator */}
-            <button type="button" className="dp-text-btn" tabIndex={tab(step === "pw")} onClick={() => go("other")}>
-              Try another way
-            </button>
-          </p>
-        </div>
-      </BaseSheet>
-      {/* Passkey (Figma 18699:102076): the device prompt starts as the sheet opens */}
-      <BaseSheet open={step === "passkey"} onClose={onClose} title="" className="dp-pk" tag={tagOf(first + 1, first + 1)}>
-        <div className="dp-pk-body">
-          <PasskeyArt />
-          <h2>Complete verification with passkey</h2>
-          <p>Please follow the instructions on your device to complete verification</p>
-        </div>
-        <div className="dp-leave-btns">
-          <button type="button" className="oc-btn is-primary dp-pk-busy" aria-busy={busy} tabIndex={tab(step === "passkey")} onClick={busy ? undefined : start}>
-            {busy ? (
-              <>
-                <span className="dp-bars" aria-hidden="true">
-                  <i />
-                  <i />
-                  <i />
-                  <i />
-                </span>
-                Verifying
-              </>
-            ) : (
-              "Verify with passkey"
-            )}
-          </button>
-          {another(step === "passkey")}
-        </div>
-      </BaseSheet>
-      {/* Try another way (2026-11-17): withdraw password + SMS code + authenticator code on one sheet. */}
-      <OtpBothSheet
-        open={step === "other"}
-        onClose={onClose}
-        onDone={finish}
-        pwField={hasPw ? pwField("wv-pw2", pw, setPw, step === "other") : null}
-        pwOk={!hasPw || Boolean(pw)}
-        extra={
-          <p className="dp-another">
-            Passkey available?{" "}
-            <button
-              type="button"
-              className="dp-text-btn"
-              tabIndex={step === "other" ? 0 : -1}
-              onClick={() => go(hasPw && !pw ? "pw" : "passkey")}
-            >
-              Verify with passkey
-            </button>
-          </p>
-        }
-      />
-    </>
+    <BaseSheet open={step !== null} onClose={onClose} title={SHEET.title} className={`${SHEET.cls} dp-morph-sheet`} tag={SHEET.tag}>
+      <SheetMorph view={v}>
+        {v === "pw" && (
+          <>
+            <div className="dp-sec-body dp-form is-float">{pwField("wv-pw", pw, setPw, step === "pw")}</div>
+            <div className="dp-leave-btns">
+              <button type="button" className="oc-btn is-primary" disabled={!pw} tabIndex={tab(step === "pw")} onClick={() => go("passkey")}>
+                Verify with passkey
+              </button>
+              <p className="dp-another">
+                Passkey not available?{" "}
+                {/* the password (kept) + SMS + authenticator, in this same sheet */}
+                <button type="button" className="dp-text-btn" tabIndex={tab(step === "pw")} onClick={() => go("other")}>
+                  Try another way
+                </button>
+              </p>
+            </div>
+          </>
+        )}
+        {/* Passkey (Figma 18699:102076): the device prompt starts as the content shows */}
+        {v === "passkey" && (
+          <>
+            <div className="dp-pk-body">
+              <PasskeyArt />
+              <h2>Complete verification with passkey</h2>
+              <p>Please follow the instructions on your device to complete verification</p>
+            </div>
+            <div className="dp-leave-btns">
+              <button type="button" className="oc-btn is-primary dp-pk-busy" aria-busy={busy} tabIndex={tab(step === "passkey")} onClick={busy ? undefined : start}>
+                {busy ? (
+                  <>
+                    <span className="dp-bars" aria-hidden="true">
+                      <i />
+                      <i />
+                      <i />
+                      <i />
+                    </span>
+                    Verifying
+                  </>
+                ) : (
+                  "Verify with passkey"
+                )}
+              </button>
+              {another(step === "passkey")}
+            </div>
+          </>
+        )}
+        {/* Try another way (2026-11-17): withdraw password + SMS code + authenticator code */}
+        {v === "other" && (
+          <OtpBothBody
+            open={step === "other"}
+            onDone={finish}
+            pwField={hasPw ? pwField("wv-pw2", pw, setPw, step === "other") : null}
+            pwOk={!hasPw || Boolean(pw)}
+            extra={
+              <p className="dp-another">
+                Passkey available?{" "}
+                <button type="button" className="dp-text-btn" tabIndex={step === "other" ? 0 : -1} onClick={() => go(hasPw && !pw ? "pw" : "passkey")}>
+                  Verify with passkey
+                </button>
+              </p>
+            }
+          />
+        )}
+      </SheetMorph>
+    </BaseSheet>
   );
 };
 const WVerifyPage = ({ d, hasPw, onBack, onVerified, ls = "ifta" }) => {

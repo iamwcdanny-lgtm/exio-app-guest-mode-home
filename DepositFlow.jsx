@@ -6,6 +6,7 @@ import TokenSheet from "./TokenSheet";
 import { CCY, IMG, fmtDp, fmtCcy, useOtc } from "./OtcSession";
 import { slideBack, leavePage } from "./backOut";
 import { VerifySheet, VerifySteps } from "./PasskeySetup";
+import { OtpInput } from "./AuthSheet";
 import "./DepositFlow.css";
 
 // Deposit flow (2026-11-04), started from Home's Deposit buttons.
@@ -1709,10 +1710,111 @@ const EyeBtn = ({ shown, onClick, tab }) => (
     </svg>
   </button>
 );
+// Withdraw · "Try another way" (2026-11-17): SMS and authenticator codes on one sheet, one
+// step (codes can't be split into two steps yet). Any 6 digits pass except 000000.
+const OTP6 = Array(6).fill("");
+const OtpBothSheet = ({ open, tag, onClose, onDone, extra }) => {
+  const [sms, setSms] = useState(OTP6);
+  const [ga, setGa] = useState(OTP6);
+  const [err, setErr] = useState(null); // sms | ga
+  const [busy, setBusy] = useState(false);
+  const [left, setLeft] = useState(60);
+  useEffect(() => {
+    if (!open) return undefined;
+    setSms(OTP6);
+    setGa(OTP6);
+    setErr(null);
+    setBusy(false);
+    setLeft(60);
+    const t = setTimeout(() => document.getElementById("wv-sms-0")?.focus({ preventScroll: true }), 320);
+    return () => clearTimeout(t);
+  }, [open]);
+  useEffect(() => {
+    if (!open || !left) return undefined;
+    const t = setTimeout(() => setLeft((x) => x - 1), 1000);
+    return () => clearTimeout(t);
+  }, [open, left]);
+  const full = (c) => c.every(Boolean);
+  const setSmsCode = (c) => {
+    setSms(c);
+    if (err === "sms") setErr(null);
+    // the 6th SMS digit moves on to the authenticator code
+    if (full(c) && !full(ga)) setTimeout(() => document.getElementById("wv-ga-0")?.focus({ preventScroll: true }), 0);
+  };
+  const setGaCode = (c) => {
+    setGa(c);
+    if (err === "ga") setErr(null);
+  };
+  const ok = full(sms) && full(ga) && !err && !busy;
+  const submit = () => {
+    setBusy(true);
+    setTimeout(() => {
+      setBusy(false);
+      if (sms.join("") === "000000") return setErr("sms");
+      if (ga.join("") === "000000") return setErr("ga");
+      onDone();
+    }, 900);
+  };
+  const tab = open ? 0 : -1;
+  return (
+    <BaseSheet open={open} onClose={onClose} title="Security verification" className="dp-sec dp-otp2" tag={tag}>
+      <div className="dp-otp2-body">
+        <section className="dp-otp2-field">
+          <h3>SMS verification code</h3>
+          <p className="pk-sub">
+            Enter the 6-digit code we sent to <b>+85291****21</b>. It expires in 5 minutes.
+          </p>
+          <OtpInput code={sms} onChange={setSmsCode} error={err === "sms"} disabled={busy || !open} idBase="wv-sms" label="SMS verification code" />
+          {err === "sms" && (
+            <p className="pk-error" role="alert">
+              That code isn’t right. Check it and try again, or resend a new one.
+            </p>
+          )}
+          <div className="as-otp-actions pk-actions">
+            {left > 0 ? (
+              <span className="as-resend">Resend in {left}s</span>
+            ) : (
+              <button type="button" className="as-link" tabIndex={tab} onClick={() => setLeft(60)}>
+                Resend code
+              </button>
+            )}
+            <button type="button" className="as-link" tabIndex={tab} disabled={busy} onClick={() => setSmsCode("482913".split(""))}>
+              Paste
+            </button>
+          </div>
+        </section>
+        <section className="dp-otp2-field">
+          <h3>Authenticator code</h3>
+          <p className="pk-sub">Enter the 6-digit code from your authenticator app.</p>
+          <OtpInput code={ga} onChange={setGaCode} error={err === "ga"} disabled={busy || !open} idBase="wv-ga" label="Authenticator code" />
+          {err === "ga" && (
+            <p className="pk-error" role="alert">
+              That code isn’t right. Check your authenticator app and try again.
+            </p>
+          )}
+          <div className="as-otp-actions pk-actions">
+            <span />
+            <button type="button" className="as-link" tabIndex={tab} disabled={busy} onClick={() => setGaCode("736104".split(""))}>
+              Paste
+            </button>
+          </div>
+        </section>
+      </div>
+      <div className="dp-leave-btns">
+        <button type="button" className={`oc-btn is-primary pk-cta${busy ? " is-busy" : ""}`} disabled={!ok} aria-busy={busy || undefined} tabIndex={tab} onClick={ok ? submit : undefined}>
+          {busy ? <span className="pk-spin" aria-hidden="true" /> : "Complete"}
+        </button>
+        {extra}
+      </div>
+    </BaseSheet>
+  );
+};
+
 const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
   const [step, setStep] = useState(null); // pw | passkey | other
-  // 2026-11-16: the withdraw password always comes first; the method only decides what
-  // follows. passkey: password (1/2) → passkey (2/2); otp: password (1/3) → SMS (2/3) → authenticator (3/3).
+  // The withdraw password always comes first; the method only decides what follows.
+  // 2026-11-17: passkey (default when set up): password (1/2) → passkey (2/2);
+  // no passkey / "Try another way": password (1/2) → SMS + authenticator on one sheet (2/2).
   const [mode, setMode] = useState("passkey");
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
@@ -1809,7 +1911,7 @@ const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
   );
   return (
     <>
-      <BaseSheet open={step === "pw"} onClose={onClose} title="Security verification" className="dp-sec" tag={tagOf(1, mode === "otp" ? 3 : 2)}>
+      <BaseSheet open={step === "pw"} onClose={onClose} title="Security verification" className="dp-sec" tag={tagOf(1, 2)}>
         <div className="dp-sec-body dp-form is-float">{pwField("wv-pw", pw, setPw, step === "pw")}</div>
         <div className="dp-leave-btns">
           {mode === "otp" ? (
@@ -1866,17 +1968,14 @@ const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
           {another(step === "passkey")}
         </div>
       </BaseSheet>
-      {/* Try another way (2026-11-13): SMS, then authenticator, as in Set up passkey;
-          the withdraw password was already entered in the first sheet. */}
-      <VerifySheet
+      {/* Try another way (2026-11-17): SMS and authenticator codes together on one sheet. */}
+      <OtpBothSheet
         open={step === "other"}
+        tag={tagOf(first + 1, first + 1)}
         onClose={onClose}
         onDone={finish}
-        lastLabel="Complete"
-        stepFrom={first + 1}
-        stepTotal={first + 2}
         extra={
-          <p className="dp-another pk-another">
+          <p className="dp-another">
             Passkey available?{" "}
             <button
               type="button"

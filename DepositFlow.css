@@ -2560,3 +2560,24 @@ textarea.dp-tf-input {
   font-weight: 600;
   cursor: pointer;
 }
+
+/* Withdraw · Try another way (2026-11-17): SMS + authenticator codes on one sheet */
+.dp-otp2-body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin: 8px 0 24px;
+}
+.dp-otp2-field h3 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+}
+.dp-otp2-field .pk-sub {
+  margin-bottom: 12px;
+}
+.dp-otp2 .pk-cta {
+  margin-top: 0;
+}

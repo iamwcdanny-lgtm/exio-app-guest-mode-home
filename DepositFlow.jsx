@@ -1713,7 +1713,7 @@ const EyeBtn = ({ shown, onClick, tab }) => (
 // Withdraw · "Try another way" (2026-11-17): SMS and authenticator codes on one sheet, one
 // step (codes can't be split into two steps yet). Any 6 digits pass except 000000.
 const OTP6 = Array(6).fill("");
-const OtpBothSheet = ({ open, tag, onClose, onDone, extra }) => {
+const OtpBothSheet = ({ open, tag, onClose, onDone, extra, pwField = null, pwOk = true }) => {
   const [sms, setSms] = useState(OTP6);
   const [ga, setGa] = useState(OTP6);
   const [err, setErr] = useState(null); // sms | ga
@@ -1726,7 +1726,11 @@ const OtpBothSheet = ({ open, tag, onClose, onDone, extra }) => {
     setErr(null);
     setBusy(false);
     setLeft(60);
-    const t = setTimeout(() => document.getElementById("wv-sms-0")?.focus({ preventScroll: true }), 320);
+    // the first empty field: the withdraw password when it is on this sheet and empty
+    const t = setTimeout(() => {
+      const pwEl = document.getElementById("wv-pw2");
+      (pwEl && !pwEl.value ? pwEl : document.getElementById("wv-sms-0"))?.focus({ preventScroll: true });
+    }, 320);
     return () => clearTimeout(t);
   }, [open]);
   useEffect(() => {
@@ -1745,7 +1749,7 @@ const OtpBothSheet = ({ open, tag, onClose, onDone, extra }) => {
     setGa(c);
     if (err === "ga") setErr(null);
   };
-  const ok = full(sms) && full(ga) && !err && !busy;
+  const ok = pwOk && full(sms) && full(ga) && !err && !busy;
   const submit = () => {
     setBusy(true);
     setTimeout(() => {
@@ -1759,6 +1763,7 @@ const OtpBothSheet = ({ open, tag, onClose, onDone, extra }) => {
   return (
     <BaseSheet open={open} onClose={onClose} title="Security verification" className="dp-sec dp-otp2" tag={tag}>
       <div className="dp-otp2-body">
+        {pwField && <div className="dp-form is-float">{pwField}</div>}
         <section className="dp-otp2-field">
           <h3>SMS verification code</h3>
           <p className="pk-sub">
@@ -1813,9 +1818,8 @@ const OtpBothSheet = ({ open, tag, onClose, onDone, extra }) => {
 const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
   const [step, setStep] = useState(null); // pw | passkey | other
   // The withdraw password always comes first; the method only decides what follows.
-  // 2026-11-17: passkey (default when set up): password (1/2) → passkey (2/2);
-  // no passkey / "Try another way": password (1/2) → SMS + authenticator on one sheet (2/2).
-  const [mode, setMode] = useState("passkey");
+  // 2026-11-17: passkey (default when set up): password (1/2) → passkey (2/2).
+  // No passkey / "Try another way": one sheet with password + SMS code + authenticator code.
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
   const [show, setShow] = useState(false);
@@ -1830,7 +1834,6 @@ const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
     setSms("");
     setGa("");
     setShow(false);
-    setMode("passkey");
     setStep(hasPw ? "pw" : "passkey");
     return undefined;
   }, [open]);
@@ -1842,10 +1845,7 @@ const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
   }, [step]);
   const first = hasPw ? 1 : 0; // the password is step 1 when there is one
   const tagOf = (n, total) => (total > 1 ? `Step ${n} of ${total}` : null);
-  const switchMode = (m) => {
-    setMode(m);
-    document.getElementById("wv-pw")?.focus({ preventScroll: true });
-  };
+
   useEffect(() => {
     if (!sent) return undefined;
     const t = setTimeout(() => setSent((x) => x - 1), 1000);
@@ -1889,10 +1889,7 @@ const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
         type="button"
         className="dp-text-btn"
         tabIndex={tab(on)}
-        onClick={() => {
-          setMode("otp");
-          go("other");
-        }}
+        onClick={() => go("other")}
       >
         Try another way
       </button>
@@ -1914,32 +1911,16 @@ const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
       <BaseSheet open={step === "pw"} onClose={onClose} title="Security verification" className="dp-sec" tag={tagOf(1, 2)}>
         <div className="dp-sec-body dp-form is-float">{pwField("wv-pw", pw, setPw, step === "pw")}</div>
         <div className="dp-leave-btns">
-          {mode === "otp" ? (
-            <>
-              <button type="button" className="oc-btn is-primary" disabled={!pw} tabIndex={tab(step === "pw")} onClick={() => go("other")}>
-                Next
-              </button>
-              <p className="dp-another">
-                Passkey available?{" "}
-                <button type="button" className="dp-text-btn" tabIndex={tab(step === "pw")} onClick={() => switchMode("passkey")}>
-                  Verify with passkey
-                </button>
-              </p>
-            </>
-          ) : (
-            <>
-              <button type="button" className="oc-btn is-primary" disabled={!pw} tabIndex={tab(step === "pw")} onClick={() => go("passkey")}>
-                Verify with passkey
-              </button>
-              <p className="dp-another">
-                Passkey not available?{" "}
-                {/* stays on the password: the steps after it change to SMS + authenticator */}
-                <button type="button" className="dp-text-btn" tabIndex={tab(step === "pw")} onClick={() => switchMode("otp")}>
-                  Try another way
-                </button>
-              </p>
-            </>
-          )}
+          <button type="button" className="oc-btn is-primary" disabled={!pw} tabIndex={tab(step === "pw")} onClick={() => go("passkey")}>
+            Verify with passkey
+          </button>
+          <p className="dp-another">
+            Passkey not available?{" "}
+            {/* one sheet with the password (kept) + SMS + authenticator */}
+            <button type="button" className="dp-text-btn" tabIndex={tab(step === "pw")} onClick={() => go("other")}>
+              Try another way
+            </button>
+          </p>
         </div>
       </BaseSheet>
       {/* Passkey (Figma 18699:102076): the device prompt starts as the sheet opens */}
@@ -1968,12 +1949,13 @@ const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
           {another(step === "passkey")}
         </div>
       </BaseSheet>
-      {/* Try another way (2026-11-17): SMS and authenticator codes together on one sheet. */}
+      {/* Try another way (2026-11-17): withdraw password + SMS code + authenticator code on one sheet. */}
       <OtpBothSheet
         open={step === "other"}
-        tag={tagOf(first + 1, first + 1)}
         onClose={onClose}
         onDone={finish}
+        pwField={hasPw ? pwField("wv-pw2", pw, setPw, step === "other") : null}
+        pwOk={!hasPw || Boolean(pw)}
         extra={
           <p className="dp-another">
             Passkey available?{" "}
@@ -1981,10 +1963,7 @@ const WdSecurity = ({ open, hasPw, onClose, onVerified }) => {
               type="button"
               className="dp-text-btn"
               tabIndex={step === "other" ? 0 : -1}
-              onClick={() => {
-                setMode("passkey");
-                go("passkey");
-              }}
+              onClick={() => go(hasPw && !pw ? "pw" : "passkey")}
             >
               Verify with passkey
             </button>

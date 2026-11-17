@@ -532,7 +532,7 @@ const maskEmail = (email) => {
 // One box per digit. Typing moves to the next box, Backspace on an empty box
 // goes back, and pasting (or the phone's one-time-code autofill) spreads the
 // digits across the boxes.
-export const OtpInput = ({ code, onChange, error, disabled, idBase = "as-otp", label = "Verification code" }) => {
+export const OtpInput = ({ code, onChange, error, disabled }) => {
   const refs = useRef([]);
   const focusBox = (i) => {
     const el = refs.current[Math.max(0, Math.min(OTP_LENGTH - 1, i))];
@@ -550,12 +550,12 @@ export const OtpInput = ({ code, onChange, error, disabled, idBase = "as-otp", l
     focusBox(i >= OTP_LENGTH ? OTP_LENGTH - 1 : i);
   };
   return (
-    <div className={`as-otp${error ? " is-error" : ""}`} role="group" aria-label={label}>
+    <div className={`as-otp${error ? " is-error" : ""}`} role="group" aria-label="Verification code">
       {code.map((d, i) => (
         <input
           key={i}
           ref={(el) => (refs.current[i] = el)}
-          id={`${idBase}-${i}`}
+          id={`as-otp-${i}`}
           className="as-otp-box"
           inputMode="numeric"
           pattern="[0-9]*"

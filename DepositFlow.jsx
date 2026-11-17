@@ -6,7 +6,6 @@ import TokenSheet from "./TokenSheet";
 import { CCY, IMG, fmtDp, fmtCcy, useOtc } from "./OtcSession";
 import { slideBack, leavePage } from "./backOut";
 import { VerifySheet, VerifySteps } from "./PasskeySetup";
-import { OtpInput } from "./AuthSheet";
 import "./DepositFlow.css";
 
 // Deposit flow (2026-11-04), started from Home's Deposit buttons.
@@ -1710,26 +1709,27 @@ const EyeBtn = ({ shown, onClick, tab }) => (
     </svg>
   </button>
 );
-// Withdraw · "Try another way" (2026-11-17): SMS and authenticator codes on one sheet, one
-// step (codes can't be split into two steps yet). Any 6 digits pass except 000000.
-const OTP6 = Array(6).fill("");
+// Withdraw · "Try another way" (2026-11-17): withdraw password + SMS code + authenticator
+// code on one sheet. Several fields on one sheet, so the codes are one-line fields (the
+// 6-box input is kept for screens where a code is the only thing to do). Any 6 digits
+// pass except 000000.
 const OtpBothSheet = ({ open, tag, onClose, onDone, extra, pwField = null, pwOk = true }) => {
-  const [sms, setSms] = useState(OTP6);
-  const [ga, setGa] = useState(OTP6);
+  const [sms, setSms] = useState("");
+  const [ga, setGa] = useState("");
   const [err, setErr] = useState(null); // sms | ga
   const [busy, setBusy] = useState(false);
   const [left, setLeft] = useState(60);
   useEffect(() => {
     if (!open) return undefined;
-    setSms(OTP6);
-    setGa(OTP6);
+    setSms("");
+    setGa("");
     setErr(null);
     setBusy(false);
     setLeft(60);
     // the first empty field: the withdraw password when it is on this sheet and empty
     const t = setTimeout(() => {
       const pwEl = document.getElementById("wv-pw2");
-      (pwEl && !pwEl.value ? pwEl : document.getElementById("wv-sms-0"))?.focus({ preventScroll: true });
+      (pwEl && !pwEl.value ? pwEl : document.getElementById("wv-sms"))?.focus({ preventScroll: true });
     }, 320);
     return () => clearTimeout(t);
   }, [open]);
@@ -1738,72 +1738,72 @@ const OtpBothSheet = ({ open, tag, onClose, onDone, extra, pwField = null, pwOk 
     const t = setTimeout(() => setLeft((x) => x - 1), 1000);
     return () => clearTimeout(t);
   }, [open, left]);
-  const full = (c) => c.every(Boolean);
-  const setSmsCode = (c) => {
+  const digits = (v) => v.replace(/\D/g, "").slice(0, 6);
+  const setSmsCode = (v) => {
+    const c = digits(v);
     setSms(c);
     if (err === "sms") setErr(null);
     // the 6th SMS digit moves on to the authenticator code
-    if (full(c) && !full(ga)) setTimeout(() => document.getElementById("wv-ga-0")?.focus({ preventScroll: true }), 0);
+    if (c.length === 6 && ga.length < 6) setTimeout(() => document.getElementById("wv-ga")?.focus({ preventScroll: true }), 0);
   };
-  const setGaCode = (c) => {
-    setGa(c);
+  const setGaCode = (v) => {
+    setGa(digits(v));
     if (err === "ga") setErr(null);
   };
-  const ok = pwOk && full(sms) && full(ga) && !err && !busy;
+  const ok = pwOk && sms.length === 6 && ga.length === 6 && !err && !busy;
   const submit = () => {
     setBusy(true);
     setTimeout(() => {
       setBusy(false);
-      if (sms.join("") === "000000") return setErr("sms");
-      if (ga.join("") === "000000") return setErr("ga");
+      if (sms === "000000") return setErr("sms");
+      if (ga === "000000") return setErr("ga");
       onDone();
     }, 900);
   };
   const tab = open ? 0 : -1;
+  const codeProps = (id) => ({ inputMode: "numeric", pattern: "[0-9]*", autoComplete: id === "wv-sms" ? "one-time-code" : "off", tabIndex: tab, disabled: busy });
   return (
     <BaseSheet open={open} onClose={onClose} title="Security verification" className="dp-sec dp-otp2" tag={tag}>
-      <div className="dp-otp2-body">
-        {pwField && <div className="dp-form is-float">{pwField}</div>}
-        <section className="dp-otp2-field">
-          <h3>SMS verification code</h3>
-          <p className="pk-sub">
-            Enter the 6-digit code we sent to <b>+85291****21</b>. It expires in 5 minutes.
-          </p>
-          <OtpInput code={sms} onChange={setSmsCode} error={err === "sms"} disabled={busy || !open} idBase="wv-sms" label="SMS verification code" />
-          {err === "sms" && (
-            <p className="pk-error" role="alert">
-              That code isn’t right. Check it and try again, or resend a new one.
-            </p>
-          )}
-          <div className="as-otp-actions pk-actions">
-            {left > 0 ? (
-              <span className="as-resend">Resend in {left}s</span>
-            ) : (
-              <button type="button" className="as-link" tabIndex={tab} onClick={() => setLeft(60)}>
-                Resend code
+      <div className="dp-otp2-body dp-form is-float">
+        {pwField}
+        <TextField
+          ls="float"
+          id="wv-sms"
+          label="SMS verification code"
+          value={sms}
+          onChange={setSmsCode}
+          hint="Sent to +85291****21"
+          error={err === "sms" ? "That code isn’t right. Check it and try again, or resend a new one." : undefined}
+          inputProps={codeProps("wv-sms")}
+          action={
+            <span className="dp-tf-acts">
+              {left > 0 ? (
+                <span className="dp-tf-resend">Resend in {left}s</span>
+              ) : (
+                <button type="button" className="dp-paste" tabIndex={tab} onClick={() => setLeft(60)}>
+                  Resend
+                </button>
+              )}
+              <button type="button" className="dp-paste" tabIndex={tab} disabled={busy} onClick={() => setSmsCode("482913")}>
+                Paste
               </button>
-            )}
-            <button type="button" className="as-link" tabIndex={tab} disabled={busy} onClick={() => setSmsCode("482913".split(""))}>
+            </span>
+          }
+        />
+        <TextField
+          ls="float"
+          id="wv-ga"
+          label="Authenticator code"
+          value={ga}
+          onChange={setGaCode}
+          error={err === "ga" ? "That code isn’t right. Check your authenticator app and try again." : undefined}
+          inputProps={codeProps("wv-ga")}
+          action={
+            <button type="button" className="dp-paste" tabIndex={tab} disabled={busy} onClick={() => setGaCode("736104")}>
               Paste
             </button>
-          </div>
-        </section>
-        <section className="dp-otp2-field">
-          <h3>Authenticator code</h3>
-          <p className="pk-sub">Enter the 6-digit code from your authenticator app.</p>
-          <OtpInput code={ga} onChange={setGaCode} error={err === "ga"} disabled={busy || !open} idBase="wv-ga" label="Authenticator code" />
-          {err === "ga" && (
-            <p className="pk-error" role="alert">
-              That code isn’t right. Check your authenticator app and try again.
-            </p>
-          )}
-          <div className="as-otp-actions pk-actions">
-            <span />
-            <button type="button" className="as-link" tabIndex={tab} disabled={busy} onClick={() => setGaCode("736104".split(""))}>
-              Paste
-            </button>
-          </div>
-        </section>
+          }
+        />
       </div>
       <div className="dp-leave-btns">
         <button type="button" className={`oc-btn is-primary pk-cta${busy ? " is-busy" : ""}`} disabled={!ok} aria-busy={busy || undefined} tabIndex={tab} onClick={ok ? submit : undefined}>

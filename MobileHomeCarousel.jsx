@@ -177,11 +177,13 @@ const WD_PWS = [
   { key: "set", short: "Set" },
   { key: "none", short: "Not set" },
 ];
-// Withdraw availability (2026-11-19): control only for now; the screens for Non KYC and
-// Forbidden come later.
+// Withdraw availability (2026-11-19): Non KYC blocks deposit and withdraw; Info expired,
+// Suspended and Forbidden (any other reason) block withdraw.
 const WD_AVAILS = [
   { key: "available", short: "Available" },
   { key: "nonkyc", short: "Non KYC" },
+  { key: "expired", short: "Info expired" },
+  { key: "suspended", short: "Suspended" },
   { key: "forbidden", short: "Forbidden" },
 ];
 const HOME_STATES = [
@@ -292,10 +294,10 @@ export const isSilentPop = () => Date.now() < (window.__asSilentPopUntil || 0);
 const defaultPlatform = () => (/android/i.test(navigator.userAgent) ? "android" : "ios");
 
 // A segmented switch: one button per option, the chosen one pressed.
-const Segmented = ({ label, options, value, onChange }) => (
+const Segmented = ({ label, options, value, onChange, wrap = false }) => (
   <div className="as-proto-group" role="radiogroup" aria-label={label}>
     <span className="as-proto-label">{label}</span>
-    <div className="as-seg">
+    <div className={`as-seg${wrap ? " is-wrap" : ""}`}>
       {options.map((o) => (
         <button
           key={o.key}
@@ -389,7 +391,7 @@ const ProtoControls = ({ home, onHome, rwaView, onRwaView, pdUser, onPdUser, sho
         <Segmented label="Input style" options={LABEL_STYLES} value={labelStyle} onChange={onLabelStyle} />
         <Segmented label="Deposit / Withdraw" options={NET_FLOWS} value={netFlow} onChange={onNetFlow} />
         {netFlow !== "mix" && <Segmented label="Withdrawal password" options={WD_PWS} value={wdPw} onChange={onWdPw} />}
-        <Segmented label="Withdraw availability" options={WD_AVAILS} value={wdAvail} onChange={onWdAvail} />
+        <Segmented label="Withdraw availability" options={WD_AVAILS} value={wdAvail} onChange={onWdAvail} wrap />
         <Segmented label="Sheet" options={PLATFORMS} value={platform} onChange={onPlatform} />
         <Bindings bound={bound} onToggle={onToggleBinding} />
         <p className="as-proto-note">Tap Login or Sign up to see it. Switching works with the sheet open too.</p>
@@ -1051,7 +1053,7 @@ const MobileHomeCarousel = ({ onLogin, onRegister }) => {
           ) : tab === "rwa" ? (
             rwaView === "asset" ? <RwaExplore labelStyle={labelStyle} /> : <RwaPage labelStyle={labelStyle} cardStyle={cardStyle} pdUser={pdUser} setPdUser={setPdUser} onImmersive={setImmersive} />
           ) : home === "member" ? (
-            <LoggedInHome key={welcome.n} welcome={welcome.text} labelStyle={labelStyle} netFlow={netFlow} wdPw={wdPw} />
+            <LoggedInHome key={welcome.n} welcome={welcome.text} labelStyle={labelStyle} netFlow={netFlow} wdPw={wdPw} wdAvail={wdAvail} />
           ) : (
           <>
           <Header />

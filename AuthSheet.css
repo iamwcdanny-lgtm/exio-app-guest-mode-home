@@ -1779,3 +1779,9 @@
     transition: none;
   }
 }
+
+/* Demo settings: a switch with too many options for one line wraps (2026-11-19) */
+.as-seg.is-wrap {
+  flex-wrap: wrap;
+  border-radius: 16px;
+}

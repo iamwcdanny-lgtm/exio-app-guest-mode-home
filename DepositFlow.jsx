@@ -2874,6 +2874,43 @@ const BaseSheet = ({ open, onClose, title, children, className = "", tag = null 
   </PhoneLayer>
 );
 
+// Deposit / withdraw blocked by the account state (2026-11-19, Figma 20521:100433, 20521:50726,
+// 20521:51153, 20521:54660). The demo has no KYC / account-info / support pages, so the
+// actions just close the sheet.
+const GATES = {
+  kyc: { title: "Identity verification is required", body: "Please verify your identity to continue", cta: "Proceed to verification", later: "Do it later" },
+  expired: { img: "result-warning", title: "Withdrawal not available", body: "Account information expired, please update to resume withdrawals.", cta: "Update" },
+  suspended: { img: "result-error", title: "Withdrawal not available", body: "Your account is suspended. Withdrawals are unavailable.", cta: "Contact support for assistance" },
+  forbidden: { img: "result-error", title: "Withdrawal not available", body: "Withdrawals are unavailable on your account.", cta: "Contact support for assistance" },
+};
+export const GateSheet = ({ gate, onClose }) => {
+  const [last, setLast] = useState(gate);
+  useEffect(() => {
+    if (gate) setLast(gate);
+  }, [gate]);
+  const g = GATES[gate || last] || GATES.kyc;
+  const tab = gate ? 0 : -1;
+  return (
+    <BaseSheet open={Boolean(gate)} onClose={onClose} title={g.title} className="dp-gate">
+      <div className="dp-gate-body">
+        {g.img && <img src={`${IMG}/${g.img}.png`} width="100" height="100" alt="" />}
+        <h2>{g.title}</h2>
+        <p>{g.body}</p>
+      </div>
+      <div className="dp-leave-btns">
+        <button type="button" className="oc-btn is-primary" tabIndex={tab} onClick={onClose}>
+          {g.cta}
+        </button>
+        {g.later && (
+          <button type="button" className="dp-text-btn dp-gate-later" tabIndex={tab} onClick={onClose}>
+            {g.later}
+          </button>
+        )}
+      </div>
+    </BaseSheet>
+  );
+};
+
 const HowSheet = ({ open, onClose }) => (
   <BaseSheet open={open} onClose={onClose} title="How to sign with your wallet?" className="dp-how">
     <ol className="dp-how-list">

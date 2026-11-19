@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import DepositFlow from "./DepositFlow";
+import DepositFlow, { GateSheet } from "./DepositFlow";
 import AccountFlow, { Avatar } from "./AccountFlow";
 import "./LoggedInHome.css";
 
@@ -22,13 +22,21 @@ const TABS = [
   { key: "otc", label: "OTC", wallet: "OTC" },
 ];
 
-const LoggedInHome = ({ welcome = "", labelStyle = "ifta", netFlow = "split2", wdPw = "set" }) => {
+const LoggedInHome = ({ welcome = "", labelStyle = "ifta", netFlow = "split2", wdPw = "set", wdAvail = "available" }) => {
   const [hidden, setHidden] = useState(false);
   const [tab, setTab] = useState("custody");
   const [hideSmall, setHideSmall] = useState(true);
   const [toast, setToast] = useState("");
   const [depositing, setDepositing] = useState(null); // null | "deposit" | "withdraw" | "manage"
   const [account, setAccount] = useState(false);
+  // Account state from the demo settings (2026-11-19): Non KYC blocks deposit and withdraw;
+  // the other states block withdraw only.
+  const [gate, setGate] = useState(null);
+  const openFlow = (mode) => {
+    if (wdAvail === "nonkyc" && (mode === "deposit" || mode === "withdraw")) return setGate("kyc");
+    if (mode === "withdraw" && wdAvail !== "available" && wdAvail !== "nonkyc") return setGate(wdAvail);
+    return setDepositing(mode);
+  };
   const toastTimer = useRef(null);
 
   const say = (text) => {
@@ -86,7 +94,7 @@ const LoggedInHome = ({ welcome = "", labelStyle = "ifta", netFlow = "split2", w
 
           <div className="lh-actions">
             {ACTIONS.map((a) => (
-              <button key={a.key} type="button" className="lh-action" onClick={() => (a.key === "deposit" || a.key === "withdraw" ? setDepositing(a.key) : notHere(a.label))}>
+              <button key={a.key} type="button" className="lh-action" onClick={() => (a.key === "deposit" || a.key === "withdraw" ? openFlow(a.key) : notHere(a.label))}>
                 <span className={`lh-action-icon${a.primary ? " is-primary" : ""}`}>
                   <img src={`${IMG}/${a.key}.svg`} width="20" height="20" alt="" />
                 </span>
@@ -147,7 +155,7 @@ const LoggedInHome = ({ welcome = "", labelStyle = "ifta", netFlow = "split2", w
                 Hide assets &lt;1 USD
               </button>
               <span className="lh-vdivider" aria-hidden="true" />
-              <button type="button" className="lh-outline-btn" onClick={() => setDepositing("deposit")}>
+              <button type="button" className="lh-outline-btn" onClick={() => openFlow("deposit")}>
                 Deposit
               </button>
             </div>
@@ -172,7 +180,7 @@ const LoggedInHome = ({ welcome = "", labelStyle = "ifta", netFlow = "split2", w
               <div className="lh-empty-box">
                 <img src={`${IMG}/no-file.svg`} width="24" height="24" alt="" />
                 <p>
-                  <button type="button" className="lh-inline-link" onClick={() => setDepositing("deposit")}>
+                  <button type="button" className="lh-inline-link" onClick={() => openFlow("deposit")}>
                     Deposit
                   </button>{" "}
                   your account to get started
@@ -197,6 +205,7 @@ const LoggedInHome = ({ welcome = "", labelStyle = "ifta", netFlow = "split2", w
       </div>
       <AccountFlow open={account} onClose={() => setAccount(false)} onWhitelist={() => setDepositing("manage")} />
       {/* Deposit / withdraw / add address / manage always use IFTA fields (like Trade), whatever the prototype's Input style switch says. */}
+      <GateSheet gate={gate} onClose={() => setGate(null)} />
       <DepositFlow open={Boolean(depositing)} mode={depositing || "deposit"} onClose={() => setDepositing(null)} labelStyle="ifta" netFlow={netFlow} wdPw={wdPw} />
     </div>
   );

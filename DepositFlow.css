@@ -2614,3 +2614,44 @@ textarea.dp-tf-input {
     transform: none;
   }
 }
+
+/* Deposit / withdraw blocked by the account state (2026-11-19) */
+.dp-gate .tks-head {
+  display: none;
+}
+.dp-gate-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 0 24px;
+  text-align: center;
+}
+.dp-gate-body img {
+  margin-bottom: 16px;
+}
+.dp-gate-body h2 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+}
+.dp-gate-body p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+}
+.dp-gate .dp-leave-btns {
+  flex-direction: column;
+  gap: 16px;
+}
+.dp-gate .dp-leave-btns .oc-btn {
+  flex: none;
+  width: 100%;
+}
+.dp-gate-later {
+  align-self: center;
+}
